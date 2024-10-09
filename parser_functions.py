@@ -260,29 +260,45 @@ def get_buff_generation(fight_num: int, player: dict, stat_category: str, name_p
         top_stats['overall'][stat_category][buff_id]['wasted'] = top_stats['overall'][stat_category][buff_id].get('wasted', 0) + buff_wasted
 
 
-def get_skill_cast_by_prof_role(fight_num: int, player: dict, stat_category: str, name_prof: str) -> None:
-    name = player['name']
+def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: str, name_prof: str) -> None:
+    """
+    Add player skill casts by profession and role to top_stats dictionary
+
+    Args:
+        'active_time' (int): player active time in milliseconds.
+        player (dict): The player dictionary.
+        stat_category (str): The category of stats to collect.
+        name_prof (str): The name of the profession.
+    """
+
     profession = player['profession']
-    role = player['role']
+    role = 'Imp_Role'
     prof_role = profession + ' {{' + role + '}}'
+    active_time /= 1000
     
-    
+    if 'skill_casts_by_role' not in top_stats:
+        top_stats['skill_casts_by_role'] = {}
+
     if prof_role not in top_stats['skill_casts_by_role']:
         top_stats['skill_casts_by_role'][prof_role] = {
             'total': {}
         }
 
     if name_prof not in top_stats['skill_casts_by_role'][prof_role]:
-        top_stats['skill_casts_by_role'][prof_role][name_prof] = {}
+        top_stats['skill_casts_by_role'][prof_role][name_prof] = {
+            'ActiveTime': 0
+        }
 
+    top_stats['skill_casts_by_role'][prof_role][name_prof]['ActiveTime'] += active_time
 
-    for skill in player['rotation']:
+    for skill in player[stat_category]:
         skill_id = skill['id']
+        cast_count = len(skill['skills'])
 
         if skill_id not in top_stats['skill_casts_by_role'][prof_role][name_prof]:
             top_stats['skill_casts_by_role'][prof_role][name_prof][skill_id] = 0
         if skill_id not in top_stats['skill_casts_by_role'][prof_role]['total']:
             top_stats['skill_casts_by_role'][prof_role]['total'][skill_id] = 0
 
-        top_stats['skill_casts_by_role'][prof_role]['total'][skill_id] = top_stats['skill_casts_by_role'][prof_role]['total'][skill_id].get('total', 0) + 1
-        top_stats['skill_casts_by_role'][prof_role][name_prof][skill_id] = top_stats['skill_casts_by_role'][prof_role][name_prof].get(skill_id, 0) + 1
+        top_stats['skill_casts_by_role'][prof_role]['total'][skill_id] += cast_count
+        top_stats['skill_casts_by_role'][prof_role][name_prof][skill_id] = top_stats['skill_casts_by_role'][prof_role][name_prof].get(skill_id, 0) + cast_count

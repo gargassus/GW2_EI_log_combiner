@@ -21,6 +21,7 @@ json_stats = [
     'totalDamageTaken', 'buffUptimes', 'buffUptimesActive',
     'squadBuffs', 'groupBuffs', 'selfBuffs',
     'squadBuffsActive', 'groupBuffsActive', 'selfBuffsActive',
+    'rotation', 'extHealingStats', 'extBarrierStats',
 ]
 
 # Top stats dictionary to store combined log data

@@ -80,8 +80,6 @@ def parse_file(file_path, fight_num):
             if extension['name'] == "Healing Stats":
                 players_running_healing_addon = extension['runningExtension']
 
-    top_stats['fight'][fight_num] = {}
-    top_stats['fight'][fight_num] = {}
     players = json_data['players']
     targets = json_data['targets']
     skill_map = json_data['skillMap']
@@ -97,14 +95,17 @@ def parse_file(file_path, fight_num):
     check_detailed_wvw = json_data['detailedWvW']
     dist_to_com = []
     fight_tag = ""
-    top_stats['fight'][fight_num]['squad_count'] = 0
-    top_stats['fight'][fight_num]['non_squad_count'] = 0
-    top_stats['fight'][fight_num]['enemy_count'] = 0
-    top_stats['fight'][fight_num]['enemy_Red'] = 0
-    top_stats['fight'][fight_num]['enemy_Green'] = 0
-    top_stats['fight'][fight_num]['enemy_Blue'] = 0
-    top_stats['fight'][fight_num]['enemy_Unk'] = 0
+    top_stats['fight'][fight_num] = {
+        'squad_count': 0,
+        'non_squad_count': 0,
+        'enemy_count': 0,
+        'enemy_Red': 0,
+        'enemy_Green': 0,
+        'enemy_Blue': 0,
+        'enemy_Unk': 0
+    }
     top_stats['parties_by_fight'][fight_num] = {}
+
     
     #collect player counts and parties
     get_parties_by_fight(fight_num, players)
@@ -220,6 +221,12 @@ def parse_file(file_path, fight_num):
             if stat_cat in ['squadBuffsActive', 'groupBuffsActive', 'selfBuffsActive']:                
                 get_buff_generation(fight_num, player, stat_cat, name_prof, active_time, buff_data, squad_count, group_count)
 
+            # format: player[stat_category][skill][skills][casts]
+            if stat_cat == 'rotation':
+                 get_skill_cast_by_prof_role(active_time, player, stat_cat, name_prof)
+
+            if stat_cat in ['extHealingStats', 'extBarrierStats']:
+                 print("HealStats and BarrierStats are not implemented yet")
 
 for filename in sorted_files:
     
@@ -248,6 +255,7 @@ json_dict["parties_by_fight"] = {key: value for key, value in top_stats["parties
 json_dict["players"] = {key: value for key, value in top_stats['player'].items()}
 json_dict["buff_data"] = {key: value for key, value in buff_data.items()}
 json_dict["skill_data"] = {key: value for key, value in skill_data.items()}
+json_dict["skill_casts_by_role"] = {key: value for key, value in top_stats["skill_casts_by_role"].items()}
 
 
 with open(args.json_output_filename, 'w') as json_file:
