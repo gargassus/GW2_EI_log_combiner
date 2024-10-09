@@ -9,7 +9,48 @@ buff_data = {}
 
 skill_data = {}
 
-def get_enemys_by_fight(fight_num: int, targets: list) -> None:
+
+def get_buffs_data(buff_map: dict) -> None:
+    """
+    Collect buff data across all fights.
+
+    Args:
+        buff_map (dict): The dictionary of buff data.
+    """
+    for buff in buff_map:
+        buff_id = buff[1:]
+        name = buff_map[buff]['name']
+        stacking = buff_map[buff]['stacking']
+        icon = buff_map[buff]['icon']
+        if buff_id not in buff_data:
+            buff_data[buff_id] = {
+                'name': name,
+                'stacking': stacking,
+                'icon': icon
+            }
+        
+
+def get_skills_data(skill_map: dict) -> None:
+    """
+    Collect skill data across all fights.
+
+    Args:
+        skill_map (dict): The dictionary of skill data.
+    """
+    for skill in skill_map:
+        skill_id = skill[1:]
+        name = skill_map[skill]['name']
+        auto_attack = skill_map[skill]['autoAttack']
+        icon = skill_map[skill]['icon']
+        if skill_id not in skill_data:
+            skill_data[skill_id] = {
+                'name': name,
+                'auto': auto_attack,
+                'icon': icon
+            }
+
+
+def get_enemies_by_fight(fight_num: int, targets: list) -> None:
     """
     Organize targets by enemy for a fight.
 

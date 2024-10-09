@@ -110,36 +110,16 @@ def parse_file(file_path, fight_num):
     #collect player counts and parties
     get_parties_by_fight(fight_num, players)
 
-    get_enemys_by_fight(fight_num, targets)
+    #collect enemy counts and team colors
+    get_enemies_by_fight(fight_num, targets)
 
-    for buff in buff_map:
-        #'name', 'stacking', 'icon'
-        buff_id = buff[1:]
-        name = buff_map[buff]['name']
-        stacking = buff_map[buff]['stacking']
-        icon = buff_map[buff]['icon']
-        if buff_id not in buff_data:
-            buff_data[buff_id] = {
-                'name': name,
-                'stacking': stacking,
-                'icon': icon
-            }
-        
+    #collect buff data
+    get_buffs_data(buff_map)
 
-    for skill in skill_map:
-        #'name', 'autoAttack', 'icon'
-        skill_id = skill[1:]
-        name = skill_map[skill]['name']
-        auto_attack = skill_map[skill]['autoAttack']
-        icon = skill_map[skill]['icon']
-        if skill_id not in skill_data:
-            skill_data[skill_id] = {
-                'name': name,
-                'auto': auto_attack,
-                'icon': icon
-            }
-        
+    #collect skill data
+    get_skills_data(skill_map) 
 
+    #process each player in the fight
     for player in players:
         # skip players not in squad
         if player['notInSquad']:
