@@ -4,7 +4,7 @@ GW2 - Elite Insight Multiple Log Summary
 Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json output.
 
 ### To Do
-1. [ ] Parse multiple json logs
+- [ ] Parse multiple json logs
   - [ ] fight data
      - [x] skillMap
      - [x] buffMap
@@ -36,7 +36,7 @@ Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json out
      - [ ] support
      - [ ] tbd
 
-2. [ ] Output summary
+- [ ] Output summary
   - [ ] Mirror EI html output via TW5
   - [ ] Chart Dashboard?
   - [ ] hypertable
