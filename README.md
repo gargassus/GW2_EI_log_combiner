@@ -27,7 +27,16 @@ Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json out
       - [x] selfBuffsActive
       - [X] rotation
       - [ ] HealStats Data
+         - [x] Outgoing Healing
+         - [x] Downed Healing
+         - [x] Outgoing Barrier
+         - [x] Outgoing Healing by Target
+         - [x] Outgoing Barrier by Target
+         - [x] Outgoing Healing by Skill
+         - [x] Outgoing Barrier by Skill
       - [ ] teamID
+         - [x] Enemy Team Colors
+         - [ ] Ally Team Colors ??
    - [ ] target data
       - [X] teamID
    - [ ] Highlights / High Scores
