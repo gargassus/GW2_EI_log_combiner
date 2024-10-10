@@ -14,14 +14,27 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# Elite Insight json stat categories
+
+# Elite Insights json stat categories
 json_stats = [
-    'defenses', 'support', 'statsAll',
-    'statsTargets', 'targetDamageDist', 'dpsTargets',
-    'totalDamageTaken', 'buffUptimes', 'buffUptimesActive',
-    'squadBuffs', 'groupBuffs', 'selfBuffs',
-    'squadBuffsActive', 'groupBuffsActive', 'selfBuffsActive',
-    'rotation', 'extHealingStats', 'extBarrierStats',
+    'defenses',
+    'support',
+    'statsAll',
+    'statsTargets',
+    'targetDamageDist',
+    'dpsTargets',
+    'totalDamageTaken',
+    'buffUptimes',
+    'buffUptimesActive',
+    'squadBuffs',
+    'groupBuffs',
+    'selfBuffs',
+    'squadBuffsActive',
+    'groupBuffsActive',
+    'selfBuffsActive',
+    'rotation',
+    'extHealingStats',
+    'extBarrierStats',
 ]
 
 # Top stats dictionary to store combined log data

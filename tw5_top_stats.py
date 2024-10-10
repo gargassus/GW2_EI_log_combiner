@@ -1,3 +1,20 @@
+#    This file contains the configuration for computing the detailed top stats in arcdps logs as parsed by Elite Insights.
+#    Copyright (C) 2024 John Long (Drevarr)
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
 import argparse
 import sys
 import os.path
@@ -95,6 +112,8 @@ def parse_file(file_path, fight_num):
     check_detailed_wvw = json_data['detailedWvW']
     dist_to_com = []
     fight_tag = ""
+
+    #Initialize fight_num stats
     top_stats['fight'][fight_num] = {
         'squad_count': 0,
         'non_squad_count': 0,
@@ -102,10 +121,9 @@ def parse_file(file_path, fight_num):
         'enemy_Red': 0,
         'enemy_Green': 0,
         'enemy_Blue': 0,
-        'enemy_Unk': 0
+        'enemy_Unk': 0,
+        'parties_by_fight': {},
     }
-    top_stats['parties_by_fight'][fight_num] = {}
-
     
     #collect player counts and parties
     get_parties_by_fight(fight_num, players)

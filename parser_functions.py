@@ -1,3 +1,20 @@
+#    This file contains the configuration for computing the detailed top stats in arcdps logs as parsed by Elite Insights.
+#    Copyright (C) 2024 John Long (Drevarr)
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
 import config
 
 # Top stats dictionary to store combined log data
@@ -327,7 +344,8 @@ def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: s
 
     if name_prof not in top_stats['skill_casts_by_role'][prof_role]:
         top_stats['skill_casts_by_role'][prof_role][name_prof] = {
-            'ActiveTime': 0
+            'ActiveTime': 0,
+            'Skills': {}
         }
 
     top_stats['skill_casts_by_role'][prof_role][name_prof]['ActiveTime'] += active_time
@@ -336,13 +354,13 @@ def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: s
         skill_id = skill['id']
         cast_count = len(skill['skills'])
 
-        if skill_id not in top_stats['skill_casts_by_role'][prof_role][name_prof]:
-            top_stats['skill_casts_by_role'][prof_role][name_prof][skill_id] = 0
+        if skill_id not in top_stats['skill_casts_by_role'][prof_role][name_prof]['Skills']:
+            top_stats['skill_casts_by_role'][prof_role][name_prof]['Skills'][skill_id] = 0
         if skill_id not in top_stats['skill_casts_by_role'][prof_role]['total']:
             top_stats['skill_casts_by_role'][prof_role]['total'][skill_id] = 0
 
         top_stats['skill_casts_by_role'][prof_role]['total'][skill_id] += cast_count
-        top_stats['skill_casts_by_role'][prof_role][name_prof][skill_id] = top_stats['skill_casts_by_role'][prof_role][name_prof].get(skill_id, 0) + cast_count
+        top_stats['skill_casts_by_role'][prof_role][name_prof]['Skills'][skill_id] = top_stats['skill_casts_by_role'][prof_role][name_prof]['Skills'].get(skill_id, 0) + cast_count
 
 
 def get_healStats_data(fight_num: int, player: dict, stat_category: str, name_prof: str) -> None:
