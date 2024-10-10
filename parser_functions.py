@@ -25,6 +25,7 @@ team_colors = config.team_colors
 # Buff and skill data collected from al logs
 buff_data = {}
 skill_data = {}
+damage_mod_data = {}
 
 
 def get_buffs_data(buff_map: dict) -> None:
@@ -63,6 +64,26 @@ def get_skills_data(skill_map: dict) -> None:
             skill_data[skill_id] = {
                 'name': name,
                 'auto': auto_attack,
+                'icon': icon
+            }
+
+
+def get_damage_mods_data(damage_mod_map: dict) -> None:
+    """
+    Collect buff data across all fights.
+
+    Args:
+        buff_map (dict): The dictionary of buff data.
+    """
+    for mod in damage_mod_map:
+        mod_id = mod[1:]
+        name = damage_mod_map[mod]['name']
+        incoming = damage_mod_map[mod]['incoming']
+        icon = damage_mod_map[mod]['icon']
+        if mod_id not in damage_mod_data:
+            damage_mod_data[mod_id] = {
+                'name': name,
+                'incoming': incoming,
                 'icon': icon
             }
 
