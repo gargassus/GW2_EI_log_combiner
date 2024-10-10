@@ -143,7 +143,7 @@ def parse_file(file_path, fight_num):
 
         if tag:
             top_stats['fight'][fight_num]['commander'] = name_prof
-            
+
         if name_prof not in top_stats['player']:
             print('Found new player: '+name_prof)
             top_stats['player'][name_prof] = {
@@ -153,7 +153,7 @@ def parse_file(file_path, fight_num):
                 'team': team,
                 'guild': guild_id,
             }
-            
+
         # Cumulative group and squad supported counts
         top_stats['player'][name_prof]['group_supported'] = top_stats['player'][name_prof].get('group_supported', 0) + group_count
         top_stats['player'][name_prof]['squad_supported'] = top_stats['player'][name_prof].get('squad_supported', 0) + squad_count
@@ -167,7 +167,7 @@ def parse_file(file_path, fight_num):
         top_stats['player'][name_prof]['active_time'] = top_stats['player'][name_prof].get('active_time', 0) + active_time
         top_stats['fight'][fight_num]['active_time'] = top_stats['fight'][fight_num].get('active_time', 0) + active_time
         top_stats['overall']['active_time'] = top_stats['overall'].get('active_time', 0) + active_time
-        
+
         for stat_cat in json_stats:
 
             # Initialize dictionaries for player, fight, and overall stats if they don't exist
@@ -203,10 +203,11 @@ def parse_file(file_path, fight_num):
 
             # format: player[stat_category][skill][skills][casts]
             if stat_cat == 'rotation':
-                 get_skill_cast_by_prof_role(active_time, player, stat_cat, name_prof)
+                get_skill_cast_by_prof_role(active_time, player, stat_cat, name_prof)
 
             if stat_cat in ['extHealingStats', 'extBarrierStats']:
-                 print("HealStats and BarrierStats are not implemented yet")
+                if name in players_running_healing_addon:
+                    get_healStats_data(fight_num, player, stat_cat, name_prof)
 
 for filename in sorted_files:
     

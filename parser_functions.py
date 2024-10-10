@@ -5,8 +5,8 @@ top_stats = config.top_stats
 
 team_colors = config.team_colors
 
+# Buff and skill data collected from al logs
 buff_data = {}
-
 skill_data = {}
 
 
@@ -343,3 +343,54 @@ def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: s
 
         top_stats['skill_casts_by_role'][prof_role]['total'][skill_id] += cast_count
         top_stats['skill_casts_by_role'][prof_role][name_prof][skill_id] = top_stats['skill_casts_by_role'][prof_role][name_prof].get(skill_id, 0) + cast_count
+
+
+def get_healStats_data(fight_num: int, player: dict, stat_category: str, name_prof: str) -> None:
+    """
+    Add player healing stats to top_stats dictionary
+
+    Args:
+        fight_num (int): The fight number.
+        player (dict): The player dictionary.
+        stat_category (str): The category of stats to collect.
+        name_prof (str): The name of the profession.
+    """
+    if stat_category == 'extHealingStats':
+        for heal_target in player[stat_category]['outgoingHealingAllies']:
+            outgoing_healing = heal_target[0]['healing'] - heal_target[0]['downedHealing']
+
+            top_stats['player'][name_prof][stat_category]['outgoing_healing'] = (
+                top_stats['player'][name_prof][stat_category].get('outgoing_healing', 0) + outgoing_healing
+            )
+            top_stats['fight'][fight_num][stat_category]['outgoing_healing'] = (
+                top_stats['fight'][fight_num][stat_category].get('outgoing_healing', 0) + outgoing_healing
+            )
+            top_stats['overall'][stat_category]['outgoing_healing'] = (
+                top_stats['overall'][stat_category].get('outgoing_healing', 0) + outgoing_healing
+            )
+
+            downed_healing = heal_target[0]['downedHealing']
+
+            top_stats['player'][name_prof][stat_category]['downed_healing'] = (
+                top_stats['player'][name_prof][stat_category].get('downed_healing', 0) + downed_healing
+            )
+            top_stats['fight'][fight_num][stat_category]['downed_healing'] = (
+                top_stats['fight'][fight_num][stat_category].get('downed_healing', 0) + downed_healing
+            )
+            top_stats['overall'][stat_category]['downed_healing'] = (
+                top_stats['overall'][stat_category].get('downed_healing', 0) + downed_healing
+            )
+
+    if stat_category == 'extBarrierStats':
+        for barrier_target in player[stat_category]['outgoingBarrierAllies']:
+            outgoing_barrier = barrier_target[0]['barrier']
+
+            top_stats['player'][name_prof][stat_category]['outgoing_barrier'] = (
+                top_stats['player'][name_prof][stat_category].get('outgoing_barrier', 0) + outgoing_barrier
+            )
+            top_stats['fight'][fight_num][stat_category]['outgoing_barrier'] = (
+                top_stats['fight'][fight_num][stat_category].get('outgoing_barrier', 0) + outgoing_barrier
+            )
+            top_stats['overall'][stat_category]['outgoing_barrier'] = (
+                top_stats['overall'][stat_category].get('outgoing_barrier', 0) + outgoing_barrier
+            )
