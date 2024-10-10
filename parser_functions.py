@@ -355,7 +355,7 @@ def get_healStats_data(fight_num: int, player: dict, stat_category: str, name_pr
         stat_category (str): The category of stats to collect.
         name_prof (str): The name of the profession.
     """
-    if stat_category == 'extHealingStats':
+    if stat_category == 'extHealingStats' and 'extHealingStats' in player:
         for heal_target in player[stat_category]['outgoingHealingAllies']:
             outgoing_healing = heal_target[0]['healing'] - heal_target[0]['downedHealing']
 
@@ -381,7 +381,7 @@ def get_healStats_data(fight_num: int, player: dict, stat_category: str, name_pr
                 top_stats['overall'][stat_category].get('downed_healing', 0) + downed_healing
             )
 
-    if stat_category == 'extBarrierStats':
+    if stat_category == 'extBarrierStats' and 'extBarrierStats' in player:
         for barrier_target in player[stat_category]['outgoingBarrierAllies']:
             outgoing_barrier = barrier_target[0]['barrier']
 

@@ -84,9 +84,9 @@ def parse_file(file_path, fight_num):
     targets = json_data['targets']
     skill_map = json_data['skillMap']
     buff_map = json_data['buffMap']
-    damage_mod_map = json_data['damageModMap']
-    personal_buffs = json_data['personalBuffs']
-    personal_damage_mods = json_data['personalDamageMods']
+    damage_mod_map = json_data.get('damageModMap', {})
+    personal_buffs = json_data.get('personalBuffs', {})
+    personal_damage_mods = json_data.get('personalDamageMods', {})
 
     inches_to_pixel = json_data['combatReplayMetaData']['inchToPixel']
     polling_rate = json_data['combatReplayMetaData']['pollingRate']
