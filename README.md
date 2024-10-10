@@ -8,7 +8,7 @@ Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json out
    - [ ] fight data
       - [x] skillMap
       - [x] buffMap
-      - [ ] damage_mod_map
+      - [x] damage_mod_map
    - [ ] player data
       - [x] defenses
       - [x] support
@@ -26,7 +26,7 @@ Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json out
       - [x] groupBuffsActive
       - [x] selfBuffsActive
       - [X] rotation
-      - [ ] HealStats Data
+      - [x] HealStats Data
          - [x] Outgoing Healing
          - [x] Downed Healing
          - [x] Outgoing Barrier
@@ -37,6 +37,9 @@ Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json out
       - [ ] teamID
          - [x] Enemy Team Colors
          - [ ] Ally Team Colors ??
+      - [ ] Damage Mod Data         
+         - [ ] Shared
+         - [ ] Profession?         
    - [ ] target data
       - [X] teamID
    - [ ] Highlights / High Scores
@@ -48,4 +51,4 @@ Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json out
 - [ ] Output summary
    - [ ] Mirror EI html output via TW5
    - [ ] Chart Dashboard?
-   - [ ] hypertable
+   - [ ] hypertable?
