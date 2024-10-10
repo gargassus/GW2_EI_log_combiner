@@ -70,20 +70,18 @@ def get_skills_data(skill_map: dict) -> None:
 
 def get_damage_mods_data(damage_mod_map: dict) -> None:
     """
-    Collect buff data across all fights.
+    Collect damage mod data across all fights.
 
     Args:
-        buff_map (dict): The dictionary of buff data.
+        damage_mod_map (dict): The dictionary of damage mod data.
     """
     for mod in damage_mod_map:
         mod_id = mod[1:]
         name = damage_mod_map[mod]['name']
-        incoming = damage_mod_map[mod]['incoming']
         icon = damage_mod_map[mod]['icon']
         if mod_id not in damage_mod_data:
             damage_mod_data[mod_id] = {
                 'name': name,
-                'incoming': incoming,
                 'icon': icon
             }
 

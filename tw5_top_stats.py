@@ -137,6 +137,9 @@ def parse_file(file_path, fight_num):
     #collect skill data
     get_skills_data(skill_map) 
 
+    #collect damage mods data
+    get_damage_mods_data(damage_mod_map)
+
     #process each player in the fight
     for player in players:
         # skip players not in squad
@@ -254,6 +257,7 @@ json_dict["parties_by_fight"] = {key: value for key, value in top_stats["parties
 json_dict["players"] = {key: value for key, value in top_stats['player'].items()}
 json_dict["buff_data"] = {key: value for key, value in buff_data.items()}
 json_dict["skill_data"] = {key: value for key, value in skill_data.items()}
+json_dict["damage_mod_data"] = {key: value for key, value in damage_mod_data.items()}
 json_dict["skill_casts_by_role"] = {key: value for key, value in top_stats["skill_casts_by_role"].items()}
 
 
