@@ -104,17 +104,21 @@ def parse_file(file_path, fight_num):
     damage_mod_map = json_data.get('damageModMap', {})
     personal_buffs = json_data.get('personalBuffs', {})
     personal_damage_mods = json_data.get('personalDamageMods', {})
-
+    fight_date, fight_end, fight_utc = json_data['timeEnd'].split(' ')
     inches_to_pixel = json_data['combatReplayMetaData']['inchToPixel']
     polling_rate = json_data['combatReplayMetaData']['pollingRate']
     upload_link = json_data['uploadLinks'][0]
     fight_duration = json_data['durationMS']
     check_detailed_wvw = json_data['detailedWvW']
     dist_to_com = []
-    fight_tag = ""
+
 
     #Initialize fight_num stats
     top_stats['fight'][fight_num] = {
+        'fight_date': fight_date,
+        'fight_end': fight_end,
+        'fight_utc': fight_utc,
+        'commander': "",
         'squad_count': 0,
         'non_squad_count': 0,
         'enemy_count': 0,
