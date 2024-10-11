@@ -233,7 +233,7 @@ def parse_file(file_path, fight_num):
             if stat_cat in ['extHealingStats', 'extBarrierStats']:
                 if name in players_running_healing_addon:
                     get_healStats_data(fight_num, player, players, stat_cat, name_prof)
-                    get_healing_skills(player, stat_cat, name_prof)
+                    get_healstats_skills(player, stat_cat, name_prof)
 
 for filename in sorted_files:
     
