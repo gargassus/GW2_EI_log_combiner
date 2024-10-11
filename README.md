@@ -9,6 +9,7 @@ Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json out
       - [x] skillMap
       - [x] buffMap
       - [x] damage_mod_map
+      - [ ] personal_buff_map
    - [ ] player data
       - [x] defenses
       - [x] support
@@ -30,16 +31,16 @@ Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json out
          - [x] Outgoing Healing
          - [x] Downed Healing
          - [x] Outgoing Barrier
-         - [x] Outgoing Healing by Target
-         - [x] Outgoing Barrier by Target
-         - [x] Outgoing Healing by Skill
-         - [x] Outgoing Barrier by Skill
+         - [X] Outgoing Healing by Target
+         - [X] Outgoing Barrier by Target
+         - [X] Outgoing Healing by Skill
+         - [X] Outgoing Barrier by Skill
       - [ ] teamID
          - [x] Enemy Team Colors
          - [ ] Ally Team Colors ??
       - [ ] Damage Mod Data         
          - [ ] Shared
-         - [ ] Profession?         
+         - [ ] Profession  
    - [ ] target data
       - [X] teamID
    - [ ] Highlights / High Scores
