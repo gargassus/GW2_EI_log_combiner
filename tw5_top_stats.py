@@ -27,7 +27,9 @@ import gzip
 from collections import OrderedDict
 
 import config
+import config_output
 from parser_functions import *
+from output_functions import *
 
 
 if __name__ == '__main__':
@@ -108,7 +110,8 @@ def parse_file(file_path, fight_num):
     inches_to_pixel = json_data['combatReplayMetaData']['inchToPixel']
     polling_rate = json_data['combatReplayMetaData']['pollingRate']
     upload_link = json_data['uploadLinks'][0]
-    fight_duration = json_data['durationMS']
+    fight_duration = json_data['duration']
+    fight_duration_ms = json_data['durationMS']
     check_detailed_wvw = json_data['detailedWvW']
     dist_to_com = []
 
@@ -118,6 +121,8 @@ def parse_file(file_path, fight_num):
         'fight_date': fight_date,
         'fight_end': fight_end,
         'fight_utc': fight_utc,
+        'fight_duration': fight_duration,
+        'fight_durationMS': fight_duration_ms,
         'commander': "",
         'squad_count': 0,
         'non_squad_count': 0,
@@ -184,9 +189,9 @@ def parse_file(file_path, fight_num):
         top_stats['player'][name_prof]['squad_supported'] = top_stats['player'][name_prof].get('squad_supported', 0) + squad_count
 
         #Cumulative fight time  for player, fight and overall    
-        top_stats['player'][name_prof]['fight_time'] = top_stats['player'][name_prof].get('fight_time', 0) + fight_duration
-        top_stats['fight'][fight_num]['fight_time'] = top_stats['fight'][fight_num].get('fight_time', 0) + fight_duration
-        top_stats['overall']['fight_time'] = top_stats['overall'].get('fight_time', 0) + fight_duration
+        top_stats['player'][name_prof]['fight_time'] = top_stats['player'][name_prof].get('fight_time', 0) + fight_duration_ms
+        top_stats['fight'][fight_num]['fight_time'] = top_stats['fight'][fight_num].get('fight_time', 0) + fight_duration_ms
+        top_stats['overall']['fight_time'] = top_stats['overall'].get('fight_time', 0) + fight_duration_ms
 
         #Cumulative active time  for player, fight and overall
         top_stats['player'][name_prof]['active_time'] = top_stats['player'][name_prof].get('active_time', 0) + active_time
@@ -218,11 +223,11 @@ def parse_file(file_path, fight_num):
 
             # format: player[stat_cat][buff][buffData][0][stat:value]
             if stat_cat in ['buffUptimes', 'buffUptimesActive']:
-                get_buff_uptimes(fight_num, player, stat_cat, name_prof, fight_duration, active_time)
+                get_buff_uptimes(fight_num, player, stat_cat, name_prof, fight_duration_ms, active_time)
 
             # format: player[stat_category][buff][buffData][0][generation]
             if stat_cat in ['squadBuffs', 'groupBuffs', 'selfBuffs']:
-                get_buff_generation(fight_num, player, stat_cat, name_prof, fight_duration, buff_data, squad_count, group_count)
+                get_buff_generation(fight_num, player, stat_cat, name_prof, fight_duration_ms, buff_data, squad_count, group_count)
             if stat_cat in ['squadBuffsActive', 'groupBuffsActive', 'selfBuffsActive']:                
                 get_buff_generation(fight_num, player, stat_cat, name_prof, active_time, buff_data, squad_count, group_count)
 
@@ -270,3 +275,12 @@ with open(args.json_output_filename, 'w') as json_file:
     json.dump(json_dict, json_file, indent=4)
 
 print("JSON File Complete : "+args.json_output_filename)
+
+defense_stats = config_output.defenses_table
+build_category_summary_table(top_stats, defense_stats)
+
+support_stats = config_output.support_table
+build_category_summary_table(top_stats, support_stats)
+
+offensive_stats = config_output.offensive_table
+build_category_summary_table(top_stats, offensive_stats)
