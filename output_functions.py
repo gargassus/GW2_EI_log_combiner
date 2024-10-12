@@ -65,53 +65,46 @@ def build_fight_summary(top_stats):
     pass
 
 
-def build_category_summary_table(top_stats, categpry_stats):
-    """Print a table of defense stats for all players in the log."""
+def build_category_summary_table(top_stats: dict, category_stats: dict) -> None:
+    """
+    Print a table of defense stats for all players in the log.
 
+    Args:
+        top_stats (dict): The top_stats dictionary containing the overall stats.
+        category_stats (dict): A dictionary that maps a category name to a stat name.
+
+    Returns:
+        None
+    """
+
+    pct_stats = {
+        "criticalRate": "critableDirectDamageCount", "flankingRate":"connectedDirectDamageCount", "glanceRate":"connectedDirectDamageCount", "againstMovingRate": "connectedDamageCount"
+    }
     # Build the table header
     header = "|thead-dark table-caption-top table-hover sortable|k\n"
     header += "|!Name | !Prof |!Account | !Fight Time (s) | !Active Time (s) |"
-    for stat in categpry_stats:
-        header += " !{{"+f"{stat}"+"}} |"
+    for stat in category_stats:
+        header += f" !{{ {stat} }} |"
     header += "h"
 
     # Build the table body
     rows = []
     for player in top_stats["player"].values():
-        row = f"|{player['name']}"+" | {{"+f"{player['profession']}"+"}} |"+f"{player['account']} | {player['fight_time'] / 1000:.2f}| {player['active_time'] / 1000:.2f}|"
-        for stat in categpry_stats:
-            cat = categpry_stats[stat]
+        row = f"|{player['name']} | {{ {player['profession']} }} | {player['account']} | {player['fight_time'] / 1000:.2f}| {player['active_time'] / 1000:.2f}|"
 
-            if "Time" in stat:
-                stat_value = round(player[cat].get(stat, 0),1)
-            elif stat == "criticalRate":
-                critical_rate = player[cat].get(stat, 0)
-                critable_direct_damage_count = player[cat].get("critableDirectDamageCount", 0)
-                critical_rate_percentage = round((critical_rate / critable_direct_damage_count) * 100, 1)
-                stat_value = f"{critical_rate_percentage}%"
-            elif stat == "flankingRate":
-                flanking_rate = player[cat].get(stat, 0)
-                connected_direct_damage_count = player[cat].get("connectedDirectDamageCount", 0)
-                flanking_rate_percentage = round((flanking_rate / connected_direct_damage_count) * 100, 1)
-                stat_value = f"{flanking_rate_percentage}%"
-            elif stat == "glanceRate":
-                glance_rate = player[cat].get(stat, 0)
-                connected_direct_damage_count = player[cat].get("connectedDirectDamageCount", 0)
-                glance_rate_percentage = round((glance_rate / connected_direct_damage_count) * 100, 1)
-                stat_value = f"{glance_rate_percentage}%"
-            elif stat == "againstMovingRate":
-                against_moving_rate = player[cat].get(stat, 0)
-                connected_damage_count = player[cat].get("connectedDamageCount", 0)
-                against_moving_rate_percentage = round((against_moving_rate / connected_damage_count) * 100, 1)
-                stat_value = f"{against_moving_rate_percentage}%"
+        for stat, category in category_stats.items():
+            stat_value = player[category].get(stat, 0)
+
+            if stat in pct_stats:
+                divisor_value = player[category].get(pct_stats[stat], 0)
+                stat_value_percentage = round((stat_value / divisor_value) * 100, 1)
+                stat_value = f"{stat_value_percentage}%"
             else:
-                stat_value = player[cat].get(stat, 0)
                 stat_value = f"{stat_value:,}"
+            row += f" {stat_value} |"
 
-            row += f" {stat_value}|"
         rows.append(row)
 
     # Print the table
     print(header)
     print("\n".join(rows))
-        
