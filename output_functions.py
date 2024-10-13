@@ -84,7 +84,7 @@ def build_category_summary_table(top_stats: dict, category_stats: dict) -> None:
     header = "|thead-dark table-caption-top table-hover sortable|k\n"
     header += "|!Name | !Prof |!Account | !Fight Time (s) | !Active Time (s) |"
     for stat in category_stats:
-        header += f" !{{ {stat} }} |"
+        header += " !{{"+f"{stat}"+"}} |"
     header += "h"
 
     # Build the table body
@@ -106,5 +106,92 @@ def build_category_summary_table(top_stats: dict, category_stats: dict) -> None:
         rows.append(row)
 
     # Print the table
+    print(header)
+    print("\n".join(rows))
+
+
+def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: dict) -> None:
+    """Print a table of boon uptime stats for all players in the log."""
+
+    # Build the table header
+    header = "|thead-dark table-caption-top table-hover sortable|k\n"
+    header += "|!Name | !Prof |!Account | !Fight Time (s) | !Active Time (s) |"
+    for boon_id, boon_name in boons.items():
+        header += " !{{"+f"{boon_name}"+"}} |"
+    header += "h"
+
+    # Build the table body
+    rows = []
+
+    for player in top_stats["player"].values():
+        row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"| {player['account']} | {player['fight_time'] / 1000:.2f}| {player['active_time'] / 1000:.2f}|"
+
+        for boon_id in boons:
+            boon_id = str(boon_id)
+
+            if boon_id not in player[category]:
+                uptime_percentage = " - "
+            else:
+                stacking = buff_data[boon_id].get('stacking', False)                
+                num_fights = player["num_fights"]
+                group_supported = player["group_supported"]
+                squad_supported = player["squad_supported"]
+
+                if category == "selfBuffs":
+                    generation_ms = player[category][boon_id]["generation"]
+                    if stacking:
+                        uptime_percentage = round((generation_ms / player['fight_time'] / num_fights), 3)
+                    else:
+                        uptime_percentage = round((generation_ms / player['fight_time'] / num_fights) * 100, 3)
+                elif category == "groupBuffs":
+                    generation_ms = player[category][boon_id]["generation"]
+                    if stacking:
+                        uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights), 3)
+                    else:
+                        uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights) * 100, 3)
+                elif category == "squadBuffs":
+                    generation_ms = player[category][boon_id]["generation"]
+                    if stacking:
+                        uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights), 3)
+                    else:
+                        uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights) * 100, 3)
+                else:
+                    raise ValueError(f"Invalid category: {category}")
+                
+                if stacking:
+                    uptime_percentage = f"{uptime_percentage}"
+                else:
+                    uptime_percentage = f"{uptime_percentage}%"
+            row += f" {uptime_percentage} |"
+        rows.append(row)
+    rows.append(f"|{category} Table|c")
+    print(header)
+    print("\n".join(rows))
+
+
+def build_uptime_summary(top_stats: dict, boons: dict) -> None:
+    """Print a table of boon uptime stats for all players in the log."""
+
+    # Build the table header
+    header = "|thead-dark table-caption-top table-hover sortable|k\n"
+    header += "|!Name | !Prof |!Account | !Fight Time (s) | !Active Time (s) |"
+    for boon_id, boon_name in boons.items():
+        header += " !{{"+f"{boon_name}"+"}} |"
+    header += "h"
+
+    # Build the table body
+    rows = []
+    for player in top_stats["player"].values():
+        row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"| {player['account']} | {player['fight_time'] / 1000:.2f}| {player['active_time'] / 1000:.2f}|"
+        for boon_id in boons:
+            if boon_id not in player["buffUptimes"]:
+                uptime_percentage = " - "
+            else:
+                uptime_ms = player["buffUptimes"][boon_id]["uptime_ms"]
+                uptime_percentage = round(uptime_ms / player['fight_time'] * 100, 3)
+                uptime_percentage = f"{uptime_percentage}%"
+            row += f" {uptime_percentage} |"
+        rows.append(row)
+    rows.append(f"|Buff Uptime Table|c")
     print(header)
     print("\n".join(rows))

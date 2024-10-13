@@ -93,3 +93,18 @@ offensive_table = {
     "appliedCrowdControl": 'statsTargets',
     "appliedCrowdControlDuration": 'statsTargets'
 }
+
+boons = {
+	740: 	"Might",
+	725: 	"Fury",
+	1187: 	"Quickness",
+	30328: 	"Alacrity",
+	717: 	"Protection",
+	718:	"Regeneration",
+	726:	"Vigor",
+	743:	"Aegis",
+	1122:	"Stability",
+	719:	"Swiftness",
+	26980:	"Resistance",
+	873:	"Resolution"
+}

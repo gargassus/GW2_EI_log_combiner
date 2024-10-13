@@ -182,9 +182,11 @@ def parse_file(file_path, fight_num):
                 'account': account,
                 'team': team,
                 'guild': guild_id,
+                'num_fights': 0,
             }
 
         # Cumulative group and squad supported counts
+        top_stats['player'][name_prof]['num_fights'] = top_stats['player'][name_prof].get('num_fights', 0) + 1
         top_stats['player'][name_prof]['group_supported'] = top_stats['player'][name_prof].get('group_supported', 0) + group_count
         top_stats['player'][name_prof]['squad_supported'] = top_stats['player'][name_prof].get('squad_supported', 0) + squad_count
 
@@ -284,3 +286,13 @@ build_category_summary_table(top_stats, support_stats)
 
 offensive_stats = config_output.offensive_table
 build_category_summary_table(top_stats, offensive_stats)
+
+boons = config_output.boons
+
+build_uptime_summary(top_stats, boons)
+
+boon_categories = {"selfBuffs", "groupBuffs", "squadBuffs"}
+for boon_category in boon_categories:
+    build_boon_summary(top_stats, boons, boon_category, buff_data)
+
+
