@@ -98,7 +98,7 @@ def build_category_summary_table(top_stats: dict, category_stats: dict) -> None:
             if stat in pct_stats:
                 divisor_value = player[category].get(pct_stats[stat], 0)
                 stat_value_percentage = round((stat_value / divisor_value) * 100, 1)
-                stat_value = f"{stat_value_percentage}%"
+                stat_value = f"{stat_value_percentage:.2f}%"
             else:
                 stat_value = f"{stat_value:,}"
             row += f" {stat_value} |"
@@ -159,9 +159,9 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
                     raise ValueError(f"Invalid category: {category}")
                 
                 if stacking:
-                    uptime_percentage = f"{uptime_percentage}"
+                    uptime_percentage = f"{uptime_percentage:.2f}"
                 else:
-                    uptime_percentage = f"{uptime_percentage}%"
+                    uptime_percentage = f"{uptime_percentage:.2f}%"
             row += f" {uptime_percentage} |"
         rows.append(row)
     rows.append(f"|{category} Table|c")
@@ -189,7 +189,7 @@ def build_uptime_summary(top_stats: dict, boons: dict) -> None:
             else:
                 uptime_ms = player["buffUptimes"][boon_id]["uptime_ms"]
                 uptime_percentage = round(uptime_ms / player['fight_time'] * 100, 3)
-                uptime_percentage = f"{uptime_percentage}%"
+                uptime_percentage = f"{uptime_percentage:.2f}%"
             row += f" {uptime_percentage} |"
         rows.append(row)
     rows.append(f"|Buff Uptime Table|c")

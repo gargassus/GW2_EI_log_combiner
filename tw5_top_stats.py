@@ -296,3 +296,5 @@ for boon_category in boon_categories:
     build_boon_summary(top_stats, boons, boon_category, buff_data)
 
 
+conditions = config_output.buffs_conditions
+build_uptime_summary(top_stats, conditions)
