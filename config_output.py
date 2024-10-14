@@ -151,13 +151,13 @@ buffs_support = {
     34236:  "Search and Rescue!",
     46280:  "Griffon Stance",
     45038:  "Moa Stance",
-    #"Facet of Nature-Dragon",
-    #"Facet of Nature-Demon",
+    51674:  "Facet of Nature-Dragon",
+    51704:  "Facet of Nature-Demon",
     63093:  "Shrouded",
-    #"Ice Drake Venom",
-    #"Devourer Venom",
-    #"Basilisk Venom",
-    #"Banner of Tactics"
+    13095:  "Ice Drake Venom",
+    13094:  "Devourer Venom",
+    13133:  "Basilisk Venom",
+    14450:  "Banner of Tactics"
 }
 
 buffs_defensive = {
@@ -200,6 +200,31 @@ buffs_defensive = {
     70353:  "Relic of Lyhr"
 }
 
+buffs_offensive = {
+    36781:  "Unblockable",
+    31487:  "Static Charge",
+    38333:  "Pinpoint Distribution",
+    41957:  "Ashes of the Just", 
+    9240:   "Bane Signet (PI)",
+    9237:   "Signet of Wrath (PI)",
+    31803:  "Glyph of Empowerment",
+    50421:  "Frost Spirit",
+    50413:  "Sun Spirit",
+    14055:  "Spotter",
+    44651:  "Vulture Stance",
+    44139:  "One Wolf Pack",
+    51692:  "Facet of Nature-Assassin",
+    41016:  "Razorclaw's Rage",
+    45026:  "Soulcleave's Summit",
+    26854:  "Assassin's Presence",
+    63168:  "Rot Wallow Venom",
+    13054:  "Skale Venom",
+    13036:  "Spider Venom",
+    49083:  "Soul Stone Venom",
+    14417:  "Banner of Strength",
+    14449:  "Banner of Discipline",
+    14222:  "Empower Allies",
+}
 buffs_debuff = {
     "Exhaustion",
     "Encumbered",

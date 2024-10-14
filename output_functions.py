@@ -169,14 +169,18 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
     print("\n".join(rows))
 
 
-def build_uptime_summary(top_stats: dict, boons: dict) -> None:
+def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption: str) -> None:
     """Print a table of boon uptime stats for all players in the log."""
 
     # Build the table header
     header = "|thead-dark table-caption-top table-hover sortable|k\n"
     header += "|!Name | !Prof |!Account | !Fight Time (s) | !Active Time (s) |"
     for boon_id, boon_name in boons.items():
-        header += " !{{"+f"{boon_name}"+"}} |"
+        skillIcon = buff_data[str(boon_id)]["icon"]
+
+        #"|[img width=24 ["+skillIcon+"]] "+skill+"
+        #header += " !{{"+f"{boon_name}"+"}} |"
+        header += f"![img width=24 [{boon_name}|{skillIcon}]] |"
     header += "h"
 
     # Build the table body
@@ -192,6 +196,6 @@ def build_uptime_summary(top_stats: dict, boons: dict) -> None:
                 uptime_percentage = f"{uptime_percentage:.2f}%"
             row += f" {uptime_percentage} |"
         rows.append(row)
-    rows.append(f"|Buff Uptime Table|c")
+    rows.append(f"|{caption} Uptime Table|c")
     print(header)
     print("\n".join(rows))

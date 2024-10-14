@@ -289,12 +289,43 @@ build_category_summary_table(top_stats, offensive_stats)
 
 boons = config_output.boons
 
-build_uptime_summary(top_stats, boons)
+build_uptime_summary(top_stats, boons, buff_data, "Boon")
 
 boon_categories = {"selfBuffs", "groupBuffs", "squadBuffs"}
 for boon_category in boon_categories:
     build_boon_summary(top_stats, boons, boon_category, buff_data)
 
-
+#get conditions found and output table
 conditions = config_output.buffs_conditions
-build_uptime_summary(top_stats, conditions)
+condition_list = {}
+for condition in conditions:
+    if condition in top_stats["overall"]["buffUptimes"]:
+        if top_stats["overall"]["buffUptimes"][condition]["uptime_ms"] > 0:
+            condition_list[condition] = conditions[condition]
+build_uptime_summary(top_stats, condition_list, buff_data, "Condition")
+
+#get support buffs found and output table
+support_buffs = config_output.buffs_support
+support_buff_list = {}
+for buff in support_buffs:
+     if buff in top_stats["overall"]["buffUptimes"]:
+         if top_stats["overall"]["buffUptimes"][buff]["uptime_ms"] > 0:
+              support_buff_list[buff] = support_buffs[buff]
+build_uptime_summary(top_stats, support_buff_list, buff_data, "Support Buff")
+
+#get defensive buffs found and output table
+defensive_buffs = config_output.buffs_defensive
+defensive_buff_list = {}
+for buff in defensive_buffs:
+     if buff in top_stats["overall"]["buffUptimes"]:
+         if top_stats["overall"]["buffUptimes"][buff]["uptime_ms"] > 0:
+              defensive_buff_list[buff] = defensive_buffs[buff]
+build_uptime_summary(top_stats, defensive_buff_list, buff_data, "Defensive Buff")
+
+offensive_buffs = config_output.buffs_offensive
+offensive_buff_list = {}
+for buff in offensive_buffs:
+     if buff in top_stats["overall"]["buffUptimes"]:
+         if top_stats["overall"]["buffUptimes"][buff]["uptime_ms"] > 0:
+              offensive_buff_list[buff] = offensive_buffs[buff]
+build_uptime_summary(top_stats, offensive_buff_list, buff_data, "Offensive Buff")
