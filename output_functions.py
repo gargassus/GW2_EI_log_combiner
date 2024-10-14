@@ -159,9 +159,16 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
                     raise ValueError(f"Invalid category: {category}")
                 
                 if stacking:
-                    uptime_percentage = f"{uptime_percentage:.2f}"
+                    if uptime_percentage:
+                        uptime_percentage = f"{uptime_percentage:.2f}"
+                    else:
+                        uptime_percentage = " - "
                 else:
-                    uptime_percentage = f"{uptime_percentage:.2f}%"
+                    if uptime_percentage:
+                        uptime_percentage = f"{uptime_percentage:.1f}%"
+                    else:
+                        uptime_percentage = " - "
+
             row += f" {uptime_percentage} |"
         rows.append(row)
     rows.append(f"|{category} Table|c")
