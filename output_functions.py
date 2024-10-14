@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import json
-
+import config_output
 
 
 #list of tid files to output
@@ -60,9 +60,40 @@ def build_overall_summary(top_stats):
 def build_tag_summary(top_stats):
     pass
 
+def get_total_shield_damage(fight_data: dict) -> int:
+    """Extract the total shield damage from the fight data.
 
-def build_fight_summary(top_stats):
-    pass
+    Args:
+        fight_data (dict): The fight data.
+
+    Returns:
+        int: The total shield damage.
+    """
+    total_shield_damage = 0
+    for skill_id, skill_data in fight_data["targetDamageDist"].items():
+        total_shield_damage += skill_data["shieldDamage"]
+    return total_shield_damage
+
+
+def build_fight_summary(top_stats, overview_stats):
+    """Build a summary of the top stats for each fight."""
+    header = "|thead-dark table-caption-top table-hover sortable|k\n"
+    header += "|# |Location |End Time | Duration| Squad | Allies | Enemy | R/G/B | Downs | Kills | Downed | Deaths | Damage Out| Damage In| Barrier Damage| Barrier % | Shield Damage| Shield % |h"
+
+    print(header)
+
+    for fight_num, fight_data in top_stats["fight"].items():
+        row=[]
+        total_shield_damage = get_total_shield_damage(fight_data)
+
+        row.append(f"|{fight_num} |{fight_data['fight_name']} |{fight_data['fight_end']} | {fight_data['fight_duration']}| {fight_data['squad_count']} | {fight_data['non_squad_count']} | {fight_data['enemy_count']} ")
+        row.append(f"| {fight_data['enemy_Red']}/{fight_data['enemy_Green']}/{fight_data['enemy_Blue']} | {fight_data['statsTargets']['downed']} | {fight_data['statsTargets']['killed']} ")
+        row.append(f"| {fight_data['defenses']['downCount']} | {fight_data['defenses']['deadCount']} | {fight_data['statsTargets']['totalDmg']:,}| {fight_data['defenses']['damageTaken']:,}")
+        row.append(f"| {fight_data['defenses']['damageBarrier']:,}| {(fight_data['defenses']['damageBarrier'] / fight_data['defenses']['damageTaken'] * 100):.2f}%| {total_shield_damage:,}")
+        shield_damage_pct = (total_shield_damage / fight_data['statsTargets']['totalDmg'] * 100)
+        row.append(f"| {shield_damage_pct:.2f}%|")
+
+        print("".join(row))
 
 
 def build_category_summary_table(top_stats: dict, category_stats: dict) -> None:
@@ -160,7 +191,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
                 
                 if stacking:
                     if uptime_percentage:
-                        uptime_percentage = f"{uptime_percentage:.2f}"
+                        uptime_percentage = f"{uptime_percentage:.1f}"
                     else:
                         uptime_percentage = " - "
                 else:

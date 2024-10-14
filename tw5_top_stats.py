@@ -122,6 +122,8 @@ def parse_file(file_path, fight_num):
 
     #Initialize fight_num stats
     top_stats['fight'][fight_num] = {
+        'log_type': log_type,
+        'fight_name': fight_name,
         'fight_date': fight_date,
         'fight_end': fight_end,
         'fight_utc': fight_utc,
@@ -333,3 +335,6 @@ for buff in offensive_buffs:
          if top_stats["overall"]["buffUptimes"][buff]["uptime_ms"] > 0:
               offensive_buff_list[buff] = offensive_buffs[buff]
 build_uptime_summary(top_stats, offensive_buff_list, buff_data, "Offensive Buff")
+
+overview_stats = config_output.overview_stats
+build_fight_summary(top_stats, overview_stats)

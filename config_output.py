@@ -18,6 +18,28 @@
 # Output file categories for tabs
 test_tabs = ["Damage Stats", "Offensive Stats", "Defensive Stats", "Support Stats", "Healing Stats"]
 
+overview_stats = {
+	"fight": "Fight",
+	"fight_name": "Location",
+	"fight_end": "End Time",
+	"fight_duration": "Duration",
+	"squad_count": "Squad",
+	"non_squad_count": "Allies",
+	"enemy_count": "Enemy",
+	"enemy_Red": "Red Team",
+	"enemy_Green": "Green Team",
+	"enemy_Blue": "Blue Team",
+	"downed": "Downs",
+	"killed": "Kills",
+	"downCount":"Downed",
+	"deadCount":"Deaths",
+	"totalDmg": "Damage Out",
+	"damageTaken": "Damage In",
+	"damageBarrier": "Barrier Damage",
+	"barrierPCT": "Barrier %",
+	"total_shield_damage": "Shield Damage",
+	"shieldPCT": "Shield %"
+}
 
 defenses_table = {
 	"damageTaken": 'defenses',
@@ -225,6 +247,7 @@ buffs_offensive = {
     14449:  "Banner of Discipline",
     14222:  "Empower Allies",
 }
+
 buffs_debuff = {
     "Exhaustion",
     "Encumbered",
