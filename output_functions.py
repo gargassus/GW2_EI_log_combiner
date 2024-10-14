@@ -82,19 +82,23 @@ def build_fight_summary(top_stats, overview_stats):
 
     print(header)
 
+    rows = []
+
     for fight_num, fight_data in top_stats["fight"].items():
-        row=[]
+        row=""
         total_shield_damage = get_total_shield_damage(fight_data)
 
-        row.append(f"|{fight_num} |{fight_data['fight_name']} |{fight_data['fight_end']} | {fight_data['fight_duration']}| {fight_data['squad_count']} | {fight_data['non_squad_count']} | {fight_data['enemy_count']} ")
-        row.append(f"| {fight_data['enemy_Red']}/{fight_data['enemy_Green']}/{fight_data['enemy_Blue']} | {fight_data['statsTargets']['downed']} | {fight_data['statsTargets']['killed']} ")
-        row.append(f"| {fight_data['defenses']['downCount']} | {fight_data['defenses']['deadCount']} | {fight_data['statsTargets']['totalDmg']:,}| {fight_data['defenses']['damageTaken']:,}")
-        row.append(f"| {fight_data['defenses']['damageBarrier']:,}| {(fight_data['defenses']['damageBarrier'] / fight_data['defenses']['damageTaken'] * 100):.2f}%| {total_shield_damage:,}")
+        row+=(f"|{fight_num} |{fight_data['fight_name']} |{fight_data['fight_end']} | {fight_data['fight_duration']}| {fight_data['squad_count']} | {fight_data['non_squad_count']} | {fight_data['enemy_count']} ")
+        row+=(f"| {fight_data['enemy_Red']}/{fight_data['enemy_Green']}/{fight_data['enemy_Blue']} | {fight_data['statsTargets']['downed']} | {fight_data['statsTargets']['killed']} ")
+        row+=(f"| {fight_data['defenses']['downCount']} | {fight_data['defenses']['deadCount']} | {fight_data['statsTargets']['totalDmg']:,}| {fight_data['defenses']['damageTaken']:,}")
+        row+=(f"| {fight_data['defenses']['damageBarrier']:,}| {(fight_data['defenses']['damageBarrier'] / fight_data['defenses']['damageTaken'] * 100):.2f}%| {total_shield_damage:,}")
         shield_damage_pct = (total_shield_damage / fight_data['statsTargets']['totalDmg'] * 100)
-        row.append(f"| {shield_damage_pct:.2f}%|")
+        row+=(f"| {shield_damage_pct:.2f}%|")
 
-        print("".join(row))
+        #print("".join(row))
+        rows.append(row)
 
+    print("\n".join(rows))
 
 def build_category_summary_table(top_stats: dict, category_stats: dict) -> None:
     """
