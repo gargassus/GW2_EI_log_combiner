@@ -338,3 +338,7 @@ build_uptime_summary(top_stats, offensive_buff_list, buff_data, "Offensive Buff"
 
 overview_stats = config_output.overview_stats
 build_fight_summary(top_stats, overview_stats)
+
+
+tag_data = build_tag_summary(top_stats)
+output_tag_summary(tag_data)

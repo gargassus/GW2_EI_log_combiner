@@ -58,7 +58,60 @@ def build_overall_summary(top_stats):
 
 
 def build_tag_summary(top_stats):
-    pass
+    tag_summary = {}
+
+    for fight, fight_data in top_stats["fight"].items():
+        if fight_data["commander"] not in tag_summary:
+            tag_summary[fight_data["commander"]] = {
+                "num_fights": 0,
+                "fight_time": 0,
+                "kills": 0,
+                "downs": 0,
+                "downed": 0,
+                "deaths": 0,
+                "KDR": 0,
+            }
+
+        tag_summary[fight_data["commander"]]["num_fights"] += 1
+        tag_summary[fight_data["commander"]]["fight_time"] += fight_data["fight_durationMS"]
+        tag_summary[fight_data["commander"]]["kills"] += fight_data["statsTargets"]["killed"]
+        tag_summary[fight_data["commander"]]["downs"] += fight_data["statsTargets"]["downed"]
+        tag_summary[fight_data["commander"]]["downed"] += fight_data["defenses"]["downCount"]
+        tag_summary[fight_data["commander"]]["deaths"] += fight_data["defenses"]["deadCount"]
+
+    return tag_summary
+
+
+def output_tag_summary(tag_summary):
+    print("|Name | Prof | Fights | Downs | Kills | Downed | Deaths | KDR |")
+    for key, value in tag_summary.items():
+        Name=key.split("|")[0]
+        Profession="{{"+key.split("|")[1]+"}}"
+        KDR = value['kills'] / value['deaths']
+        print(
+            f"|{Name} | {Profession} | {value['num_fights']} | {value['downs']} | {value['kills']} | {value['downed']} | {value['deaths']} | {KDR:.2f}|"
+        )
+
+    #sum all tags
+    total_fights = 0
+    total_fight_time = 0
+    total_kills = 0
+    total_downs = 0
+    total_downed = 0
+    total_deaths = 0
+    for key, value in tag_summary.items():
+        total_fights += value['num_fights']
+        total_fight_time += value['fight_time']
+        total_kills += value['kills']
+        total_downs += value['downs']
+        total_downed += value['downed']
+        total_deaths += value['deaths']
+
+    print(
+        f"|Totals |<| {total_fights} | {total_downs} | {total_kills} | {total_downed} | {total_deaths} | {total_kills/total_deaths:.2f}|"
+    )
+
+
 
 def get_total_shield_damage(fight_data: dict) -> int:
     """Extract the total shield damage from the fight data.
