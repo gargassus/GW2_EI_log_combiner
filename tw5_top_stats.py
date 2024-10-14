@@ -117,11 +117,7 @@ def parse_file(file_path, fight_num):
     dist_to_com = []
 
 
-    if "Detailed WvW" in fight_name or "World vs World" in fight_name:
-        log_type = "WVW"
-        fight_name = fight_name.split(" - ")[1]
-    else:
-        log_type = "PVE"
+    log_type, fight_name = determine_log_type_and_extract_fight_name(fight_name)
 
 
     #Initialize fight_num stats

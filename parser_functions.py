@@ -27,6 +27,43 @@ buff_data = {}
 skill_data = {}
 damage_mod_data = {}
 
+def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
+    """
+    Determine if the log is a PVE or WVW log and extract the fight name.
+
+    If the log is a WVW log, the fight name is extracted after the " - " delimiter.
+    If the log is a PVE log, the original fight name is returned.
+
+    Args:
+        fight_name (str): The name of the fight.
+
+    Returns:
+        tuple: A tuple containing the log type and the extracted fight name.
+    """
+    if "Detailed WvW" in fight_name or "World vs World" in fight_name:
+        # WVW log
+        log_type = "WVW"
+        fight_name = fight_name.split(" - ")[1]
+    else:
+        # PVE log
+        log_type = "PVE"
+    return log_type, fight_name
+
+def get_total_shield_damage(fight_data: dict) -> int:
+    """
+    Extract the total shield damage from the fight data.
+
+    Args:
+        fight_data (dict): The fight data.
+
+    Returns:
+        int: The total shield damage.
+    """
+    total_shield_damage = 0
+    for skill in fight_data["targetDamageDist"]:
+        total_shield_damage += skill["shieldDamage"]
+    return total_shield_damage
+
 
 def get_buffs_data(buff_map: dict) -> None:
     """
