@@ -113,7 +113,15 @@ def parse_file(file_path, fight_num):
     fight_duration = json_data['duration']
     fight_duration_ms = json_data['durationMS']
     check_detailed_wvw = json_data['detailedWvW']
+    fight_name = json_data['fightName']
     dist_to_com = []
+
+
+    if "Detailed WvW" in fight_name or "World vs World" in fight_name:
+        log_type = "WVW"
+        fight_name = fight_name.split(" - ")[1]
+    else:
+        log_type = "PVE"
 
 
     #Initialize fight_num stats
