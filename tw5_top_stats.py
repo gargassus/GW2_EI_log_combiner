@@ -338,9 +338,12 @@ for buff in offensive_buffs:
 build_uptime_summary(top_stats, offensive_buff_list, buff_data, "Offensive Buff")
 
 #get overview stats found and output table
-overview_stats = config_output.overview_stats
-build_fight_summary(top_stats, overview_stats)
+#overview_stats = config_output.overview_stats
+build_fight_summary(top_stats, "Overview Table")
 
 
 tag_data = build_tag_summary(top_stats)
 output_tag_summary(tag_data)
+
+
+build_damage_summary_table(top_stats, "Damage Summary Table")

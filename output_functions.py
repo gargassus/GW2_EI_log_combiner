@@ -100,12 +100,19 @@ def calculate_average_squad_count(fight_data: dict) -> tuple:
     return avg_squad_count, avg_ally_count, avg_enemy_count
 
 
-def build_stat_table(top_stats):
-    pass
+def get_total_shield_damage(fight_data: dict) -> int:
+    """Extract the total shield damage from the fight data.
 
+    Args:
+        fight_data (dict): The fight data.
 
-def build_overall_summary(top_stats):
-    pass
+    Returns:
+        int: The total shield damage.
+    """
+    total_shield_damage = 0
+    for skill_id, skill_data in fight_data["targetDamageDist"].items():
+        total_shield_damage += skill_data["shieldDamage"]
+    return total_shield_damage
 
 
 def build_tag_summary(top_stats):
@@ -166,47 +173,95 @@ def output_tag_summary(tag_summary):
     )
 
 
-def get_total_shield_damage(fight_data: dict) -> int:
-    """Extract the total shield damage from the fight data.
-
-    Args:
-        fight_data (dict): The fight data.
-
-    Returns:
-        int: The total shield damage.
-    """
-    total_shield_damage = 0
-    for skill_id, skill_data in fight_data["targetDamageDist"].items():
-        total_shield_damage += skill_data["shieldDamage"]
-    return total_shield_damage
-
-
 def build_fight_summary(top_stats, overview_stats):
     """Build a summary of the top stats for each fight."""
     header = "|thead-dark table-caption-top table-hover sortable|k\n"
+    header += f"| {overview_stats} |c\n"
     header += "|# |Location |End Time | Duration| Squad | Allies | Enemy | R/G/B | Downs | Kills | Downed | Deaths | Damage Out| Damage In| Barrier Damage| Barrier % | Shield Damage| Shield % |h"
 
     print(header)
 
     rows = []
+    last_fight = 0
+    last_end = ""
+    total_durationMS = 0
+    
+    avg_squad_count, avg_ally_count, avg_enemy_count = calculate_average_squad_count(top_stats["fight"].values())
+    squad_down = top_stats['overall']['defenses']['downCount']
+    squad_dead = top_stats['overall']['defenses']['deadCount']
+    enemy_downed = top_stats['overall']['statsTargets']['downed']
+    enemy_killed = top_stats['overall']['statsTargets']['killed']
+    total_damage_out = top_stats['overall']['statsTargets']['totalDmg']
+    total_damage_in = top_stats['overall']['defenses']['damageTaken']
+    total_barrier_damage = top_stats['overall']['defenses']['damageBarrier']
+    total_shield_damage = get_total_shield_damage(top_stats['overall'])
+    total_shield_damage_percent = (total_shield_damage / total_damage_out) * 100
+    total_barrier_damage_percent = (total_barrier_damage / total_damage_in) * 100
 
     for fight_num, fight_data in top_stats["fight"].items():
         row=""
-        total_shield_damage = get_total_shield_damage(fight_data)
+        fight_shield_damage = get_total_shield_damage(fight_data)
 
         row+=(f"|{fight_num} |{fight_data['fight_name']} |{fight_data['fight_end']} | {fight_data['fight_duration']}| {fight_data['squad_count']} | {fight_data['non_squad_count']} | {fight_data['enemy_count']} ")
         row+=(f"| {fight_data['enemy_Red']}/{fight_data['enemy_Green']}/{fight_data['enemy_Blue']} | {fight_data['statsTargets']['downed']} | {fight_data['statsTargets']['killed']} ")
         row+=(f"| {fight_data['defenses']['downCount']} | {fight_data['defenses']['deadCount']} | {fight_data['statsTargets']['totalDmg']:,}| {fight_data['defenses']['damageTaken']:,}")
-        row+=(f"| {fight_data['defenses']['damageBarrier']:,}| {(fight_data['defenses']['damageBarrier'] / fight_data['defenses']['damageTaken'] * 100):.2f}%| {total_shield_damage:,}")
-        shield_damage_pct = (total_shield_damage / fight_data['statsTargets']['totalDmg'] * 100)
+        row+=(f"| {fight_data['defenses']['damageBarrier']:,}| {(fight_data['defenses']['damageBarrier'] / fight_data['defenses']['damageTaken'] * 100):.2f}%| {fight_shield_damage:,}")
+        shield_damage_pct = (fight_shield_damage / fight_data['statsTargets']['totalDmg'] * 100)
         row+=(f"| {shield_damage_pct:.2f}%|")
+        last_fight = fight_num
+        last_end = fight_data['fight_end']
+        total_durationMS += fight_data['fight_durationMS']
 
         #print("".join(row))
         rows.append(row)
 
+    raid_duration = convert_duration(total_durationMS)
+    footer = f"|Total FIghts: {last_fight}|<|{last_end} | {raid_duration}| {avg_squad_count:.1f} | {avg_ally_count:.1f} | {avg_enemy_count:.1f} |     | {squad_down} | {squad_dead} | {enemy_downed} | {enemy_killed} | {total_damage_out:,}| {total_damage_in:,}| {total_barrier_damage:,}| {total_shield_damage_percent:.2f}%| {total_shield_damage:,}| {total_barrier_damage_percent:.2f}%|f"
+    rows.append(footer)
     print("\n".join(rows))
 
 
+def build_damage_summary_table(top_stats: dict, caption: str) -> None:
+    """
+    Print a table of damage stats for all players in the logs.
+
+    Args:
+        top_stats (dict): The top_stats dictionary containing the overall stats.
+
+    Returns:
+        None
+    """
+
+    # Build the table header
+    header = "|thead-dark table-caption-top table-hover sortable|k\n"
+    header += f"| {caption} |c\n"
+    header += "|!Name | !Prof |!Account | !Fight Time (s) | !Active Time (s) |"
+    header += " !{{Target_Damage}}| !{{Target_Power}} | !{{Target_Condition}} | !{{Target_Breakbar_Damage}} | !{{All_Damage}}| !{{All_Power}} | !{{All_Condition}} | !{{All_Breakbar_Damage}} |h"
+
+    rows = []
+
+    # Build the table body
+    for player, player_data in top_stats["player"].items():
+        row = f"|{player_data['name']} |"+" {{"+f"{player_data['profession']}"+"}} "+f"| {player_data['account']} | {player_data['fight_time'] / 1000:.2f}| {player_data['active_time'] / 1000:.2f}|"
+        row += " {:,} | {:,}| {:,}| {:,}| {:,}| {:,}| {:,}| {:,}|".format(
+            player_data["dpsTargets"]["damage"],
+            player_data["dpsTargets"]["powerDamage"],
+            player_data["dpsTargets"]["condiDamage"],
+            player_data["dpsTargets"]["breakbarDamage"],
+            player_data["statsAll"]["totalDmg"],
+            player_data["statsAll"]["directDmg"],
+            player_data["statsAll"]["totalDmg"] - player_data["statsAll"]["directDmg"],
+            player_data["dpsTargets"]["breakbarDamage"],
+        )
+
+        rows.append(row)
+
+    # Print the table
+    print(header)
+    print("\n".join(rows))
+
+
+   
 def build_category_summary_table(top_stats: dict, category_stats: dict, caption: str) -> None:
     """
     Print a table of defense stats for all players in the log.
