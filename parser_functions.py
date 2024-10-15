@@ -437,7 +437,7 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
             outgoing_healing = heal_target[0]['healing'] - heal_target[0]['downedHealing']
             downed_healing = heal_target[0]['downedHealing']
 
-            print('Healing', heal_target_name, outgoing_healing, downed_healing)
+            #print('Healing', heal_target_name, outgoing_healing, downed_healing)
 
             if outgoing_healing or downed_healing:
 

@@ -285,13 +285,13 @@ with open(args.json_output_filename, 'w') as json_file:
 print("JSON File Complete : "+args.json_output_filename)
 
 defense_stats = config_output.defenses_table
-build_category_summary_table(top_stats, defense_stats)
+build_category_summary_table(top_stats, defense_stats, "Defenses")
 
 support_stats = config_output.support_table
-build_category_summary_table(top_stats, support_stats)
+build_category_summary_table(top_stats, support_stats, "Support")
 
 offensive_stats = config_output.offensive_table
-build_category_summary_table(top_stats, offensive_stats)
+build_category_summary_table(top_stats, offensive_stats, "Offensive")
 
 boons = config_output.boons
 
@@ -328,6 +328,7 @@ for buff in defensive_buffs:
               defensive_buff_list[buff] = defensive_buffs[buff]
 build_uptime_summary(top_stats, defensive_buff_list, buff_data, "Defensive Buff")
 
+#get offensive buffs found and output table
 offensive_buffs = config_output.buffs_offensive
 offensive_buff_list = {}
 for buff in offensive_buffs:
@@ -336,6 +337,7 @@ for buff in offensive_buffs:
               offensive_buff_list[buff] = offensive_buffs[buff]
 build_uptime_summary(top_stats, offensive_buff_list, buff_data, "Offensive Buff")
 
+#get overview stats found and output table
 overview_stats = config_output.overview_stats
 build_fight_summary(top_stats, overview_stats)
 

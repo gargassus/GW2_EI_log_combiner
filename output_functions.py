@@ -20,25 +20,22 @@ import config_output
 #list of tid files to output
 tid_list = []
 
-#tid file template
-temp_tid = {
-    'created': 20130308044406417,
-    'creator': "Drevarr",
-    'modified': 20240523132529893,
-    'modifier': "Drevarr",
-    'tags': [],
-    'title': "",
-    'text': ""
-}
-
-
-def create_new_tid_from_template() -> dict:
+def create_new_tid_from_template(title, caption, text, tags=None, modified=None) -> dict:
     """Create a new TID from the template."""
-    return {key: value for key, value in temp_tid.items()}
+    temp_tid = {}
+    temp_tid['title'] = title
+    temp_tid['caption'] = caption
+    temp_tid['text'] = text
+    if tags:
+        temp_tid['tags'] = tags
+    if modified:
+        temp_tid['modified'] = modified
 
+    return temp_tid
 
-#append new tid to list
-#tid_list.append(create_new_tid_from_template)
+def append_tid_for_output(input, output):
+    output.append(input)
+    print(input['title']+' .tid has been created.')
 
 
 def write_tid_list_to_json(tid_list):
@@ -87,7 +84,10 @@ def output_tag_summary(tag_summary):
     for key, value in tag_summary.items():
         Name=key.split("|")[0]
         Profession="{{"+key.split("|")[1]+"}}"
-        KDR = value['kills'] / value['deaths']
+        if value['deaths'] == 0:
+            KDR = value['kills'] 
+        else:
+            KDR = value['kills'] / value['deaths']
         print(
             f"|{Name} | {Profession} | {value['num_fights']} | {value['downs']} | {value['kills']} | {value['downed']} | {value['deaths']} | {KDR:.2f}|"
         )
@@ -153,7 +153,7 @@ def build_fight_summary(top_stats, overview_stats):
 
     print("\n".join(rows))
 
-def build_category_summary_table(top_stats: dict, category_stats: dict) -> None:
+def build_category_summary_table(top_stats: dict, category_stats: dict, caption: str) -> None:
     """
     Print a table of defense stats for all players in the log.
 
@@ -178,21 +178,23 @@ def build_category_summary_table(top_stats: dict, category_stats: dict) -> None:
     # Build the table body
     rows = []
     for player in top_stats["player"].values():
-        row = f"|{player['name']} | {{ {player['profession']} }} | {player['account']} | {player['fight_time'] / 1000:.2f}| {player['active_time'] / 1000:.2f}|"
+        row = f"|{player['name']} | {{{{{player['profession']}}}}} | {player['account']} | {player['fight_time'] / 1000:.2f}| {player['active_time'] / 1000:.2f}|"
 
         for stat, category in category_stats.items():
             stat_value = player[category].get(stat, 0)
-
+            #print(stat, stat_value, player['name'])
             if stat in pct_stats:
                 divisor_value = player[category].get(pct_stats[stat], 0)
+                if divisor_value == 0:
+                    divisor_value = 1
                 stat_value_percentage = round((stat_value / divisor_value) * 100, 1)
                 stat_value = f"{stat_value_percentage:.2f}%"
             else:
-                stat_value = f"{stat_value:,}"
+                stat_value = f"{stat_value:,.1f}"
             row += f" {stat_value} |"
 
         rows.append(row)
-
+    rows.append(f"|{caption} Uptime Table|c")
     # Print the table
     print(header)
     print("\n".join(rows))
