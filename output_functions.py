@@ -46,6 +46,60 @@ def write_tid_list_to_json(tid_list):
         json.dump(tid_list, outfile, indent=4, sort_keys=True)
 
 
+
+def convert_duration(milliseconds: int) -> str:
+    """
+    Convert a duration in milliseconds to a human-readable string.
+
+    Args:
+        milliseconds (int): The duration in milliseconds.
+
+    Returns:
+        str: A string representing the duration in a human-readable format.
+    """
+    seconds, milliseconds = divmod(milliseconds, 1000)
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    days, hours = divmod(hours, 24)
+
+    duration_parts = []
+    if days:
+        duration_parts.append(f"{days}d")
+    if hours:
+        duration_parts.append(f"{hours:02}h")
+    if minutes:
+        duration_parts.append(f"{minutes:02}m")
+    duration_parts.append(f"{seconds:02}s, {milliseconds:03}ms")
+
+    return ", ".join(duration_parts)
+
+
+def calculate_average_squad_count(fight_data: dict) -> tuple:
+    """
+    Calculate the average squad count for a fight.
+
+    Args:
+        fight_data (dict): The fight data.
+
+    Returns:
+        tuple: The average squad count, average ally count, and average enemy count.
+    """
+    total_squad_count = 0
+    total_ally_count = 0
+    total_enemy_count = 0
+
+    for fight in fight_data:
+        total_squad_count += fight["squad_count"]
+        total_ally_count += fight["non_squad_count"]
+        total_enemy_count += fight["enemy_count"]
+
+    avg_squad_count = total_squad_count / len(fight_data)
+    avg_ally_count = total_ally_count / len(fight_data)
+    avg_enemy_count = total_enemy_count / len(fight_data)
+
+    return avg_squad_count, avg_ally_count, avg_enemy_count
+
+
 def build_stat_table(top_stats):
     pass
 
@@ -112,7 +166,6 @@ def output_tag_summary(tag_summary):
     )
 
 
-
 def get_total_shield_damage(fight_data: dict) -> int:
     """Extract the total shield damage from the fight data.
 
@@ -152,6 +205,7 @@ def build_fight_summary(top_stats, overview_stats):
         rows.append(row)
 
     print("\n".join(rows))
+
 
 def build_category_summary_table(top_stats: dict, category_stats: dict, caption: str) -> None:
     """
@@ -296,3 +350,4 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
     rows.append(f"|{caption} Uptime Table|c")
     print(header)
     print("\n".join(rows))
+

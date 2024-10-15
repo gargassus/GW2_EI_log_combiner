@@ -27,6 +27,8 @@ buff_data = {}
 skill_data = {}
 damage_mod_data = {}
 
+
+
 def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
     """
     Determine if the log is a PVE or WVW log and extract the fight name.
