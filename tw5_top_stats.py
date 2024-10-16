@@ -287,7 +287,7 @@ offensive_stats = config_output.offensive_table
 build_category_summary_table(top_stats, offensive_stats, "Offensive", tid_date_time)
 
 boons = config_output.boons
-build_uptime_summary(top_stats, boons, buff_data, f"{tid_date_time}-Uptimes")
+build_uptime_summary(top_stats, boons, buff_data, "Uptimes", tid_date_time)
 
 boon_categories = {"selfBuffs", "groupBuffs", "squadBuffs"}
 for boon_category in boon_categories:
@@ -300,7 +300,7 @@ for condition in conditions:
 	if condition in top_stats["overall"]["buffUptimes"]:
 		if top_stats["overall"]["buffUptimes"][condition]["uptime_ms"] > 0:
 			condition_list[condition] = conditions[condition]
-build_uptime_summary(top_stats, condition_list, buff_data, f"{tid_date_time}-Conditions")
+build_uptime_summary(top_stats, condition_list, buff_data, "Conditions", tid_date_time)
 
 #get support buffs found and output table
 support_buffs = config_output.buffs_support
@@ -309,7 +309,7 @@ for buff in support_buffs:
 	 if buff in top_stats["overall"]["buffUptimes"]:
 		 if top_stats["overall"]["buffUptimes"][buff]["uptime_ms"] > 0:
 			  support_buff_list[buff] = support_buffs[buff]
-build_uptime_summary(top_stats, support_buff_list, buff_data, f"{tid_date_time}-Support Buffs")
+build_uptime_summary(top_stats, support_buff_list, buff_data, "Support Buffs", tid_date_time)
 
 #get defensive buffs found and output table
 defensive_buffs = config_output.buffs_defensive
@@ -318,7 +318,7 @@ for buff in defensive_buffs:
 	 if buff in top_stats["overall"]["buffUptimes"]:
 		 if top_stats["overall"]["buffUptimes"][buff]["uptime_ms"] > 0:
 			  defensive_buff_list[buff] = defensive_buffs[buff]
-build_uptime_summary(top_stats, defensive_buff_list, buff_data, f"{tid_date_time}-Defensive Buffs")
+build_uptime_summary(top_stats, defensive_buff_list, buff_data, "Defensive Buffs", tid_date_time)
 
 #get offensive buffs found and output table
 offensive_buffs = config_output.buffs_offensive
@@ -327,7 +327,7 @@ for buff in offensive_buffs:
 	 if buff in top_stats["overall"]["buffUptimes"]:
 		 if top_stats["overall"]["buffUptimes"][buff]["uptime_ms"] > 0:
 			  offensive_buff_list[buff] = offensive_buffs[buff]
-build_uptime_summary(top_stats, offensive_buff_list, buff_data, f"{tid_date_time}-Offensive Buffs")
+build_uptime_summary(top_stats, offensive_buff_list, buff_data, "Offensive Buffs", tid_date_time)
 
 #get overview stats found and output table
 #overview_stats = config_output.overview_stats

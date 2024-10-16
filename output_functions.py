@@ -422,21 +422,21 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
                 squad_supported = player["squad_supported"]
 
                 if category == "selfBuffs":
-                    caption = "Self Buffs"
+                    caption = "Self Generation"
                     generation_ms = player[category][boon_id]["generation"]
                     if stacking:
                         uptime_percentage = round((generation_ms / player['fight_time'] / num_fights), 3)
                     else:
                         uptime_percentage = round((generation_ms / player['fight_time'] / num_fights) * 100, 3)
                 elif category == "groupBuffs":
-                    caption = "Group Buffs"
+                    caption = "Group Generation"
                     generation_ms = player[category][boon_id]["generation"]
                     if stacking:
                         uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights), 3)
                     else:
                         uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights) * 100, 3)
                 elif category == "squadBuffs":
-                    caption = "Squad Buffs"
+                    caption = "Squad Generation"
                     generation_ms = player[category][boon_id]["generation"]
                     if stacking:
                         uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights), 3)
@@ -470,7 +470,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
         )    
 
 
-def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption: str) -> None:
+def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
     """Print a table of boon uptime stats for all players in the log."""
 
     rows = []
@@ -505,7 +505,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
     tid_text = "\n".join(rows)
 
     append_tid_for_output(
-        create_new_tid_from_template(caption, caption, tid_text),
+        create_new_tid_from_template(f"{tid_date_time}-{caption}", caption, tid_text),
         tid_list
     )
 
@@ -576,7 +576,7 @@ def build_boon_stats_tid(datetime):
     buff_stats_creator = f"Drevarr@github.com"
 
     buff_stats_text = "---\n\n"
-    buff_stats_text += f"<<tabs '[[{datetime}-Uptimes]] [[{datetime}-Self Buffs]] [[{datetime}-Group Buffs]] [[{datetime}-Squad Buffs]]' '{datetime}-Uptimes' '$:/state/tab1'>>"
+    buff_stats_text += f"<<tabs '[[{datetime}-Uptimes]] [[{datetime}-Self Generation]] [[{datetime}-Group Generation]] [[{datetime}-Squad Generation]]' '{datetime}-Uptimes' '$:/state/tab1'>>"
 
     append_tid_for_output(
         create_new_tid_from_template(buff_stats_title, buff_stats_caption, buff_stats_text, buff_stats_tags, creator=buff_stats_creator),
