@@ -158,5 +158,6 @@ buffs_offensive = {
 
 buffs_debuff = {
     46842: "Exhaustion", 1159: "Encumbered", 70350: "Relic of the Dragonhunter", 70806: "Relic of Isgarren", 69882: "Relic of Peitha",
-    10179: "Morphed (Polymorph Moa)", 15859: "Morphed (Polymorph Tuna)", 14499: "Impaled"
+    10179: "Morphed (Polymorph Moa)", 15859: "Morphed (Polymorph Tuna)", 14499: "Impaled", 30778: "Hunter's Mark", 44633:'Disenchantment',
+    833: 'Daze', 872: 'Stun'
 }

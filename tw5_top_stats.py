@@ -239,7 +239,7 @@ def parse_file(file_path, fight_num):
 				get_buff_generation(fight_num, player, stat_cat, name_prof, active_time, buff_data, squad_count, group_count)
 
 			# format: player[stat_category][skill][skills][casts]
-			if stat_cat == 'rotation':
+			if stat_cat == 'rotation' and 'rotation' in player:
 				get_skill_cast_by_prof_role(active_time, player, stat_cat, name_prof)
 
 			if stat_cat in ['extHealingStats', 'extBarrierStats']:
@@ -329,6 +329,15 @@ for buff in offensive_buffs:
 			  offensive_buff_list[buff] = offensive_buffs[buff]
 build_uptime_summary(top_stats, offensive_buff_list, buff_data, "Offensive Buffs", tid_date_time)
 
+#get offensive debuffs found and output table
+debuffs_buffs = config_output.buffs_debuff
+debuff_list = {}
+for buff in debuffs_buffs:
+	 if buff in top_stats["overall"]["buffUptimes"]:
+		 if top_stats["overall"]["buffUptimes"][buff]["uptime_ms"] > 0:
+			  debuff_list[buff] = debuffs_buffs[buff]
+build_uptime_summary(top_stats, debuff_list, buff_data, "Debuffs", tid_date_time)
+
 #get overview stats found and output table
 #overview_stats = config_output.overview_stats
 build_fight_summary(top_stats, "Overview", tid_date_time)
@@ -342,4 +351,4 @@ build_damage_summary_table(top_stats, "Damage", tid_date_time)
 
 write_tid_list_to_json(tid_list, args.output_filename)
 
-#output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, args.json_output_filename)
+output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, args.json_output_filename)
