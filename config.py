@@ -35,6 +35,8 @@ json_stats = [
     'rotation',
     'extHealingStats',
     'extBarrierStats',
+    'targetBuffs',
+    'damageModifiers'
 ]
 
 # Top stats dictionary to store combined log data

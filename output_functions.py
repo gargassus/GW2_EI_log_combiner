@@ -154,8 +154,10 @@ def build_tag_summary(top_stats):
 def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
     """Output a summary of the tag data in a human-readable format."""
     rows = []
+    rows.append("|thead-dark table-caption-top table-hover sortable|k")
+    rows.append("| Summary by Command Tag |c")
     rows.append(
-        "|Name | Prof | Fights | Downs | Kills | Downed | Deaths | KDR |h"
+        "|Name | Prof | Fights | {{DownedEnemy}} | {{killed}} | {{DownedAlly}} | {{DeadAlly}} | KDR |h"
     )
     for tag, tag_data in tag_summary.items():
         name = tag.split("|")[0]
@@ -223,7 +225,7 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 
     header = "|thead-dark table-caption-top table-hover sortable|k\n"
     header += f"| {caption} |c\n"
-    header += "|# |Location |End Time | Duration| Squad | Allies | Enemy | R/G/B | Downs | Kills | Downed | Deaths | Damage Out| Damage In| Barrier Damage| Barrier % | Shield Damage| Shield % |h"
+    header += "|# |Location |End Time | Duration| Squad | Allies | Enemy | R/G/B | {{DownedEnemy}} | {{killed}} | {{DownedAlly}} | {{DeadAlly}} | {{Damage}} | {{Damage Taken}} | {{damageBarrier}} | {{damageBarrier}} % | {{damageShield}} | {{damageShield}} % |h"
 
     rows.append(header)
 
@@ -235,10 +237,10 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
     # Calculate average squad count
     avg_squad_count, avg_ally_count, avg_enemy_count = calculate_average_squad_count(top_stats["fight"].values())
     # Get the total downs, deaths, and damage out/in/barrier/shield
-    squad_down = top_stats['overall']['defenses']['downCount']
-    squad_dead = top_stats['overall']['defenses']['deadCount']
-    enemy_downed = top_stats['overall']['statsTargets']['downed']
-    enemy_killed = top_stats['overall']['statsTargets']['killed']
+    enemy_downed = top_stats['overall']['defenses']['downCount']
+    enemy_killed = top_stats['overall']['defenses']['deadCount']
+    squad_down = top_stats['overall']['statsTargets']['downed']
+    squad_dead = top_stats['overall']['statsTargets']['killed']
     total_damage_out = top_stats['overall']['statsTargets']['totalDmg']
     total_damage_in = top_stats['overall']['defenses']['damageTaken']
     total_barrier_damage = top_stats['overall']['defenses']['damageBarrier']
@@ -268,7 +270,7 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 
     raid_duration = convert_duration(total_durationMS)
     # Build the footer
-    footer = f"|Total Fights: {last_fight}|<|{last_end} | {raid_duration}| {avg_squad_count:.1f} | {avg_ally_count:.1f} | {avg_enemy_count:.1f} |     | {squad_down} | {squad_dead} | {enemy_downed} | {enemy_killed} | {total_damage_out:,}| {total_damage_in:,}| {total_barrier_damage:,}| {total_shield_damage_percent:.2f}%| {total_shield_damage:,}| {total_barrier_damage_percent:.2f}%|f"
+    footer = f"|Total Fights: {last_fight}|<|{last_end} | {raid_duration}| {avg_squad_count:.1f},,avg,,| {avg_ally_count:.1f},,avg,,| {avg_enemy_count:.1f},,avg,,|     | {squad_down} | {squad_dead} | {enemy_downed} | {enemy_killed} | {total_damage_out:,}| {total_damage_in:,}| {total_barrier_damage:,}| {total_shield_damage_percent:.2f}%| {total_shield_damage:,}| {total_barrier_damage_percent:.2f}%|f"
     rows.append(footer)
     # push the table to tid_list
 
@@ -295,7 +297,7 @@ def build_damage_summary_table(top_stats: dict, caption: str, tid_date_time: str
     # Build the table header
     header = "|thead-dark table-caption-top table-hover sortable|k\n"
     header += f"| {caption} |c\n"
-    header += "|!Name | !Prof |!Account | !Fight Time (s)|"
+    header += "|!Name | !Prof |!Account | !{{FightTime}} |"
     header += " !{{Target_Damage}}| !{{Target_Power}} | !{{Target_Condition}} | !{{Target_Breakbar_Damage}} | !{{All_Damage}}| !{{All_Power}} | !{{All_Condition}} | !{{All_Breakbar_Damage}} |h"
 
     rows.append(header)
@@ -343,9 +345,10 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
     pct_stats = {
         "criticalRate": "critableDirectDamageCount", "flankingRate":"connectedDirectDamageCount", "glanceRate":"connectedDirectDamageCount", "againstMovingRate": "connectedDamageCount"
     }
+    time_stats = ["resurrectTime", "condiCleanseTime", "condiCleanseTimeSelf", "boonStripsTime", "removedStunDuration"]
     # Build the table header
     header = "|thead-dark table-caption-top table-hover sortable|k\n"
-    header += "|!Name | !Prof |!Account | !Fight Time (s)|"
+    header += "|!Name | !Prof |!Account | !{{FightTime}} |"
     for stat in category_stats:
         header += " !{{"+f"{stat}"+"}} |"
     header += "h"
@@ -365,6 +368,8 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
                     divisor_value = 1
                 stat_value_percentage = round((stat_value / divisor_value) * 100, 1)
                 stat_value = f"{stat_value_percentage:.2f}%"
+            elif stat in time_stats:
+                stat_value = f"{stat_value:,.1f}"
             else:
                 stat_value = f"{stat_value:,}"
             row += f" {stat_value}|"
@@ -376,7 +381,7 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
     tid_text = "\n".join(rows)
 
     append_tid_for_output(
-        create_new_tid_from_template(f"{tid_date_time}-{caption}", caption, tid_text),
+        create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ', '-')}", caption, tid_text),
         tid_list
         )
 
@@ -386,7 +391,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
     # Build the table header
     rows = []
     header = "|thead-dark table-caption-top table-hover sortable|k\n"
-    header += "|!Name | !Prof |!Account | !Fight Time (s)|"
+    header += "|!Name | !Prof |!Account | !{{FightTime}} |"
     for boon_id, boon_name in boons.items():
         header += "!{{"+f"{boon_name}"+"}}|"
     header += "h"
@@ -462,7 +467,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 
     #push table to tid_list for output
     tid_text = "\n".join(rows)
-    temp_title = f"{tid_date_time}-{caption}"
+    temp_title = f"{tid_date_time}-{caption.replace(' ','-')}"
 
     append_tid_for_output(
         create_new_tid_from_template(temp_title, caption, tid_text),
@@ -473,13 +478,37 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
     """Print a table of boon uptime stats for all players in the log."""
 
     rows = []
-    # Build the table header
-    header = "|thead-dark table-caption-top table-hover sortable|k\n"
-    header += "|!Name | !Prof |!Account | !Fight Time (s)| "
+    # Build the Squad table header
+    header = "|thead-dark table-caption-top table-hover|k\n"
+    header += "|Squad Average Uptime |c\n"
+    header += "| |"
     for boon_id, boon_name in boons.items():
         skillIcon = buff_data[str(boon_id)]["icon"]
 
-        header += f"![img width=24 [{boon_name}|{skillIcon}]] |"
+        header += f"![img width=24 [{boon_name}|{skillIcon}]]|"
+    header += "h"
+    rows.append(header)
+
+    row = f"|@@display:block;width:360px;Squad Average Uptime@@ |"
+    for boon_id in boons:
+        if boon_id not in top_stats['overall']["buffUptimes"]:
+            uptime_percentage = " - "
+        else:
+            uptime_ms = top_stats['overall']["buffUptimes"][boon_id]["uptime_ms"]
+            uptime_percentage = round((uptime_ms / top_stats['overall']["fight_time"]) * 100, 3)
+            uptime_percentage = f"{uptime_percentage:.2f}%"
+        row += f" {uptime_percentage}|" 
+    row += "f"
+    rows.append(row)    
+    rows.append("\n\n")
+
+    # Build the player table header
+    header = "|thead-dark table-caption-top table-hover sortable|k\n"
+    header += "|!Name | !Prof |!Account | !{{FightTime}} |"
+    for boon_id, boon_name in boons.items():
+        skillIcon = buff_data[str(boon_id)]["icon"]
+
+        header += f"![img width=24 [{boon_name}|{skillIcon}]]|"
     header += "h"
 
     rows.append(header)
@@ -496,20 +525,67 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
                 uptime_percentage = f"{uptime_percentage:.2f}%"
             row += f" {uptime_percentage}|"
         rows.append(row)
-    rows.append(f"|{caption} Uptime Table|c")
+    rows.append(f"|{caption} Table|c")
 
     #push table to tid_list for output
     tid_text = "\n".join(rows)
 
     append_tid_for_output(
-        create_new_tid_from_template(f"{tid_date_time}-{caption}", caption, tid_text),
+        create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ','-')}", caption, tid_text),
         tid_list
     )
+
+
+def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> None:
+    """Print a table of healing stats for all players in the log running the extension."""
+
+    healing_stats = {}
+
+    for player in top_stats['player'].values():
+        if 'extHealingStats' in player or 'extBarrierStats' in player:
+            healing_stats[player['name']] = {
+                'account': player['account'],
+                'profession': player['profession'],
+                'fight_time': player['fight_time']
+            }
+
+        if 'extHealingStats' in player:
+            healing_stats[player['name']]['healing'] = player['extHealingStats'].get('outgoing_healing', 0)
+            healing_stats[player['name']]['downed_healing'] = player['extHealingStats'].get('downed_healing', 0)
+
+        if 'extBarrierStats' in player:
+            healing_stats[player['name']]['barrier'] = player['extBarrierStats'].get('outgoing_barrier', 0)
+
+    # Sort healing stats by healing amount in descending order
+    sorted_healing_stats = sorted(healing_stats.items(), key=lambda x: x[1]['healing'], reverse=True)
+
+    # Build the table header
+    header = "|thead-dark table-caption-top table-hover sortable|k\n"
+    header += "|!Name | !Prof |!Account | !{{FightTime}} | !{{Healing}} | !{{HealingPS}} | !{{Barrier}} | !{{BarrierPS}} | !{{DownedHealing}} | !{{DownedHealingPS}} |h"
+
+    # Build the table body
+    rows = [header]
+    for healer in sorted_healing_stats:
+        fighttime = healer[1]['fight_time'] / 1000
+        row = f"|{healer[0]} |"+" {{"+f"{healer[1]['profession']}"+"}} "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+        row += f" {healer[1]['healing']:,}| {healer[1]['healing'] / fighttime:.2f}| {healer[1]['barrier']:,}|"
+        row += f"{healer[1]['barrier'] / fighttime:.2f}| {healer[1]['downed_healing']:,}| {healer[1]['downed_healing'] / fighttime:.2f}|"
+        rows.append(row)
+    rows.append(f"|{caption} Table|c")
+
+    # Push table to tid_list for output
+    tid_text = "\n".join(rows)
+
+    append_tid_for_output(
+        create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ','-')}", caption, tid_text),
+        tid_list
+    )
+
 
 def build_main_tid(datetime):
     main_created = f"{datetime}"
     main_modified = f"{datetime}"
-    main_tags = f"{datetime}"
+    main_tags = f"{datetime} Logs"
     main_title = f"{datetime}-Log-Summary"
     main_caption = f"{datetime} - Log Summary"
     main_creator = f"Drevarr@github.com"
@@ -521,46 +597,75 @@ def build_main_tid(datetime):
         tid_list
     )
 
+
 def build_menu_tid(datetime):
-    menu_created = f"{datetime}"
-    menu_modified = f"{datetime}"
     menu_tags = f"{datetime}"
     menu_title = f"{datetime}-Menu"
     menu_caption = f"Menu"
-    menu_creator = f"Drevarr@github.com"
 
-    menu_text = f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General Stats]] [[{datetime}-Buffs]] [[{datetime}-Damage Modifiers]] [[{datetime}-Player Summary]]" "{datetime}-Overview" "$:/state/menutab1">>'
+    menu_text = f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] [[{datetime}-Damage-Modifiers]] [[{datetime}-Player-Summary]]" "{datetime}-Overview" "$:/state/menutab1">>'
 
     append_tid_for_output(
-        create_new_tid_from_template(menu_title, menu_caption, menu_text, menu_tags, menu_modified, menu_created, menu_creator),
+        create_new_tid_from_template(menu_title, menu_caption, menu_text, menu_tags),
         tid_list
     )
+
 
 def build_general_stats_tid(datetime):
-    general_stats_tags = f"{datetime}"
-    general_stats_title = f"{datetime}-General Stats"
-    general_stats_caption = f"General Stats"
-    general_stats_creator = f"Drevarr@github.com"
-
-    general_stats_text = f"<<tabs '[[{datetime}-Damage]] [[{datetime}-Offensive]] [[{datetime}-Defenses]] [[{datetime}-Support]]' '{datetime}-Offensive' '$:/state/tab1'>>"
+    """
+    Build a TID for general stats menu.
+    """
+    tags = f"{datetime}"
+    title = f"{datetime}-General-Stats"
+    caption = "General Stats"
+    creator = "Drevarr@github.com"
+    text = (f"<<tabs '[[{datetime}-Damage]] [[{datetime}-Offensive]] "
+            f"[[{datetime}-Defenses]] [[{datetime}-Support]] [[{datetime}-Heal-Stats]]' "
+            f"'{datetime}-Offensive' '$:/state/tab1'>>")
 
     append_tid_for_output(
-        create_new_tid_from_template(general_stats_title, general_stats_caption, general_stats_text, general_stats_tags, creator=general_stats_creator),
+        create_new_tid_from_template(title, caption, text, tags, creator=creator),
         tid_list
     )
 
+
+def build_damage_modifiers_menu_tid(datetime: str) -> None:
+    """
+    Build a TID for the damage modifiers menu.
+    """
+
+    tags = f"{datetime}"
+    title = f"{datetime}-Damage-Modifiers"
+    caption = "Damage Modifiers"
+    creator = "Drevarr@github.com"
+
+    text = (f"<<tabs '[[{datetime}-Shared-Damage-Mods]] [[{datetime}-Profession_Damage_Mods]]' "
+            f"'{datetime}-Shared-Damage-Mods' '$:/state/tab1'>>")
+
+    append_tid_for_output(
+        create_new_tid_from_template(title, caption, text, tags, creator=creator),
+        tid_list
+    )
+
+    
 def build_buffs_stats_tid(datetime):
-    buff_stats_tags = f"{datetime}"
-    buff_stats_title = f"{datetime}-Buffs"
-    buff_stats_caption = f"Buffs"
-    buff_stats_creator = f"Drevarr@github.com"
+    """
+    Build a TID for buffs menu.
+    """
+    tags = f"{datetime}"
+    title = f"{datetime}-Buffs"
+    caption = "Buffs"
+    creator = "Drevarr@github.com"
 
-    buff_stats_text = f"<<tabs '[[{datetime}-Boons]] [[{datetime}-Offensive Buffs]] [[{datetime}-Support Buffs]] [[{datetime}-Defensive Buffs]] [[{datetime}-Conditions]] [[{datetime}-Debuffs]]' '{datetime}-Boons' '$:/state/tab1'>>"
+    text = (f"<<tabs '[[{datetime}-Boons]] [[{datetime}-Offensive-Buffs]] [[{datetime}-Support-Buffs]] "
+            f"[[{datetime}-Defensive-Buffs]] [[{datetime}-Conditions-In]] [[{datetime}-Debuffs-In]]' "
+            f"'{datetime}-Boons' '$:/state/tab1'>>")
 
     append_tid_for_output(
-        create_new_tid_from_template(buff_stats_title, buff_stats_caption, buff_stats_text, buff_stats_tags, creator=buff_stats_creator),
+        create_new_tid_from_template(title, caption, text, tags, creator=creator),
         tid_list
     )
+
 
 def build_boon_stats_tid(datetime):
     buff_stats_tags = f"{datetime}"
@@ -568,14 +673,15 @@ def build_boon_stats_tid(datetime):
     buff_stats_caption = f"Boons"
     buff_stats_creator = f"Drevarr@github.com"
 
-    buff_stats_text = f"<<tabs '[[{datetime}-Uptimes]] [[{datetime}-Self Generation]] [[{datetime}-Group Generation]] [[{datetime}-Squad Generation]]' '{datetime}-Uptimes' '$:/state/tab1'>>"
+    buff_stats_text = f"<<tabs '[[{datetime}-Uptimes]] [[{datetime}-Self-Generation]] [[{datetime}-Group-Generation]] [[{datetime}-Squad-Generation]]' '{datetime}-Uptimes' '$:/state/tab1'>>"
 
     append_tid_for_output(
         create_new_tid_from_template(buff_stats_title, buff_stats_caption, buff_stats_text, buff_stats_tags, creator=buff_stats_creator),
         tid_list
     )
 
-def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, outfile: str) -> None:
+
+def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, personal_damage_mod_data: dict, outfile: str) -> None:
     """Print the top_stats dictionary as a JSON object to the console."""
 
     json_dict = {}
@@ -587,7 +693,8 @@ def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, da
     json_dict["skill_data"] = {key: value for key, value in skill_data.items()}
     json_dict["damage_mod_data"] = {key: value for key, value in damage_mod_data.items()}
     json_dict["skill_casts_by_role"] = {key: value for key, value in top_stats["skill_casts_by_role"].items()}
-
+    #personal_damage_mod_data
+    json_dict["personal_damage_mod_data"] = {key: value for key, value in personal_damage_mod_data.items()}
     with open(outfile, 'w') as json_file:
         json.dump(json_dict, json_file, indent=4)
 

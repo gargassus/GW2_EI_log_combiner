@@ -26,8 +26,9 @@ team_colors = config.team_colors
 buff_data = {}
 skill_data = {}
 damage_mod_data = {}
-
-
+personal_damage_mod_data = {
+    "total": [],
+}
 
 def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
     """
@@ -50,6 +51,7 @@ def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
         # PVE log
         log_type = "PVE"
     return log_type, fight_name
+
 
 def get_total_shield_damage(fight_data: dict) -> int:
     """
@@ -124,6 +126,15 @@ def get_damage_mods_data(damage_mod_map: dict) -> None:
                 'icon': icon
             }
 
+
+def get_personal_mod_data(personal_damage_mods: dict) -> None:
+    for profession, mods in personal_damage_mods.items():
+        if profession not in personal_damage_mod_data:
+            personal_damage_mod_data[profession] = []
+        for mod_id in mods:
+            if mod_id not in personal_damage_mod_data[profession]:
+                personal_damage_mod_data[profession].append(mod_id)
+                personal_damage_mod_data['total'].append(mod_id)
 
 def get_enemies_by_fight(fight_num: int, targets: list) -> None:
     """
@@ -314,6 +325,73 @@ def get_buff_uptimes(fight_num: int, player: dict, stat_category: str, name_prof
         top_stats['fight'][fight_num][stat_category][buff_id]['uptime_ms'] = top_stats['fight'][fight_num][stat_category][buff_id].get('uptime_ms', 0) + stat_value
         top_stats['overall'][stat_category][buff_id]['uptime_ms'] = top_stats['overall'][stat_category][buff_id].get('uptime_ms', 0) + stat_value
 
+def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_category: str, name_prof: str) -> None:
+    """
+    Calculate buff uptime stats for a target caused by squad player
+
+    Args:
+        filename (str): The filename of the fight.
+        player (dict): The player dictionary.
+        targets (dict): The targets dictionary.
+        stat_category (str): The category of stats to collect.
+        name_prof (str): The name of the profession.
+        fight_duration (int): The duration of the fight in milliseconds.
+
+    Returns:
+        None
+    """
+    for target in targets:
+        if 'buffs' in target:
+            for buff in target['buffs']:
+                buff_id = buff['id']
+
+                if player['name'] in buff['statesPerSource']:
+                    name = player['name']
+                    buffTime = 0
+                    buffOn = 0
+                    firstTime = 0
+                    conditionTime = 0
+                    appliedCounts = 0
+                    for stateChange in buff['statesPerSource'][name]:
+                        if stateChange[0] == 0:
+                            continue
+                        elif stateChange[1] >=1 and buffOn == 0:
+                            if stateChange[1] > buffOn:
+                                appliedCounts += 1
+                            buffOn = stateChange[1]
+                            firstTime = stateChange[0]
+
+                        elif stateChange[1] == 0 and buffOn:
+                            buffOn = 0
+                            secondTime = stateChange[0]
+                            buffTime = secondTime - firstTime
+                    conditionTime += buffTime
+
+                    #if buff_id not in top_stats['player'][name_prof][stat_category]:
+                    if buff_id not in top_stats['player'][name_prof][stat_category]:
+                        top_stats['player'][name_prof][stat_category][buff_id] = {
+                            'generated': 0,
+                            'applied_counts': 0,
+                        }
+                    if buff_id not in top_stats['fight'][fight_num][stat_category]:
+                        top_stats['fight'][fight_num][stat_category][buff_id] = {
+                            'generated': 0,
+                            'applied_counts': 0,
+                        }
+                    if buff_id not in top_stats['overall'][stat_category]:
+                        top_stats['overall'][stat_category][buff_id] = {
+                            'generated': 0,
+                            'applied_counts': 0,
+                        }
+
+                    top_stats['player'][name_prof][stat_category][buff_id]['generated'] += conditionTime
+                    top_stats['player'][name_prof][stat_category][buff_id]['applied_counts'] += appliedCounts
+
+                    top_stats['fight'][fight_num][stat_category][buff_id]['generated'] += conditionTime
+                    top_stats['fight'][fight_num][stat_category][buff_id]['applied_counts'] += appliedCounts
+
+                    top_stats['overall'][stat_category][buff_id]['generated'] += conditionTime
+                    top_stats['overall'][stat_category][buff_id]['applied_counts'] += appliedCounts
 
 def get_buff_generation(fight_num: int, player: dict, stat_category: str, name_prof: str, duration: int, buff_data: dict, squad_count: int, group_count: int) -> None:
     """
@@ -375,7 +453,6 @@ def get_buff_generation(fight_num: int, player: dict, stat_category: str, name_p
         top_stats['overall'][stat_category][buff_id]['generation'] = top_stats['overall'][stat_category][buff_id].get('generation', 0) + buff_generation
         top_stats['overall'][stat_category][buff_id]['wasted'] = top_stats['overall'][stat_category][buff_id].get('wasted', 0) + buff_wasted
 
-
 def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: str, name_prof: str) -> None:
     """
     Add player skill casts by profession and role to top_stats dictionary
@@ -419,7 +496,6 @@ def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: s
 
         top_stats['skill_casts_by_role'][prof_role]['total'][skill_id] += cast_count
         top_stats['skill_casts_by_role'][prof_role][name_prof]['Skills'][skill_id] = top_stats['skill_casts_by_role'][prof_role][name_prof]['Skills'].get(skill_id, 0) + cast_count
-
 
 def get_healStats_data(fight_num: int, player: dict, players: dict, stat_category: str, name_prof: str) -> None:
     """
@@ -512,7 +588,6 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
                     top_stats['overall'][stat_category].get('outgoing_barrier', 0) + outgoing_barrier
                 )
 
-
 def get_healstats_skills(player: dict, stat_category: str, name_prof: str) -> None:
     """
     Collect data for extHealingStats and extBarrierStats
@@ -579,3 +654,60 @@ def get_healstats_skills(player: dict, stat_category: str, name_prof: str) -> No
                             top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('totalBarrier', 0) + skill_total_barrier
                         )
 
+def get_damage_mod_by_player(fight_num: int, player: dict, name_prof: str) -> None:
+    if 'damageModifiers' in player:
+
+        for modifier in player['damageModifiers']:
+            mod_id = modifier['id']
+            mod_hit_count = modifier['damageModifiers'][0]['hitCount']
+            mod_total_hit_count = modifier['damageModifiers'][0]['totalHitCount']
+            mod_damage_gain = modifier['damageModifiers'][0]['damageGain']
+            mod_total_damage = modifier['damageModifiers'][0]['totalDamage']
+
+            if mod_id not in top_stats['player'][name_prof]['damageModifiers']:
+                top_stats['player'][name_prof]['damageModifiers'][mod_id] = {}
+
+            top_stats['player'][name_prof]['damageModifiers'][mod_id]['hitCount'] = (
+                top_stats['player'][name_prof]['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
+            )
+            top_stats['player'][name_prof]['damageModifiers'][mod_id]['totalHitCount'] = (
+                top_stats['player'][name_prof]['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
+            )
+            top_stats['player'][name_prof]['damageModifiers'][mod_id]['damageGain'] = (
+                top_stats['player'][name_prof]['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
+            )
+            top_stats['player'][name_prof]['damageModifiers'][mod_id]['totalDamage'] = (
+                top_stats['player'][name_prof]['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
+            )
+
+            if mod_id not in top_stats['fight'][fight_num]['damageModifiers']:
+                top_stats['fight'][fight_num]['damageModifiers'][mod_id] = {}
+
+            top_stats['fight'][fight_num]['damageModifiers'][mod_id]['hitCount'] = (
+                top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
+            )
+            top_stats['fight'][fight_num]['damageModifiers'][mod_id]['totalHitCount'] = (
+                top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
+            )
+            top_stats['fight'][fight_num]['damageModifiers'][mod_id]['damageGain'] = (
+                top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
+            )
+            top_stats['fight'][fight_num]['damageModifiers'][mod_id]['totalDamage'] = (
+                top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
+            )
+
+            if mod_id not in top_stats['overall']['damageModifiers']:
+                top_stats['overall']['damageModifiers'][mod_id] = {}
+
+            top_stats['overall']['damageModifiers'][mod_id]['hitCount'] = (
+                top_stats['overall']['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
+            )
+            top_stats['overall']['damageModifiers'][mod_id]['totalHitCount'] = (
+                top_stats['overall']['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
+            )
+            top_stats['overall']['damageModifiers'][mod_id]['damageGain'] = (
+                top_stats['overall']['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
+            )
+            top_stats['overall']['damageModifiers'][mod_id]['totalDamage'] = (
+                top_stats['overall']['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
+            )

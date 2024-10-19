@@ -113,6 +113,7 @@ def parse_file(file_path, fight_num):
 	fight_duration_ms = json_data['durationMS']
 	check_detailed_wvw = json_data['detailedWvW']
 	fight_name = json_data['fightName']
+	fight_link = json_data['uploadLinks'][0]
 	dist_to_com = []
 
 
@@ -123,6 +124,7 @@ def parse_file(file_path, fight_num):
 	top_stats['fight'][fight_num] = {
 		'log_type': log_type,
 		'fight_name': fight_name,
+		'fight_link': fight_link,
 		'fight_date': fight_date,
 		'fight_end': fight_end,
 		'fight_utc': fight_utc,
@@ -153,6 +155,9 @@ def parse_file(file_path, fight_num):
 
 	#collect damage mods data
 	get_damage_mods_data(damage_mod_map)
+
+	get_personal_mod_data(personal_damage_mods)
+
 
 	#process each player in the fight
 	for player in players:
@@ -247,6 +252,12 @@ def parse_file(file_path, fight_num):
 					get_healStats_data(fight_num, player, players, stat_cat, name_prof)
 					get_healstats_skills(player, stat_cat, name_prof)
 
+			if stat_cat in ['targetBuffs']:
+				get_target_buff_data(fight_num, player, targets, stat_cat, name_prof)
+
+			if stat_cat in ['damageModifiers']:
+				get_damage_mod_by_player(fight_num, player, name_prof)
+
 for filename in sorted_files:
 	
 	# skip files of incorrect filetype
@@ -277,6 +288,8 @@ build_buffs_stats_tid(tid_date_time)
 
 build_boon_stats_tid(tid_date_time)
 
+build_damage_modifiers_menu_tid(tid_date_time)
+	
 defense_stats = config_output.defenses_table
 build_category_summary_table(top_stats, defense_stats, "Defenses", tid_date_time)
 
@@ -293,14 +306,14 @@ boon_categories = {"selfBuffs", "groupBuffs", "squadBuffs"}
 for boon_category in boon_categories:
 	build_boon_summary(top_stats, boons, boon_category, buff_data, tid_date_time)
 
-#get conditions found and output table
+#get incoming condition uptimes on Squad Players
 conditions = config_output.buffs_conditions
 condition_list = {}
 for condition in conditions:
 	if condition in top_stats["overall"]["buffUptimes"]:
 		if top_stats["overall"]["buffUptimes"][condition]["uptime_ms"] > 0:
 			condition_list[condition] = conditions[condition]
-build_uptime_summary(top_stats, condition_list, buff_data, "Conditions", tid_date_time)
+build_uptime_summary(top_stats, condition_list, buff_data, "Conditions-In", tid_date_time)
 
 #get support buffs found and output table
 support_buffs = config_output.buffs_support
@@ -336,7 +349,12 @@ for buff in debuffs_buffs:
 	 if buff in top_stats["overall"]["buffUptimes"]:
 		 if top_stats["overall"]["buffUptimes"][buff]["uptime_ms"] > 0:
 			  debuff_list[buff] = debuffs_buffs[buff]
-build_uptime_summary(top_stats, debuff_list, buff_data, "Debuffs", tid_date_time)
+build_uptime_summary(top_stats, debuff_list, buff_data, "Debuffs-In", tid_date_time)
+
+
+#get heal stats found and output table
+build_healing_summary(top_stats, "Heal Stats", tid_date_time)
+
 
 #get overview stats found and output table
 #overview_stats = config_output.overview_stats
@@ -351,4 +369,4 @@ build_damage_summary_table(top_stats, "Damage", tid_date_time)
 
 write_tid_list_to_json(tid_list, args.output_filename)
 
-output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, args.json_output_filename)
+output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, personal_damage_mod_data, args.json_output_filename)
