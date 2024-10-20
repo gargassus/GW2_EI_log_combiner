@@ -154,9 +154,8 @@ def parse_file(file_path, fight_num):
 	get_skills_data(skill_map) 
 
 	#collect damage mods data
-	get_damage_mods_data(damage_mod_map)
-
 	get_personal_mod_data(personal_damage_mods)
+	get_damage_mods_data(damage_mod_map, personal_damage_mod_data)
 
 
 	#process each player in the fight
@@ -289,6 +288,10 @@ build_buffs_stats_tid(tid_date_time)
 build_boon_stats_tid(tid_date_time)
 
 build_damage_modifiers_menu_tid(tid_date_time)
+
+build_profession_damage_modifier_stats_tid(personal_damage_mod_data, "Damage Modifiers", tid_date_time)
+
+build_shared_damage_modifier_summary(top_stats, damage_mod_data, "Shared Damage Mods", tid_date_time)
 	
 defense_stats = config_output.defenses_table
 build_category_summary_table(top_stats, defense_stats, "Defenses", tid_date_time)
@@ -354,6 +357,10 @@ build_uptime_summary(top_stats, debuff_list, buff_data, "Debuffs-In", tid_date_t
 
 #get heal stats found and output table
 build_healing_summary(top_stats, "Heal Stats", tid_date_time)
+
+
+#get profession damage modifiers found and output table
+build_personal_damage_modifier_summary(top_stats, personal_damage_mod_data, damage_mod_data, "Damage Modifiers", tid_date_time)
 
 
 #get overview stats found and output table

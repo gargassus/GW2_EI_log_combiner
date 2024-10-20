@@ -582,6 +582,104 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
     )
 
 
+def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_data: dict, damage_mod_data: dict, caption: str, tid_date_time: str) -> None:
+    """Print a table of personal damage modifier stats for all players in the log running the extension."""
+    for profession in personal_damage_mod_data:
+        if profession == 'total':
+            continue
+        prof_mod_list = personal_damage_mod_data[profession]
+
+        rows = []
+
+        header = "|thead-dark table-caption-top table-hover sortable|k\n"
+        header += f"| {caption} |c\n"
+        header += "|!Name | !Prof |!Account | !{{FightTime}} |"
+        
+        for mod_id in prof_mod_list:
+            icon = damage_mod_data[str(mod_id)]["icon"]
+            name = damage_mod_data[str(mod_id)]["name"]
+            header += f"![img width=24 [{name}|{icon}]]|"
+        header += "h"
+
+        rows.append(header)
+
+        for player in top_stats['player'].values():
+            if player['profession'] == profession:
+                row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:32]} | {player['fight_time'] / 1000:.2f}|"
+                for mod in prof_mod_list:
+                    if mod in player['damageModifiers']:
+                        hit_count = player['damageModifiers'][mod]['hitCount']
+                        total_count = player['damageModifiers'][mod]['totalHitCount']
+                        damage_gain = player['damageModifiers'][mod]['damageGain']
+                        total_damage = player['damageModifiers'][mod]['totalDamage']
+                        damage_pct = damage_gain / total_damage * 100
+                        hit_pct = hit_count / total_count * 100
+                        tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain}<br>"
+                        detailEntry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext">'+tooltip+'</span></div>'
+                        row += f" {detailEntry}|"
+                    else:
+                        row += f" - |"
+                rows.append(row)
+        rows.append(f"|{profession} Damage Modifiers Table|c")
+        
+
+        # Push table to tid_list for output
+        tid_text = "\n".join(rows)
+
+        append_tid_for_output(
+            create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ','-')}-{profession}", "{{"+f"{profession}"+"}}", tid_text),
+            tid_list
+        )
+
+
+def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict, caption: str, tid_date_time: str) -> None:
+    """Print a table of shared damage modifier stats for all players in the log running the extension."""
+    shared_mod_list = []
+    for modifier in damage_mod_data:
+        if damage_mod_data[modifier]['shared']:
+            shared_mod_list.append(modifier)
+
+    rows = []
+
+    header = "|thead-dark table-caption-top table-hover sortable|k\n"
+    header += f"| {caption} |c\n"
+    header += "|!Name | !Prof |!Account | !{{FightTime}} |"
+    for mod_id in shared_mod_list:
+        icon = damage_mod_data[mod_id]["icon"]
+        name = damage_mod_data[mod_id]["name"]
+        header += f"![img width=24 [{name}|{icon}]]|"
+    header += "h"
+
+    rows.append(header)
+
+    for player in top_stats['player'].values():
+        row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:32]} | {player['fight_time'] / 1000:.2f}|"
+        for modifier_id in shared_mod_list:
+            modifier_id = int(modifier_id)
+            if modifier_id in player['damageModifiers']:
+                modifier_data = player['damageModifiers'][modifier_id]
+                hit_count = modifier_data['hitCount']
+                total_count = modifier_data['totalHitCount']
+                damage_gain = modifier_data['damageGain']
+                total_damage = modifier_data['totalDamage']
+                damage_pct = damage_gain / total_damage * 100
+                hit_pct = hit_count / total_count * 100
+                tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain}<br>"
+                detail_entry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext">{tooltip}</span></div>'
+                row += f" {detail_entry}|"
+            else:
+                row += f" - |"
+        rows.append(row)
+    rows.append(f"|{caption} Damage Modifiers Table|c")
+
+    # Push table to tid_list for output
+    tid_text = "\n".join(rows)
+
+    append_tid_for_output(
+        create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ','-')}", caption, tid_text),
+        tid_list
+    )
+
 def build_main_tid(datetime):
     main_created = f"{datetime}"
     main_modified = f"{datetime}"
@@ -680,6 +778,23 @@ def build_boon_stats_tid(datetime):
         tid_list
     )
 
+def build_profession_damage_modifier_stats_tid(personal_damage_mod_data: dict, caption: str, tid_date_time: str):
+
+    prof_mod_stats_tags = f"{tid_date_time}"
+    prof_mod_stats_title = f"{tid_date_time}-Profession_Damage_Mods"
+    prof_mod_stats_caption = f"Profession Damage Modifiers"
+    prof_mod_stats_creator = f"Drevarr@github.com"
+    prof_mod_stats_text ="<<tabs '"
+    for profession in personal_damage_mod_data:
+        if  'total' in profession:
+            continue
+        tab_name = f"{tid_date_time}-{caption.replace(' ','-')}-{profession}"
+        prof_mod_stats_text += f'[[{tab_name}]]'
+    prof_mod_stats_text += f"' '{tab_name}' '$:/state/tab1'>>"
+    append_tid_for_output(
+        create_new_tid_from_template(prof_mod_stats_title, prof_mod_stats_caption, prof_mod_stats_text, prof_mod_stats_tags, creator=prof_mod_stats_creator),
+        tid_list
+    )   
 
 def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, personal_damage_mod_data: dict, outfile: str) -> None:
     """Print the top_stats dictionary as a JSON object to the console."""

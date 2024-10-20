@@ -26,9 +26,11 @@ team_colors = config.team_colors
 buff_data = {}
 skill_data = {}
 damage_mod_data = {}
+
 personal_damage_mod_data = {
     "total": [],
 }
+personal_buff_data = {}
 
 def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
     """
@@ -109,7 +111,7 @@ def get_skills_data(skill_map: dict) -> None:
             }
 
 
-def get_damage_mods_data(damage_mod_map: dict) -> None:
+def get_damage_mods_data(damage_mod_map: dict, personal_damage_mod_data: dict) -> None:
     """
     Collect damage mod data across all fights.
 
@@ -120,10 +122,20 @@ def get_damage_mods_data(damage_mod_map: dict) -> None:
         mod_id = mod[1:]
         name = damage_mod_map[mod]['name']
         icon = damage_mod_map[mod]['icon']
+        incoming = damage_mod_map[mod]['incoming']
+        shared = False
+        if int(mod_id) in personal_damage_mod_data['total']:
+            shared = False
+
+        else:
+            shared = True
+
         if mod_id not in damage_mod_data:
             damage_mod_data[mod_id] = {
                 'name': name,
-                'icon': icon
+                'icon': icon,
+                'shared': shared,
+                'incoming': incoming
             }
 
 
