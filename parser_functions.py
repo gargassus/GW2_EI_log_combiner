@@ -543,8 +543,8 @@ def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: s
     """
 
     profession = player['profession']
-    role = 'Imp_Role'
-    prof_role = profession + ' {{' + role + '}}'
+    role = determine_player_role(player)
+    prof_role = f"{profession}|{role}"
     active_time /= 1000
     
     if 'skill_casts_by_role' not in top_stats:
