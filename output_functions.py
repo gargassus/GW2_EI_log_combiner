@@ -596,22 +596,22 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
         header += "|!Name | !Prof |!Account | !{{FightTime}} |"
         
         for mod_id in prof_mod_list:
-            icon = damage_mod_data[str(mod_id)]["icon"]
-            name = damage_mod_data[str(mod_id)]["name"]
+            icon = damage_mod_data[mod_id]["icon"]
+            name = damage_mod_data[mod_id]["name"]
             header += f"![img width=24 [{name}|{icon}]]|"
         header += "h"
 
         rows.append(header)
 
-        for player in top_stats['player'].values():
-            if player['profession'] == profession:
-                row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:32]} | {player['fight_time'] / 1000:.2f}|"
+        for player_name, player_data in top_stats['player'].items():
+            if player_data['profession'] == profession:
+                row = f"|{player_data['name']} | {player_data['profession']} |{player_data['account'][:32]} | {player_data['fight_time'] / 1000:.2f}|"
                 for mod in prof_mod_list:
-                    if mod in player['damageModifiers']:
-                        hit_count = player['damageModifiers'][mod]['hitCount']
-                        total_count = player['damageModifiers'][mod]['totalHitCount']
-                        damage_gain = player['damageModifiers'][mod]['damageGain']
-                        total_damage = player['damageModifiers'][mod]['totalDamage']
+                    if mod in player_data['damageModifiers']:
+                        hit_count = player_data['damageModifiers'][mod]['hitCount']
+                        total_count = player_data['damageModifiers'][mod]['totalHitCount']
+                        damage_gain = player_data['damageModifiers'][mod]['damageGain']
+                        total_damage = player_data['damageModifiers'][mod]['totalDamage']
                         damage_pct = damage_gain / total_damage * 100
                         hit_pct = hit_count / total_count * 100
                         tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain}<br>"
@@ -655,7 +655,6 @@ def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict,
     for player in top_stats['player'].values():
         row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:32]} | {player['fight_time'] / 1000:.2f}|"
         for modifier_id in shared_mod_list:
-            modifier_id = int(modifier_id)
             if modifier_id in player['damageModifiers']:
                 modifier_data = player['damageModifiers'][modifier_id]
                 hit_count = modifier_data['hitCount']

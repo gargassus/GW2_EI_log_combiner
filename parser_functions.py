@@ -119,19 +119,18 @@ def get_damage_mods_data(damage_mod_map: dict, personal_damage_mod_data: dict) -
         damage_mod_map (dict): The dictionary of damage mod data.
     """
     for mod in damage_mod_map:
-        mod_id = mod[1:]
         name = damage_mod_map[mod]['name']
         icon = damage_mod_map[mod]['icon']
         incoming = damage_mod_map[mod]['incoming']
         shared = False
-        if int(mod_id) in personal_damage_mod_data['total']:
+        if mod in personal_damage_mod_data['total']:
             shared = False
 
         else:
             shared = True
 
-        if mod_id not in damage_mod_data:
-            damage_mod_data[mod_id] = {
+        if mod not in damage_mod_data:
+            damage_mod_data[mod] = {
                 'name': name,
                 'icon': icon,
                 'shared': shared,
@@ -144,6 +143,7 @@ def get_personal_mod_data(personal_damage_mods: dict) -> None:
         if profession not in personal_damage_mod_data:
             personal_damage_mod_data[profession] = []
         for mod_id in mods:
+            mod_id = "d"+str(mod_id)
             if mod_id not in personal_damage_mod_data[profession]:
                 personal_damage_mod_data[profession].append(mod_id)
                 personal_damage_mod_data['total'].append(mod_id)
@@ -667,59 +667,64 @@ def get_healstats_skills(player: dict, stat_category: str, name_prof: str) -> No
                         )
 
 def get_damage_mod_by_player(fight_num: int, player: dict, name_prof: str) -> None:
-    if 'damageModifiers' in player:
+    mod_list = ["damageModifiers", "damageModifiersTarget", "incomingDamageModifiers", "incomingDamageModifiersTarget"]
 
-        for modifier in player['damageModifiers']:
-            mod_id = modifier['id']
-            mod_hit_count = modifier['damageModifiers'][0]['hitCount']
-            mod_total_hit_count = modifier['damageModifiers'][0]['totalHitCount']
-            mod_damage_gain = modifier['damageModifiers'][0]['damageGain']
-            mod_total_damage = modifier['damageModifiers'][0]['totalDamage']
+    for mod_cat in mod_list:
+        if mod_cat in player:
 
-            if mod_id not in top_stats['player'][name_prof]['damageModifiers']:
-                top_stats['player'][name_prof]['damageModifiers'][mod_id] = {}
+            for modifier in player[mod_cat]:
+                if "id" not in modifier:
+                    continue
+                mod_id = "d" + str(modifier['id'])
+                mod_hit_count = modifier["damageModifiers"][0]['hitCount']
+                mod_total_hit_count = modifier["damageModifiers"][0]['totalHitCount']
+                mod_damage_gain = modifier["damageModifiers"][0]['damageGain']
+                mod_total_damage = modifier["damageModifiers"][0]['totalDamage']
 
-            top_stats['player'][name_prof]['damageModifiers'][mod_id]['hitCount'] = (
-                top_stats['player'][name_prof]['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
-            )
-            top_stats['player'][name_prof]['damageModifiers'][mod_id]['totalHitCount'] = (
-                top_stats['player'][name_prof]['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
-            )
-            top_stats['player'][name_prof]['damageModifiers'][mod_id]['damageGain'] = (
-                top_stats['player'][name_prof]['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
-            )
-            top_stats['player'][name_prof]['damageModifiers'][mod_id]['totalDamage'] = (
-                top_stats['player'][name_prof]['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
-            )
+                if mod_id not in top_stats['player'][name_prof]['damageModifiers']:
+                    top_stats['player'][name_prof]['damageModifiers'][mod_id] = {}
 
-            if mod_id not in top_stats['fight'][fight_num]['damageModifiers']:
-                top_stats['fight'][fight_num]['damageModifiers'][mod_id] = {}
+                top_stats['player'][name_prof]['damageModifiers'][mod_id]['hitCount'] = (
+                    top_stats['player'][name_prof]['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
+                )
+                top_stats['player'][name_prof]['damageModifiers'][mod_id]['totalHitCount'] = (
+                    top_stats['player'][name_prof]['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
+                )
+                top_stats['player'][name_prof]['damageModifiers'][mod_id]['damageGain'] = (
+                    top_stats['player'][name_prof]['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
+                )
+                top_stats['player'][name_prof]['damageModifiers'][mod_id]['totalDamage'] = (
+                    top_stats['player'][name_prof]['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
+                )
 
-            top_stats['fight'][fight_num]['damageModifiers'][mod_id]['hitCount'] = (
-                top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
-            )
-            top_stats['fight'][fight_num]['damageModifiers'][mod_id]['totalHitCount'] = (
-                top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
-            )
-            top_stats['fight'][fight_num]['damageModifiers'][mod_id]['damageGain'] = (
-                top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
-            )
-            top_stats['fight'][fight_num]['damageModifiers'][mod_id]['totalDamage'] = (
-                top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
-            )
+                if mod_id not in top_stats['fight'][fight_num]['damageModifiers']:
+                    top_stats['fight'][fight_num]['damageModifiers'][mod_id] = {}
 
-            if mod_id not in top_stats['overall']['damageModifiers']:
-                top_stats['overall']['damageModifiers'][mod_id] = {}
+                top_stats['fight'][fight_num]['damageModifiers'][mod_id]['hitCount'] = (
+                    top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
+                )
+                top_stats['fight'][fight_num]['damageModifiers'][mod_id]['totalHitCount'] = (
+                    top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
+                )
+                top_stats['fight'][fight_num]['damageModifiers'][mod_id]['damageGain'] = (
+                    top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
+                )
+                top_stats['fight'][fight_num]['damageModifiers'][mod_id]['totalDamage'] = (
+                    top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
+                )
 
-            top_stats['overall']['damageModifiers'][mod_id]['hitCount'] = (
-                top_stats['overall']['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
-            )
-            top_stats['overall']['damageModifiers'][mod_id]['totalHitCount'] = (
-                top_stats['overall']['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
-            )
-            top_stats['overall']['damageModifiers'][mod_id]['damageGain'] = (
-                top_stats['overall']['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
-            )
-            top_stats['overall']['damageModifiers'][mod_id]['totalDamage'] = (
-                top_stats['overall']['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
-            )
+                if mod_id not in top_stats['overall']['damageModifiers']:
+                    top_stats['overall']['damageModifiers'][mod_id] = {}
+
+                top_stats['overall']['damageModifiers'][mod_id]['hitCount'] = (
+                    top_stats['overall']['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
+                )
+                top_stats['overall']['damageModifiers'][mod_id]['totalHitCount'] = (
+                    top_stats['overall']['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
+                )
+                top_stats['overall']['damageModifiers'][mod_id]['damageGain'] = (
+                    top_stats['overall']['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
+                )
+                top_stats['overall']['damageModifiers'][mod_id]['totalDamage'] = (
+                    top_stats['overall']['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
+                )
