@@ -157,7 +157,6 @@ def parse_file(file_path, fight_num):
 	get_personal_mod_data(personal_damage_mods)
 	get_damage_mods_data(damage_mod_map, personal_damage_mod_data)
 
-
 	#process each player in the fight
 	for player in players:
 		# skip players not in squad
@@ -193,6 +192,8 @@ def parse_file(file_path, fight_num):
 				'guild': guild_id,
 				'num_fights': 0,
 			}
+
+		#get_max_hits(player['targetDamageDist'], skill_map, buff_map, name, profession)
 
 		# Cumulative group and squad supported counts
 		top_stats['player'][name_prof]['num_fights'] = top_stats['player'][name_prof].get('num_fights', 0) + 1
@@ -376,4 +377,4 @@ build_damage_summary_table(top_stats, "Damage", tid_date_time)
 
 write_tid_list_to_json(tid_list, args.output_filename)
 
-output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, personal_damage_mod_data, args.json_output_filename)
+output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, args.json_output_filename)

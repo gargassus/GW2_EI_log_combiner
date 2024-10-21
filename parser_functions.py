@@ -26,7 +26,7 @@ team_colors = config.team_colors
 buff_data = {}
 skill_data = {}
 damage_mod_data = {}
-
+high_scores = {}
 personal_damage_mod_data = {
     "total": [],
 }
@@ -53,6 +53,70 @@ def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
         # PVE log
         log_type = "PVE"
     return log_type, fight_name
+
+def update_high_score(stat: str, key: str, value: float) -> None:
+
+    if stat not in high_scores:
+        high_scores[stat] = {}
+    if len(high_scores[stat]) < 5:
+        high_scores[stat][key] = value
+    elif value > min(high_scores[stat].values()):
+        lowest_key = min(high_scores[stat], key=high_scores[stat].get)
+        del high_scores[stat][lowest_key]
+        high_scores[stat][key] = value
+
+def determine_player_role(player: dict) -> str:
+    crit_rate = player["statsAll"][0]["criticalRate"]
+    total_damage = player["dpsAll"][0]["damage"]
+    power_damage = player["dpsAll"][0]["powerDamage"]
+    condi_damage = player["dpsAll"][0]["condiDamage"]
+    if 'extHealingStats' in player:
+        total_healing = player["extHealingStats"]["outgoingHealing"][0]["healing"]
+    else:
+        total_healing = 0
+    if 'extBarrierStats' in player:
+        total_barrier = player["extBarrierStats"]["outgoingBarrier"][0]["barrier"]
+    else:
+        total_barrier = 0
+
+    if total_healing > total_damage:
+        return "Support"
+    if total_barrier > total_damage:
+        return "Support"
+    if condi_damage > power_damage:
+        return "Condi"
+    if crit_rate <= 40:
+        return "Support"
+    else:
+        return "DPS"
+
+
+#get_max_hits(player['targetDamageDist'], skill_map, name_prof)
+def get_max_hits(targetDamageDist: dict, skill_data: dict, buff_map: dict, name: str, profession: str) -> None:
+    """
+    Get the maximum damage hit by skill.
+
+    Args:
+        fight_data (dict): The fight data.
+
+    """
+    for target in targetDamageDist:
+        for skill in target[0]:
+            max_hit = skill["max"]
+            skill_id = skill["id"]
+            if f"s{skill_id}" in skill_data:
+                skill_name = skill_data[f"s{skill_id}"]['name']
+            elif f"b{skill_id}" in buff_map:
+                skill_name = buff_map[f"b{skill_id}"]['name']
+            else:
+                continue
+
+            update_high_score(
+                "max_hits",
+                "{{"+profession+"}}"+name+" | "+f"{skill_name}",
+                f"{max_hit:,}"
+                )
+
 
 
 def get_total_shield_damage(fight_data: dict) -> int:
@@ -245,6 +309,8 @@ def get_stat_by_target_and_skill(fight_num: int, player: dict, stat_category: st
                     top_stats['overall'][stat_category][skill_id] = {}
                     
                 for stat, value in skill.items():
+                    if stat == 'max':
+                        update_high_score(f"{stat_category}_{stat}", f"{name_prof}|{skill_id}", value)
                     if stat != 'id':
                         top_stats['player'][name_prof][stat_category][skill_id][stat] = top_stats['player'][name_prof][stat_category][skill_id].get(
                             stat, 0) + value

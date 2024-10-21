@@ -566,11 +566,12 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
     # Build the table body
     rows = [header]
     for healer in sorted_healing_stats:
-        fighttime = healer[1]['fight_time'] / 1000
-        row = f"|{healer[0]} |"+" {{"+f"{healer[1]['profession']}"+"}} "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
-        row += f" {healer[1]['healing']:,}| {healer[1]['healing'] / fighttime:.2f}| {healer[1]['barrier']:,}|"
-        row += f"{healer[1]['barrier'] / fighttime:.2f}| {healer[1]['downed_healing']:,}| {healer[1]['downed_healing'] / fighttime:.2f}|"
-        rows.append(row)
+        if (healer[1]['healing'] + healer[1]['downed_healing'] + healer[1]['barrier']):
+            fighttime = healer[1]['fight_time'] / 1000
+            row = f"|{healer[0]} |"+" {{"+f"{healer[1]['profession']}"+"}} "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+            row += f" {healer[1]['healing']:,}| {healer[1]['healing'] / fighttime:.2f}| {healer[1]['barrier']:,}|"
+            row += f"{healer[1]['barrier'] / fighttime:.2f}| {healer[1]['downed_healing']:,}| {healer[1]['downed_healing'] / fighttime:.2f}|"
+            rows.append(row)
     rows.append(f"|{caption} Table|c")
 
     # Push table to tid_list for output
@@ -614,7 +615,7 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
                         total_damage = player_data['damageModifiers'][mod]['totalDamage']
                         damage_pct = damage_gain / total_damage * 100
                         hit_pct = hit_count / total_count * 100
-                        tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain}<br>"
+                        tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain:,}<br>"
                         detailEntry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext">'+tooltip+'</span></div>'
                         row += f" {detailEntry}|"
                     else:
@@ -663,7 +664,7 @@ def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict,
                 total_damage = modifier_data['totalDamage']
                 damage_pct = damage_gain / total_damage * 100
                 hit_pct = hit_count / total_count * 100
-                tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain}<br>"
+                tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain:,}<br>"
                 detail_entry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext">{tooltip}</span></div>'
                 row += f" {detail_entry}|"
             else:
@@ -795,7 +796,7 @@ def build_profession_damage_modifier_stats_tid(personal_damage_mod_data: dict, c
         tid_list
     )   
 
-def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, personal_damage_mod_data: dict, outfile: str) -> None:
+def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, outfile: str) -> None:
     """Print the top_stats dictionary as a JSON object to the console."""
 
     json_dict = {}
@@ -807,7 +808,7 @@ def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, da
     json_dict["skill_data"] = {key: value for key, value in skill_data.items()}
     json_dict["damage_mod_data"] = {key: value for key, value in damage_mod_data.items()}
     json_dict["skill_casts_by_role"] = {key: value for key, value in top_stats["skill_casts_by_role"].items()}
-    #personal_damage_mod_data
+    json_dict["high_scores"] = {key: value for key, value in high_scores.items()}    
     json_dict["personal_damage_mod_data"] = {key: value for key, value in personal_damage_mod_data.items()}
     with open(outfile, 'w') as json_file:
         json.dump(json_dict, json_file, indent=4)
