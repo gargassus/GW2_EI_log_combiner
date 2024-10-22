@@ -363,6 +363,10 @@ build_healing_summary(top_stats, "Heal Stats", tid_date_time)
 #get profession damage modifiers found and output table
 build_personal_damage_modifier_summary(top_stats, personal_damage_mod_data, damage_mod_data, "Damage Modifiers", tid_date_time)
 
+#get skill casts by profession and role and output table
+build_skill_cast_summary(top_stats["skill_casts_by_role"], skill_data, "Skill Usage", tid_date_time)
+
+build_skill_usage_stats_tid(top_stats["skill_casts_by_role"], "Skill Usage", tid_date_time)
 
 #get overview stats found and output table
 #overview_stats = config_output.overview_stats

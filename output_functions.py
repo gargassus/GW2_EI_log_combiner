@@ -680,6 +680,63 @@ def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict,
         tid_list
     )
 
+
+def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, caption: str, tid_date_time: str) -> None:
+    """
+    Print a table of skill cast stats for all players in the log running the extension.
+    """
+    for prof_role, cast_data in skill_casts_by_role.items():
+        cast_skills = cast_data['total']
+        sorted_cast_skills = sorted(cast_skills.items(), key=lambda x: x[1], reverse=True)
+        rows = []
+
+        header = "|thead-dark table-caption-top table-hover sortable|k\n"
+        header += f"| {caption} |c\n"
+        header += "|!Name | !Prof | !{{FightTime}} |"
+        i = 0
+        for skill, count in sorted_cast_skills:
+            if i < 35:
+                skill_icon = skill_data[str(skill)]['icon']
+                skill_name = skill_data[str(skill)]['name']
+                header += f"![img width=24 [{skill_name}|{skill_icon}]]|"
+            i+=1
+        header += "h"
+
+        rows.append(header)
+
+        for player, player_data in cast_data.items():
+            if player == 'total':
+                continue
+
+            name, profession = player.split("|")
+            profession = "{{" + profession + "}}"
+            time_secs = player_data['ActiveTime']
+            time_mins = time_secs / 60
+
+            row = f"|{name} |" + " " + f"{profession} " + f"|{time_secs:.2f}|"
+            i = 0
+            for skill, count in sorted_cast_skills:
+                if i < 35:
+                    if skill in player_data['Skills']:
+                        row += f" {(player_data['Skills'][skill] / time_mins):.2f}|"
+                    else:
+                        row += f" - |"
+                i+=1
+            rows.append(row)
+
+        rows.append(f"|{caption} / Minute|c")
+
+        # Push table to tid_list for output
+        tid_text = "\n".join(rows)
+        tid_title = f"{tid_date_time}-{caption.replace(' ','-')}-{prof_role}"
+        tid_caption = profession + f" {prof_role.split('-')[1]}"
+
+        append_tid_for_output(
+            create_new_tid_from_template(tid_title, tid_caption, tid_text),
+            tid_list
+        )
+
+
 def build_main_tid(datetime):
     main_created = f"{datetime}"
     main_modified = f"{datetime}"
@@ -701,7 +758,7 @@ def build_menu_tid(datetime):
     menu_title = f"{datetime}-Menu"
     menu_caption = f"Menu"
 
-    menu_text = f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] [[{datetime}-Damage-Modifiers]] [[{datetime}-Player-Summary]]" "{datetime}-Overview" "$:/state/menutab1">>'
+    menu_text = f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] [[{datetime}-Damage-Modifiers]] [[{datetime}-Skill-Usage]]" "{datetime}-Overview" "$:/state/menutab1">>'
 
     append_tid_for_output(
         create_new_tid_from_template(menu_title, menu_caption, menu_text, menu_tags),
@@ -778,6 +835,7 @@ def build_boon_stats_tid(datetime):
         tid_list
     )
 
+
 def build_profession_damage_modifier_stats_tid(personal_damage_mod_data: dict, caption: str, tid_date_time: str):
 
     prof_mod_stats_tags = f"{tid_date_time}"
@@ -795,6 +853,24 @@ def build_profession_damage_modifier_stats_tid(personal_damage_mod_data: dict, c
         create_new_tid_from_template(prof_mod_stats_title, prof_mod_stats_caption, prof_mod_stats_text, prof_mod_stats_tags, creator=prof_mod_stats_creator),
         tid_list
     )   
+
+
+def build_skill_usage_stats_tid(skill_casts_by_role: dict, caption: str, tid_date_time: str):
+    skill_stats_tags = f"{tid_date_time}"
+    skill_stats_title = f"{tid_date_time}-Skill-Usage"
+    skill_stats_caption = f"{caption}"
+    skill_stats_creator = f"Drevarr@github.com"
+    skill_stats_text ="<<tabs '"
+
+    for prof_role in skill_casts_by_role:
+        tab_name = f"{tid_date_time}-{caption.replace(' ','-')}-{prof_role}"
+        skill_stats_text += f'[[{tab_name}]]'
+    skill_stats_text += f"' '{tab_name}' '$:/state/tab1'>>"
+    append_tid_for_output(
+        create_new_tid_from_template(skill_stats_title, skill_stats_caption, skill_stats_text, skill_stats_tags, creator=skill_stats_creator),
+        tid_list
+    )
+
 
 def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, outfile: str) -> None:
     """Print the top_stats dictionary as a JSON object to the console."""

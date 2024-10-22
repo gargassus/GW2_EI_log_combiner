@@ -32,6 +32,7 @@ personal_damage_mod_data = {
 }
 personal_buff_data = {}
 
+
 def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
     """
     Determine if the log is a PVE or WVW log and extract the fight name.
@@ -544,7 +545,7 @@ def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: s
 
     profession = player['profession']
     role = determine_player_role(player)
-    prof_role = f"{profession}|{role}"
+    prof_role = f"{profession}-{role}"
     active_time /= 1000
     
     if 'skill_casts_by_role' not in top_stats:
