@@ -46,9 +46,13 @@ def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
     Returns:
         tuple: A tuple containing the log type and the extracted fight name.
     """
-    if "Detailed WvW" in fight_name or "World vs World" in fight_name:
+    if "Detailed WvW" in fight_name:
         # WVW log
-        log_type = "WVW"
+        log_type = "Detailed WVW"
+        fight_name = fight_name.split(" - ")[1]
+    elif "World vs World" in fight_name:
+        # WVW log
+        log_type = "WvW"
         fight_name = fight_name.split(" - ")[1]
     else:
         # PVE log
@@ -65,6 +69,7 @@ def update_high_score(stat: str, key: str, value: float) -> None:
         lowest_key = min(high_scores[stat], key=high_scores[stat].get)
         del high_scores[stat][lowest_key]
         high_scores[stat][key] = value
+
 
 def determine_player_role(player: dict) -> str:
     crit_rate = player["statsAll"][0]["criticalRate"]
@@ -117,7 +122,6 @@ def get_max_hits(targetDamageDist: dict, skill_data: dict, buff_map: dict, name:
                 "{{"+profession+"}}"+name+" | "+f"{skill_name}",
                 f"{max_hit:,}"
                 )
-
 
 
 def get_total_shield_damage(fight_data: dict) -> int:
@@ -213,7 +217,8 @@ def get_personal_mod_data(personal_damage_mods: dict) -> None:
                 personal_damage_mod_data[profession].append(mod_id)
                 personal_damage_mod_data['total'].append(mod_id)
 
-def get_enemies_by_fight(fight_num: int, targets: list) -> None:
+
+def get_enemies_by_fight(fight_num: int, targets: dict) -> None:
     """
     Organize targets by enemy for a fight.
 
@@ -242,6 +247,40 @@ def get_enemies_by_fight(fight_num: int, targets: list) -> None:
             top_stats["fight"][fight_num][team] = 0
 
         top_stats["fight"][fight_num][team] += 1
+
+
+def get_enemy_downed_and_killed_by_fight(fight_num: int, targets: dict, players: dict, log_type: str) -> None:
+    """
+    Count enemy downed and killed for a fight.
+
+    Args:
+        fight_num (int): The number of the fight.
+        targets (list): The list of targets in the fight.
+    """
+    enemy_downed = 0
+    enemy_killed = 0
+
+    if fight_num not in top_stats["fight"]:
+        top_stats["fight"][fight_num] = {}
+
+    if log_type != "WVW":  # WVW doesn't have target[defense] data, must be Detailed WvW or PVE
+        for target in targets:
+            if target["isFake"]:
+                continue
+
+            if target['defenses'][0]['downCount']:
+                enemy_downed += target['defenses'][0]['downCount']
+            if target['defenses'][0]['deadCount']:
+                enemy_killed += target['defenses'][0]['deadCount']
+    else:
+            for player in players:
+                enemy_downed += sum(enemy[0]['downed'] for enemy in player['statsTargets'])
+                enemy_killed += sum(enemy[0]['killed'] for enemy in player['statsTargets'])
+    
+    top_stats["fight"][fight_num]["enemy_downed"] = enemy_downed
+    top_stats["fight"][fight_num]["enemy_killed"] = enemy_killed
+    top_stats['overall']['enemy_downed'] = top_stats['overall'].get('enemy_downed', 0) + enemy_downed
+    top_stats['overall']['enemy_killed'] = top_stats['overall'].get('enemy_killed', 0) + enemy_killed
 
 
 def get_parties_by_fight(fight_num: int, players: list) -> None:
@@ -404,6 +443,7 @@ def get_buff_uptimes(fight_num: int, player: dict, stat_category: str, name_prof
         top_stats['fight'][fight_num][stat_category][buff_id]['uptime_ms'] = top_stats['fight'][fight_num][stat_category][buff_id].get('uptime_ms', 0) + stat_value
         top_stats['overall'][stat_category][buff_id]['uptime_ms'] = top_stats['overall'][stat_category][buff_id].get('uptime_ms', 0) + stat_value
 
+
 def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_category: str, name_prof: str) -> None:
     """
     Calculate buff uptime stats for a target caused by squad player
@@ -472,6 +512,7 @@ def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_categ
                     top_stats['overall'][stat_category][buff_id]['generated'] += conditionTime
                     top_stats['overall'][stat_category][buff_id]['applied_counts'] += appliedCounts
 
+
 def get_buff_generation(fight_num: int, player: dict, stat_category: str, name_prof: str, duration: int, buff_data: dict, squad_count: int, group_count: int) -> None:
     """
     Calculate buff generation stats for a player
@@ -532,6 +573,7 @@ def get_buff_generation(fight_num: int, player: dict, stat_category: str, name_p
         top_stats['overall'][stat_category][buff_id]['generation'] = top_stats['overall'][stat_category][buff_id].get('generation', 0) + buff_generation
         top_stats['overall'][stat_category][buff_id]['wasted'] = top_stats['overall'][stat_category][buff_id].get('wasted', 0) + buff_wasted
 
+
 def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: str, name_prof: str) -> None:
     """
     Add player skill casts by profession and role to top_stats dictionary
@@ -575,6 +617,7 @@ def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: s
 
         top_stats['skill_casts_by_role'][prof_role]['total'][skill_id] += cast_count
         top_stats['skill_casts_by_role'][prof_role][name_prof]['Skills'][skill_id] = top_stats['skill_casts_by_role'][prof_role][name_prof]['Skills'].get(skill_id, 0) + cast_count
+
 
 def get_healStats_data(fight_num: int, player: dict, players: dict, stat_category: str, name_prof: str) -> None:
     """
@@ -667,6 +710,7 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
                     top_stats['overall'][stat_category].get('outgoing_barrier', 0) + outgoing_barrier
                 )
 
+
 def get_healstats_skills(player: dict, stat_category: str, name_prof: str) -> None:
     """
     Collect data for extHealingStats and extBarrierStats
@@ -732,6 +776,7 @@ def get_healstats_skills(player: dict, stat_category: str, name_prof: str) -> No
                         top_stats['player'][name_prof][stat_category]['skills'][skill_id]['totalBarrier'] = (
                             top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('totalBarrier', 0) + skill_total_barrier
                         )
+
 
 def get_damage_mod_by_player(fight_num: int, player: dict, name_prof: str) -> None:
     mod_list = ["damageModifiers", "damageModifiersTarget", "incomingDamageModifiers", "incomingDamageModifiersTarget"]

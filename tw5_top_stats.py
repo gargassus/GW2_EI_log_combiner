@@ -133,6 +133,8 @@ def parse_file(file_path, fight_num):
 		'commander': "",
 		'squad_count': 0,
 		'non_squad_count': 0,
+		'enemy_downed': 0,
+		'enemy_killed': 0,
 		'enemy_count': 0,
 		'enemy_Red': 0,
 		'enemy_Green': 0,
@@ -143,6 +145,8 @@ def parse_file(file_path, fight_num):
 	
 	#collect player counts and parties
 	get_parties_by_fight(fight_num, players)
+
+	get_enemy_downed_and_killed_by_fight(fight_num, targets, players, log_type)
 
 	#collect enemy counts and team colors
 	get_enemies_by_fight(fight_num, targets)

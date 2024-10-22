@@ -237,8 +237,8 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
     # Calculate average squad count
     avg_squad_count, avg_ally_count, avg_enemy_count = calculate_average_squad_count(top_stats["fight"].values())
     # Get the total downs, deaths, and damage out/in/barrier/shield
-    enemy_downed = top_stats['overall']['defenses']['downCount']
-    enemy_killed = top_stats['overall']['defenses']['deadCount']
+    enemy_downed = top_stats['overall']['enemy_downed']
+    enemy_killed = top_stats['overall']['enemy_killed']
     squad_down = top_stats['overall']['statsTargets']['downed']
     squad_dead = top_stats['overall']['statsTargets']['killed']
     total_damage_out = top_stats['overall']['statsTargets']['totalDmg']
