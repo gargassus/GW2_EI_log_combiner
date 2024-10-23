@@ -62,6 +62,7 @@ def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 		log_type = "PVE"
 	return log_type, fight_name
 
+
 def update_high_score(stat: str, key: str, value: float) -> None:
 
 	if stat not in high_scores:
@@ -266,7 +267,7 @@ def get_enemy_downed_and_killed_by_fight(fight_num: int, targets: dict, players:
 	if fight_num not in top_stats["fight"]:
 		top_stats["fight"][fight_num] = {}
 
-	if log_type != "WVW":  # WVW doesn't have target[defense] data, must be Detailed WvW or PVE
+	if log_type != "WVW":  # WVW doesn't have target[defense] data, must be "Detailed WvW" or "PVE"
 		for target in targets:
 			if target["isFake"]:
 				continue

@@ -144,8 +144,8 @@ def build_tag_summary(top_stats):
 
         tag_summary[commander]["num_fights"] += 1
         tag_summary[commander]["fight_time"] += fight_data["fight_durationMS"]
-        tag_summary[commander]["kills"] += fight_data["statsTargets"]["killed"]
-        tag_summary[commander]["downs"] += fight_data["statsTargets"]["downed"]
+        tag_summary[commander]["kills"] += fight_data["enemy_killed"]
+        tag_summary[commander]["downs"] += fight_data["enemy_downed"]
         tag_summary[commander]["downed"] += fight_data["defenses"]["downCount"]
         tag_summary[commander]["deaths"] += fight_data["defenses"]["deadCount"]
 
@@ -167,7 +167,7 @@ def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
         kills = tag_data["kills"]
         downed = tag_data["downed"]
         deaths = tag_data["deaths"]
-        kdr = kills / deaths if deaths != 0 else kills
+        kdr = kills / deaths if deaths else kills
         rows.append(
             f"|{name} | {profession} | {fights} | {downs} | {kills} | {downed} | {deaths} | {kdr:.2f}|"
         )
@@ -178,9 +178,10 @@ def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
     total_downs = sum(tag_data["downs"] for tag_data in tag_summary.values())
     total_downed = sum(tag_data["downed"] for tag_data in tag_summary.values())
     total_deaths = sum(tag_data["deaths"] for tag_data in tag_summary.values())
+    total_kdr = total_kills / total_deaths if total_deaths else total_kills
 
     rows.append(
-        f"|Totals |<| {total_fights} | {total_downs} | {total_kills} | {total_downed} | {total_deaths} | {total_kills/total_deaths:.2f}|f"
+        f"|Totals |<| {total_fights} | {total_downs} | {total_kills} | {total_downed} | {total_deaths} | {total_kdr:.2f}|f"
     )
 
     text = "\n".join(rows)

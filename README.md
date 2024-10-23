@@ -5,11 +5,11 @@ Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json out
 
 ### To Do
 - [ ] Parse multiple json logs
-   - [ ] fight data
+   - [x] fight data
       - [x] skillMap
       - [x] buffMap
       - [x] damage_mod_map
-      - [ ] personal_buff_map
+      - [X] personal_buff_map
    - [ ] player data
       - [x] defenses
       - [x] support
@@ -38,9 +38,9 @@ Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json out
       - [ ] teamID
          - [x] Enemy Team Colors
          - [ ] Ally Team Colors ??
-      - [ ] Damage Mod Data         
-         - [ ] Shared
-         - [ ] Profession  
+      - [X] Damage Mod Data         
+         - [X] Shared
+         - [X] Profession  
    - [ ] target data
       - [X] teamID
    - [ ] Highlights / High Scores
