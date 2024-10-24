@@ -447,8 +447,6 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
         row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:30]} | {player['fight_time'] / 1000:.1f}|"
 
         for boon_id in boons:
-            boon_id = str(boon_id)
-
             if boon_id not in player[category]:
                 uptime_percentage = " - "
 
@@ -529,7 +527,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
         if boon_id not in buff_data:
             continue
 
-        skillIcon = buff_data[str(boon_id)]["icon"]
+        skillIcon = buff_data[boon_id]["icon"]
 
         header += f"![img width=24 [{boon_name}|{skillIcon}]]|"
     header += "h"
@@ -556,7 +554,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
     for boon_id, boon_name in boons.items():
         if boon_id not in buff_data:
             continue
-        skillIcon = buff_data[str(boon_id)]["icon"]
+        skillIcon = buff_data[boon_id]["icon"]
 
         header += f"![img width=24 [{boon_name}|{skillIcon}]]|"
     header += "h"
