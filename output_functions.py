@@ -97,6 +97,38 @@ def calculate_average_squad_count(fight_data: dict) -> tuple:
 
     return avg_squad_count, avg_ally_count, avg_enemy_count
 
+
+def extract_gear_buffs_and_skills(buff_data: dict, skill_data: dict) -> tuple:
+    """
+    Extract gear buffs and skills from the top stats data.
+
+    Args:
+        buff_data (dict): The buff data.
+        skill_data (dict): The skill data.
+
+    Returns:
+        tuple: A tuple containing a list of gear buff IDs and a list of gear skill IDs.
+    """
+    gear_buff_ids = []
+    gear_skill_ids = []
+
+    for buff in buff_data.values():
+        if "Relic of" in buff["name"] or "Superior Sigil of" in buff["name"]:
+            gear_buff_ids.append(buff["id"])
+
+    for skill in skill_data.values():
+        if "Relic of" in skill["name"] or "Superior Sigil of" in skill["name"]:
+            gear_skill_ids.append(skill["id"])
+
+    return gear_buff_ids, gear_skill_ids
+
+
+def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list) -> str:
+    for buff_id in gear_buff_ids:
+        for player in top_stats["player"]:
+            if buff_id in player["buffUptimes"]:
+                buff_uptime_ms = player["buffUptimes"][buff_id]['uptime_ms']
+
 def get_total_shield_damage(fight_data: dict) -> int:
     """Extract the total shield damage from the fight data.
 
@@ -494,6 +526,9 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
     header += "|Squad Average Uptime |c\n"
     header += "| |"
     for boon_id, boon_name in boons.items():
+        if boon_id not in buff_data:
+            continue
+
         skillIcon = buff_data[str(boon_id)]["icon"]
 
         header += f"![img width=24 [{boon_name}|{skillIcon}]]|"
@@ -502,6 +537,8 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 
     row = f"|@@display:block;width:360px;Squad Average Uptime@@ |"
     for boon_id in boons:
+        if boon_id not in buff_data:
+            continue
         if boon_id not in top_stats['overall']["buffUptimes"]:
             uptime_percentage = " - "
         else:
@@ -517,6 +554,8 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
     header = "|thead-dark table-caption-top table-hover sortable|k\n"
     header += "|!Name | !Prof |!Account | !{{FightTime}} |"
     for boon_id, boon_name in boons.items():
+        if boon_id not in buff_data:
+            continue
         skillIcon = buff_data[str(boon_id)]["icon"]
 
         header += f"![img width=24 [{boon_name}|{skillIcon}]]|"
@@ -528,6 +567,8 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
     for player in top_stats["player"].values():
         row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:32]} | {player['fight_time'] / 1000:.2f}|"
         for boon_id in boons:
+            if boon_id not in buff_data:
+                continue
             if boon_id not in player["buffUptimes"]:
                 uptime_percentage = " - "
             else:
@@ -706,9 +747,10 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
         header += "|!Name | !Prof | !{{FightTime}} |"
         i = 0
         for skill, count in sorted_cast_skills:
+            skill = 's'+str(skill)
             if i < 35:
-                skill_icon = skill_data[str(skill)]['icon']
-                skill_name = skill_data[str(skill)]['name']
+                skill_icon = skill_data[skill]['icon']
+                skill_name = skill_data[skill]['name']
                 header += f"![img width=24 [{skill_name}|{skill_icon}]]|"
             i+=1
         header += "h"
@@ -727,6 +769,7 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
             row = f"|{name} |" + " " + f"{profession} " + f"|{time_secs:.2f}|"
             i = 0
             for skill, count in sorted_cast_skills:
+                skill = 's'+str(skill)
                 if i < 35:
                     if skill in player_data['Skills']:
                         row += f" {(player_data['Skills'][skill] / time_mins):.2f}|"

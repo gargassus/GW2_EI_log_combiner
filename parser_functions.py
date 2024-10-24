@@ -152,7 +152,7 @@ def get_buffs_data(buff_map: dict) -> None:
 		buff_map (dict): The dictionary of buff data.
 	"""
 	for buff in buff_map:
-		buff_id = buff[1:]
+		buff_id = buff
 		name = buff_map[buff]['name']
 		stacking = buff_map[buff]['stacking']
 		icon = buff_map[buff]['icon']
@@ -172,7 +172,7 @@ def get_skills_data(skill_map: dict) -> None:
 		skill_map (dict): The dictionary of skill data.
 	"""
 	for skill in skill_map:
-		skill_id = skill[1:]
+		skill_id = skill
 		name = skill_map[skill]['name']
 		auto_attack = skill_map[skill]['autoAttack']
 		icon = skill_map[skill]['icon']
@@ -427,7 +427,7 @@ def get_buff_uptimes(fight_num: int, player: dict, stat_category: str, name_prof
 		None
 	"""
 	for buff in player[stat_category]:
-		buff_id = buff['id']
+		buff_id = 'b'+str(buff['id'])
 		buff_uptime_ms = buff['buffData'][0]['uptime'] * fight_duration / 100
 		buff_presence = buff['buffData'][0]['presence']
 
@@ -466,7 +466,7 @@ def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_categ
 	for target in targets:
 		if 'buffs' in target:
 			for buff in target['buffs']:
-				buff_id = buff['id']
+				buff_id = 'b'+str(buff['id'])
 
 				if player['name'] in buff['statesPerSource']:
 					name = player['name']
@@ -532,7 +532,7 @@ def get_buff_generation(fight_num: int, player: dict, stat_category: str, name_p
 		group_count (int): The number of players in the group.
 	"""
 	for buff in player.get(stat_category, []):
-		buff_id = str(buff['id'])
+		buff_id = 'b'+str(buff['id'])
 		buff_stacking = buff_data[buff_id].get('stacking', False)
 
 		if buff_id not in top_stats['player'][name_prof][stat_category]:

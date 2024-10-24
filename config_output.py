@@ -117,47 +117,47 @@ offensive_table = {
 }
 
 boons = {
-	740: "Might", 725: "Fury", 1187: "Quickness", 30328: "Alacrity", 717: "Protection",
-	718: "Regeneration", 726: "Vigor", 743: "Aegis", 1122: "Stability",
-	719: "Swiftness", 26980: "Resistance", 873: "Resolution"
+	'b740': "Might", 'b725': "Fury", 'b1187': "Quickness", 'b30328': "Alacrity", 'b717': "Protection",
+	'b718': "Regeneration", 'b726': "Vigor", 'b743': "Aegis", 'b1122': "Stability",
+	'b719': "Swiftness", 'b26980': "Resistance", 'b873': "Resolution"
 }
 
 buffs_conditions = {
-    736: "Bleeding", 737: "Burning", 861: "Confusion", 723: "Poison", 19426: "Torment", 720: "Blind",
-    722: "Chilled", 721: "Crippled", 791: "Fear", 727: "Immobile", 26766: "Slow", 742: "Weakness",
-    27705: "Taunt", 738: "Vulnerability"
+    'b736': "Bleeding", 'b737': "Burning", 'b861': "Confusion", 'b723': "Poison", 'b19426': "Torment", 'b720': "Blind",
+    'b722': "Chilled", 'b721': "Crippled", 'b791': "Fear", 'b727': "Immobile", 'b26766': "Slow", 'b742': "Weakness",
+    'b27705': "Taunt", 'b738': "Vulnerability"
 }
 
 buffs_support = {
-    890: "Revealed", 5577: "Shocking Aura", 5579: "Frost Aura", 5677: "Fire Aura", 5684: "Magnetic Aura", 5974: "Superspeed",
-    9231: "Merciful Intervention (Target)", 9235: "Merciful Intervention (Self)", 10269: "Hide in Shadows", 10332: "Chaos Aura",
-    10346: "Illusion of Life", 13017: "Stealth", 13094: "Devourer Venom", 13095: "Ice Drake Venom", 13133: "Basilisk Venom",
-    14450: "Banner of Tactics", 15788: "Conjure Earth Shield", 15789: "Conjure Flame Axe", 15790: "Conjure Frost Bow",
-    15791: "Conjure Lightning Hammer", 15792: "Conjure Fiery Greatsword", 25518: "Light Aura", 30462: "Heat Sync",
-    34236: "Search and Rescue!", 39978: "Dark Aura", 45038: "Moa Stance", 46280: "Griffon Stance", 50381: "Storm Spirit",
-    51674: "Facet of Nature-Dragon", 51704: "Facet of Nature-Demon", 63093: "Shrouded"
+    'b890': "Revealed", 'b5577': "Shocking Aura", 'b5579': "Frost Aura", 'b5677': "Fire Aura", 'b5684': "Magnetic Aura", 'b5974': "Superspeed",
+    'b9231': "Merciful Intervention (Target)", 'b9235': "Merciful Intervention (Self)", 'b10269': "Hide in Shadows", 'b10332': "Chaos Aura",
+    'b10346': "Illusion of Life", 'b13017': "Stealth", 'b13094': "Devourer Venom", 'b13095': "Ice Drake Venom", 'b13133': "Basilisk Venom",
+    'b14450': "Banner of Tactics", 'b15788': "Conjure Earth Shield", 'b15789': "Conjure Flame Axe", 'b15790': "Conjure Frost Bow",
+    'b15791': "Conjure Lightning Hammer", 'b15792': "Conjure Fiery Greatsword", 'b25518': "Light Aura", 'b30462': "Heat Sync",
+    'b34236': "Search and Rescue!", 'b39978': "Dark Aura", 'b45038': "Moa Stance", 'b46280': "Griffon Stance", 'b50381': "Storm Spirit",
+    'b51674': "Facet of Nature-Dragon", 'b51704': "Facet of Nature-Demon", 'b63093': "Shrouded"
 }
 
 buffs_defensive = {
-    17047: "Virtue of Resolve (Battle Presence - Absolute Resolve)", 19083: "Oil Mastery III (Increased Armor)", 21484: "Iron Hide (Ram)",
-    21780: "Skelk Venom", 24304: "Stone Heart", 26596: "Rite of the Great Dwarf", 27737: "Infuse Light", 29379: "Naturalistic Resonance",
-    29726: "Last Rites", 29906: "Shield of Courage (Active)", 30285: "Vampiric Aura", 31229: "Watchful Eye", 31337: "Rebound",
-    33330: "Rite of the Great Dwarf (Ancient Echo)", 33978: "Healing Mist", 34281: "Guard!", 40045: "Bear Stance", 41815: "Dolyak Stance",
-    42249: "Photon Barrier Buff", 42925: "Eternal Oasis", 43194: "Unbroken Lines", 43401: "Unflinching Fortitude", 43487: "Signet of Courage (Shared)",
-    44682: "Breakrazor's Bastion", 45910: "Defy Pain", 46554: "Signet of Resolve (Shared)", 50415: "Stone Spirit", 51677: "Facet of Nature-Dwarf",
-    51699: "Facet of Nature-Centaur", 55026: "Glyph of the Stars (CA)", 55048: "Glyph of the Stars",
+    'b17047': "Virtue of Resolve (Battle Presence - Absolute Resolve)", 'b19083': "Oil Mastery III (Increased Armor)", 'b21484': "Iron Hide (Ram)",
+    'b21780': "Skelk Venom", 'b24304': "Stone Heart", 'b26596': "Rite of the Great Dwarf", 'b27737': "Infuse Light", 'b29379': "Naturalistic Resonance",
+    'b29726': "Last Rites", 'b29906': "Shield of Courage (Active)", 'b30285': "Vampiric Aura", 'b31229': "Watchful Eye", 'b31337': "Rebound",
+    'b33330': "Rite of the Great Dwarf (Ancient Echo)", 'b33978': "Healing Mist", 'b34281': "Guard!", 'b40045': "Bear Stance", 'b41815': "Dolyak Stance",
+    'b42249': "Photon Barrier Buff", 'b42925': "Eternal Oasis", 'b43194': "Unbroken Lines", 'b43401': "Unflinching Fortitude", 'b43487': "Signet of Courage (Shared)",
+    'b44682': "Breakrazor's Bastion", 'b45910': "Defy Pain", 'b46554': "Signet of Resolve (Shared)", 'b50415': "Stone Spirit", 'b51677': "Facet of Nature-Dwarf",
+    'b51699': "Facet of Nature-Centaur", 'b55026': "Glyph of the Stars (CA)", 'b55048': "Glyph of the Stars",
 }
 
 buffs_offensive = {
-    36781: "Unblockable", 31487: "Static Charge", 38333: "Pinpoint Distribution", 41957: "Ashes of the Just", 9240: "Bane Signet (PI)",
-    9237: "Signet of Wrath (PI)", 31803: "Glyph of Empowerment", 50421: "Frost Spirit", 50413: "Sun Spirit", 14055: "Spotter",
-    44651: "Vulture Stance", 44139: "One Wolf Pack", 51692: "Facet of Nature-Assassin", 41016: "Razorclaw's Rage",
-    45026: "Soulcleave's Summit", 26854: "Assassin's Presence", 63168: "Rot Wallow Venom", 13054: "Skale Venom", 13036: "Spider Venom",
-    49083: "Soul Stone Venom", 14417: "Banner of Strength", 14449: "Banner of Discipline", 14222: "Empower Allies",
+    'b36781': "Unblockable", 'b31487': "Static Charge", 'b38333': "Pinpoint Distribution", 'b41957': "Ashes of the Just", 'b9240': "Bane Signet (PI)",
+    'b9237': "Signet of Wrath (PI)", 'b31803': "Glyph of Empowerment", 'b50421': "Frost Spirit", 'b50413': "Sun Spirit", 'b14055': "Spotter",
+    'b44651': "Vulture Stance", 'b44139': "One Wolf Pack", 'b51692': "Facet of Nature-Assassin", 'b41016': "Razorclaw's Rage",
+    'b45026': "Soulcleave's Summit", 'b26854': "Assassin's Presence", 'b63168': "Rot Wallow Venom", 'b13054': "Skale Venom", 'b13036': "Spider Venom",
+    'b49083': "Soul Stone Venom", 'b14417': "Banner of Strength", 'b14449': "Banner of Discipline", 'b14222': "Empower Allies",
 }
 
 buffs_debuff = {
-    46842: "Exhaustion", 1159: "Encumbered", 70350: "Relic of the Dragonhunter", 70806: "Relic of Isgarren", 69882: "Relic of Peitha",
-    10179: "Morphed (Polymorph Moa)", 15859: "Morphed (Polymorph Tuna)", 14499: "Impaled", 30778: "Hunter's Mark", 44633:'Disenchantment',
-    833: 'Daze', 872: 'Stun'
+    'b46842': "Exhaustion", 'b1159': "Encumbered", 'b70350': "Relic of the Dragonhunter", 'b70806': "Relic of Isgarren", 'b69882': "Relic of Peitha",
+    'b10179': "Morphed (Polymorph Moa)", 'b15859': "Morphed (Polymorph Tuna)", 'b14499': "Impaled", 'b30778': "Hunter's Mark", 'b44633':'Disenchantment',
+    'b833': 'Daze', 'b872': 'Stun'
 }
