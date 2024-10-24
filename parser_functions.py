@@ -34,7 +34,7 @@ personal_damage_mod_data = {
 }
 personal_buff_data = {}
 
-
+players_running_healing_addon = []
 
 def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 	"""
@@ -715,7 +715,7 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 				)
 
 
-def get_healstats_skills(player: dict, stat_category: str, name_prof: str) -> None:
+def get_healing_skill_data(player: dict, stat_category: str, name_prof: str) -> None:
 	"""
 	Collect data for extHealingStats and extBarrierStats
 
@@ -724,62 +724,89 @@ def get_healstats_skills(player: dict, stat_category: str, name_prof: str) -> No
 		stat_category (str): The category of stats to collect.
 		name_prof (str): The name of the profession.
 	"""
-	if stat_category == 'extHealingStats' and 'extHealingStats' in player:
-		healing_skill_data = player[stat_category]['alliedHealingDist']
-	if stat_category == 'extBarrierStats' and 'extBarrierStats' in player:
-		healing_skill_data = player[stat_category]['alliedBarrierDist']
+	if 'alliedHealingDist' in player[stat_category]:
+		for heal_target in player[stat_category]['alliedHealingDist']:
+			for skill in heal_target[0]:
+				skill_id = skill['id']
+				hits = skill['hits']
+				min_value = skill['min']
+				max_value = skill['max']
 
-		if healing_skill_data:
-			for heal_target in healing_skill_data:
-				for skill in heal_target[0]:
-					skill_id = skill['id']
-					skill_hits = skill['hits']
-					skill_min = skill['min']
-					skill_max = skill['max']
+				if 'skills' not in top_stats['player'][name_prof][stat_category]:
+					top_stats['player'][name_prof][stat_category]['skills'] = {}
 
-					if 'skills' not in top_stats['player'][name_prof][stat_category]:
-						top_stats['player'][name_prof][stat_category]['skills'] = {}
+				if skill_id not in top_stats['player'][name_prof][stat_category]['skills']:
+					top_stats['player'][name_prof][stat_category]['skills'][skill_id] = {}
 
-					if skill_id not in top_stats['player'][name_prof][stat_category]['skills']:
-						top_stats['player'][name_prof][stat_category]['skills'][skill_id] = {}
+				top_stats['player'][name_prof][stat_category]['skills'][skill_id]['hits'] = (
+					top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('hits', 0) + hits
+				)
 
-					top_stats['player'][name_prof][stat_category]['skills'][skill_id]['hits'] = (
-						top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('hits', 0) + skill_hits
-					)
+				current_min = top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('min', 0)
+				current_max = top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('max', 0)
 
-					current_min = top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('min', 0)
-					current_max = top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('max', 0)
+				if min_value < current_min or current_min == 0:
+					top_stats['player'][name_prof][stat_category]['skills'][skill_id]['min'] = min_value
+				if max_value > current_max or current_max == 0:
+					top_stats['player'][name_prof][stat_category]['skills'][skill_id]['max'] = max_value
 
-					if skill_min < current_min or current_min == 0:
-						top_stats['player'][name_prof][stat_category]['skills'][skill_id]['min'] = skill_min
-					if skill_max > current_max or current_max == 0:
-						top_stats['player'][name_prof][stat_category]['skills'][skill_id]['max'] = skill_max
+				total_healing = skill['totalHealing']
+				downed_healing = skill['totalDownedHealing']
+				healing = total_healing - downed_healing
 
-					if stat_category == 'extHealingStats':
+				top_stats['player'][name_prof][stat_category]['skills'][skill_id]['totalHealing'] = (
+					top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('totalHealing', 0) + total_healing
+				)
 
-						skill_total_healing = skill['totalHealing']
-						skill_downed_healing = skill['totalDownedHealing']
-						skill_healing = skill_total_healing - skill_downed_healing
+				top_stats['player'][name_prof][stat_category]['skills'][skill_id]['downedHealing'] = (
+					top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('downedHealing', 0) + downed_healing
+				)
 
-						top_stats['player'][name_prof][stat_category]['skills'][skill_id]['totalHealing'] = (
-							top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('totalHealing', 0) + skill_total_healing
-						)
+				top_stats['player'][name_prof][stat_category]['skills'][skill_id]['healing'] = (
+					top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('healing', 0) + healing
+				)
 
-						top_stats['player'][name_prof][stat_category]['skills'][skill_id]['downedHealing'] = (
-							top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('downedHealing', 0) + skill_downed_healing
-						)
 
-						top_stats['player'][name_prof][stat_category]['skills'][skill_id]['healing'] = (
-							top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('healing', 0) + skill_healing
-						)
+def get_barrier_skill_data(player: dict, stat_category: str, name_prof: str) -> None:
+	"""
+	Collect data for extHealingStats and extBarrierStats
 
-					else:
+	Args:
+		player (dict): The player dictionary.
+		stat_category (str): The category of stats to collect.
+		name_prof (str): The name of the profession.
+	"""
+	if 'alliedBarrierDist' in player[stat_category]:
+		for barrier_target in player[stat_category]['alliedBarrierDist']:
+			for skill in barrier_target[0]:
+				skill_id = skill['id']
+				hits = skill['hits']
+				min_value = skill['min']
+				max_value = skill['max']
 
-						skill_total_barrier = skill['totalBarrier']
+				if 'skills' not in top_stats['player'][name_prof][stat_category]:
+					top_stats['player'][name_prof][stat_category]['skills'] = {}
 
-						top_stats['player'][name_prof][stat_category]['skills'][skill_id]['totalBarrier'] = (
-							top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('totalBarrier', 0) + skill_total_barrier
-						)
+				if skill_id not in top_stats['player'][name_prof][stat_category]['skills']:
+					top_stats['player'][name_prof][stat_category]['skills'][skill_id] = {}
+
+				top_stats['player'][name_prof][stat_category]['skills'][skill_id]['hits'] = (
+					top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('hits', 0) + hits
+				)
+
+				current_min = top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('min', 0)
+				current_max = top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('max', 0)
+
+				if min_value < current_min or current_min == 0:
+					top_stats['player'][name_prof][stat_category]['skills'][skill_id]['min'] = min_value
+				if max_value > current_max or current_max == 0:
+					top_stats['player'][name_prof][stat_category]['skills'][skill_id]['max'] = max_value
+
+				total_barrier = skill['totalBarrier']
+
+				top_stats['player'][name_prof][stat_category]['skills'][skill_id]['totalBarrier'] = (
+					top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('totalBarrier', 0) + total_barrier
+				)
 
 
 def get_damage_mod_by_player(fight_num: int, player: dict, name_prof: str) -> None:
@@ -856,7 +883,6 @@ def parse_file(file_path, fight_num):
 		json_datafile = open(file_path, encoding='utf-8')
 		json_data = json.load(json_datafile)
 
-	players_running_healing_addon = []
 	if 'usedExtensions' in json_data:
 		for extension in json_data['usedExtensions']:
 			if extension['name'] == 'Healing Stats':
@@ -1018,9 +1044,11 @@ def parse_file(file_path, fight_num):
 				get_skill_cast_by_prof_role(active_time, player, stat_cat, name_prof)
 
 			if stat_cat in ['extHealingStats', 'extBarrierStats']:
-				if name in players_running_healing_addon:
-					get_healStats_data(fight_num, player, players, stat_cat, name_prof)
-					get_healstats_skills(player, stat_cat, name_prof)
+				get_healStats_data(fight_num, player, players, stat_cat, name_prof)
+				if stat_cat == 'extHealingStats':
+					get_healing_skill_data(player, stat_cat, name_prof)
+				else:
+					get_barrier_skill_data(player, stat_cat, name_prof)
 
 			if stat_cat in ['targetBuffs']:
 				get_target_buff_data(fight_num, player, targets, stat_cat, name_prof)

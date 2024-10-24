@@ -197,7 +197,7 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 
     Print a table with the following columns:
         - Fight number
-        - Location
+        - Date-Time[upload link]
         - End time
         - Duration
         - Squad count
@@ -226,7 +226,7 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 
     header = "|thead-dark table-caption-top table-hover sortable|k\n"
     header += f"| {caption} |c\n"
-    header += "|# |Location |End Time | Duration| Squad | Allies | Enemy | R/G/B | {{DownedEnemy}} | {{killed}} | {{DownedAlly}} | {{DeadAlly}} | {{Damage}} | {{Damage Taken}} | {{damageBarrier}} | {{damageBarrier}} % | {{damageShield}} | {{damageShield}} % |h"
+    header += "|# |Fight Link | Duration | Squad | Allies | Enemy | R/G/B | {{DownedEnemy}} | {{killed}} | {{DownedAlly}} | {{DeadAlly}} | {{Damage}} | {{Damage Taken}} | {{damageBarrier}} | {{damageBarrier}} % | {{damageShield}} | {{damageShield}} % |h"
 
     rows.append(header)
 
@@ -254,8 +254,19 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
         row = ""
         # Get the total shield damage for this fight
         fight_shield_damage = get_total_shield_damage(fight_data)
+
+        # Abbreviate the fight location
+        abbrv=""
+        for word in fight_data['fight_name'].split():
+            abbrv += word[0]
+        # construct the fight link    
+        if fight_data['fight_link'] == "":
+            fight_link = f"[[{fight_data['fight_date']} - {fight_data['fight_end']} - {abbrv}"
+        else:
+            fight_link = f"[[{fight_data['fight_date']} - {fight_data['fight_end']} - {abbrv}|{fight_data['fight_link']}]]"
+        
         # Build the row
-        row += f"|{fight_num} |{fight_data['fight_name']} |{fight_data['fight_end']} | {fight_data['fight_duration']}| {fight_data['squad_count']} | {fight_data['non_squad_count']} | {fight_data['enemy_count']} "
+        row += f"|{fight_num} |{fight_link} | {fight_data['fight_duration']}| {fight_data['squad_count']} | {fight_data['non_squad_count']} | {fight_data['enemy_count']} "
         row += f"| {fight_data['enemy_Red']}/{fight_data['enemy_Green']}/{fight_data['enemy_Blue']} | {fight_data['statsTargets']['downed']} | {fight_data['statsTargets']['killed']} "
         row += f"| {fight_data['defenses']['downCount']} | {fight_data['defenses']['deadCount']} | {fight_data['statsTargets']['totalDmg']:,}| {fight_data['defenses']['damageTaken']:,}"
         row += f"| {fight_data['defenses']['damageBarrier']:,}| {(fight_data['defenses']['damageBarrier'] / fight_data['defenses']['damageTaken'] * 100):.2f}%| {fight_shield_damage:,}"
@@ -264,14 +275,13 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
         row += f"| {shield_damage_pct:.2f}%|"
         # Keep track of the last fight number, end time, and total duration
         last_fight = fight_num
-        last_end = fight_data['fight_end']
         total_durationMS += fight_data['fight_durationMS']
 
         rows.append(row)
 
     raid_duration = convert_duration(total_durationMS)
     # Build the footer
-    footer = f"|Total Fights: {last_fight}|<|{last_end} | {raid_duration}| {avg_squad_count:.1f},,avg,,| {avg_ally_count:.1f},,avg,,| {avg_enemy_count:.1f},,avg,,|     | {squad_down} | {squad_dead} | {enemy_downed} | {enemy_killed} | {total_damage_out:,}| {total_damage_in:,}| {total_barrier_damage:,}| {total_shield_damage_percent:.2f}%| {total_shield_damage:,}| {total_barrier_damage_percent:.2f}%|f"
+    footer = f"|Total Fights: {last_fight}|<| {raid_duration}| {avg_squad_count:.1f},,avg,,| {avg_ally_count:.1f},,avg,,| {avg_enemy_count:.1f},,avg,,|     | {squad_down} | {squad_dead} | {enemy_downed} | {enemy_killed} | {total_damage_out:,}| {total_damage_in:,}| {total_barrier_damage:,}| {total_shield_damage_percent:.2f}%| {total_shield_damage:,}| {total_barrier_damage_percent:.2f}%|f"
     rows.append(footer)
     # push the table to tid_list
 
@@ -738,6 +748,78 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
         )
 
 
+def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
+    """Build a table of combat resurrection stats for all players in the log running the extension."""
+
+    combat_resurrect = {
+        'res_skills': {},
+        'players': {}
+        }
+
+    for player, player_data in top_stats['player'].items():
+
+        if 'skills' in player_data['extHealingStats']:
+
+            prof_name = player_data['profession'] + '|' + player_data['name'] + '|' + str(player_data['fight_time'])
+
+            for skill in player_data['extHealingStats']['skills']:
+
+                if 'downedHealing' in player_data['extHealingStats']['skills'][skill]:
+                    if player_data['extHealingStats']['skills'][skill]['downedHealing'] > 0:
+                        downed_healing = player_data['extHealingStats']['skills'][skill]['downedHealing']
+
+                        if skill not in combat_resurrect['res_skills']:
+                            combat_resurrect['res_skills'][skill] = combat_resurrect['res_skills'].get(skill, 0) + downed_healing
+
+                        if prof_name not in combat_resurrect['players']:
+                            combat_resurrect['players'][prof_name] = {}
+
+                        combat_resurrect['players'][prof_name][skill] = combat_resurrect['players'].get(skill, 0) + downed_healing
+
+    sorted_res_skills = sorted(combat_resurrect['res_skills'], key=combat_resurrect['res_skills'].get, reverse=True)
+
+    combat_resurrect_tags = f"{tid_date_time}"
+    combat_resurrect_title = f"{tid_date_time}-Combat-Resurrect"
+    combat_resurrect_caption = f"{caption}"
+    combat_resurrect_text = ""
+
+    rows = []
+    header = "|thead-dark table-caption-top table-hover sortable|k\n"
+    header += "|!Name | !Prof | !{{FightTime}} |"
+    for skill in sorted_res_skills:
+        skill=f'{skill}'
+        if skill in skill_data:
+            skill_icon = skill_data[skill]['icon']
+            skill_name = skill_data[skill]['name']
+        elif skill in buff_data:
+            skill_icon = buff_data[skill]['icon']
+            skill_name = buff_data[skill]['name']
+        else:
+            continue
+        header += f" ![img width=24 [{skill} - {skill_name}|{skill_icon}]] |"
+
+    header += "h"
+
+    rows.append(header)
+
+    for player in combat_resurrect['players']:
+        profession, name, fight_time = player.split('|')
+        time_secs = int(fight_time) / 1000
+        profession = "{{" + profession + "}}"
+
+        row = f"|{name} | {profession} | {time_secs:,.1f}|"
+        for skill in sorted_res_skills:
+            row += f" {combat_resurrect['players'][player].get(skill, 0):,.0f}|"
+
+        rows.append(row)
+    rows.append(f"| {caption} |c")
+    combat_resurrect_text = "\n".join(rows)
+    append_tid_for_output(
+        create_new_tid_from_template(combat_resurrect_title, combat_resurrect_caption, combat_resurrect_text, combat_resurrect_tags),
+        tid_list
+    )
+
+
 def build_main_tid(datetime):
     main_created = f"{datetime}"
     main_modified = f"{datetime}"
@@ -776,7 +858,7 @@ def build_general_stats_tid(datetime):
     caption = "General Stats"
     creator = "Drevarr@github.com"
     text = (f"<<tabs '[[{datetime}-Damage]] [[{datetime}-Offensive]] "
-            f"[[{datetime}-Defenses]] [[{datetime}-Support]] [[{datetime}-Heal-Stats]]' "
+            f"[[{datetime}-Defenses]] [[{datetime}-Support]] [[{datetime}-Heal-Stats]] [[{datetime}-Combat-Resurrect]]' "
             f"'{datetime}-Offensive' '$:/state/tab1'>>")
 
     append_tid_for_output(

@@ -26,23 +26,24 @@ import gzip
 
 from collections import OrderedDict
 
-from gooey import Gooey, GooeyParser
+#from gooey import Gooey, GooeyParser
 
 import config
 import config_output
 from parser_functions import *
 from output_functions import *
 
-@Gooey(
-		program_name='GW2 - EI - Log Combiner',
-		image_dir='./',
-		default_size=(600, 750)
-)
-#if __name__ == '__main__':
-def main():
-	parser = GooeyParser(description='This reads a set of arcdps reports in json format and generates a summary.')
-	#parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
-	parser.add_argument('input_directory', help='Directory containing .json files from Elite Insights', widget="DirChooser")
+#@Gooey(
+#		program_name='GW2 - EI - Log Combiner',
+#		image_dir='./',
+#		default_size=(600, 750)
+#)
+
+if __name__ == '__main__':
+	#parser = GooeyParser(description='This reads a set of arcdps reports in json format and generates a summary.')
+	parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
+	#parser.add_argument('input_directory', help='Directory containing .json files from Elite Insights', widget="DirChooser")
+	parser.add_argument('input_directory', help='Directory containing .json files from Elite Insights')
 	parser.add_argument('-o', '--output', dest="output_filename", help="Not required. Override json file name to write the computed summary")
 	parser.add_argument('-x', '--xls_output', dest="xls_output_filename", help="Not required. Override .xls file to write the computed summary")    
 	parser.add_argument('-j', '--json_output', dest="json_output_filename", help="Not required. Override .json file to write the computed stats data")    
@@ -202,6 +203,8 @@ def main():
 	#overview_stats = config_output.overview_stats
 	build_fight_summary(top_stats, "Overview", tid_date_time)
 
+	#get combat resurrection stats found and output table
+	build_combat_resurrection_stats_tid(top_stats, skill_data, buff_data, "Combat Resurrect", tid_date_time)
 
 	tag_data = build_tag_summary(top_stats)
 	output_tag_summary(tag_data, tid_date_time)
@@ -213,5 +216,5 @@ def main():
 
 	output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, args.json_output_filename)
 
-if __name__ == '__main__':
-    main()
+#if __name__ == '__main__':
+#    main()
