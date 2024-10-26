@@ -150,6 +150,24 @@ if __name__ == '__main__':
 				condition_list[condition] = conditions[condition]
 	build_uptime_summary(top_stats, condition_list, buff_data, "Conditions-In", tid_date_time)
 
+	#get outgoing debuff uptimes on Enemy Players
+	debuffs = config_output.buffs_debuff
+	debuff_list = {}
+	for debuff in debuffs:
+		if debuff in top_stats["overall"]["targetBuffs"]:
+			if top_stats["overall"]["targetBuffs"][debuff]["uptime_ms"] > 0:
+				debuff_list[debuff] = debuffs[debuff]
+	build_debuff_uptime_summary(top_stats, debuff_list, buff_data, "Debuffs-Out", tid_date_time)
+
+	#get outgoing condition uptimes on Enemy Players
+	conditions = config_output.buffs_conditions
+	condition_list = {}
+	for condition in conditions:
+		if condition in top_stats["overall"]["targetBuffs"]:
+			if top_stats["overall"]["targetBuffs"][condition]["uptime_ms"] > 0:
+				condition_list[condition] = conditions[condition]
+	build_debuff_uptime_summary(top_stats, condition_list, buff_data, "Conditions-Out", tid_date_time)
+
 	#get support buffs found and output table
 	support_buffs = config_output.buffs_support
 	support_buff_list = {}

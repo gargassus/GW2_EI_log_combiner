@@ -67,7 +67,7 @@ def update_high_score(stat: str, key: str, value: float) -> None:
 
 	if stat not in high_scores:
 		high_scores[stat] = {}
-	if len(high_scores[stat]) < 5:
+	if len(high_scores[stat]) < 10:
 		high_scores[stat][key] = value
 	elif value > min(high_scores[stat].values()):
 		lowest_key = min(high_scores[stat], key=high_scores[stat].get)
@@ -127,6 +127,26 @@ def get_max_hits(targetDamageDist: dict, skill_data: dict, buff_map: dict, name:
 				f"{max_hit:,}"
 				)
 
+def get_max_damage(target_damage_dist: dict, skill_data: dict, buff_map: dict, name: str, profession: str) -> None:
+
+	for target in target_damage_dist[0]:
+		max_damage = target["max"]
+		skill_id = target["id"]
+
+		if f"s{skill_id}" in skill_data:
+			skill_name = skill_data[f"s{skill_id}"]['name']
+		elif f"b{skill_id}" in buff_map:
+			skill_name = buff_map[f"b{skill_id}"]['name']
+		else:
+			continue
+
+		if skill_name:
+			update_high_score(
+				"max_damage",
+				"{{"+profession+"}}"+name+" | "+f"{skill_name}",
+				f"{max_damage:,}"
+			)
+
 
 def get_total_shield_damage(fight_data: dict) -> int:
 	"""
@@ -155,7 +175,10 @@ def get_buffs_data(buff_map: dict) -> None:
 		buff_id = buff
 		name = buff_map[buff]['name']
 		stacking = buff_map[buff]['stacking']
-		icon = buff_map[buff]['icon']
+		if 'icon' in buff_map[buff]:
+			icon = buff_map[buff]['icon']
+		else:
+			icon = "unknown.png"
 		if buff_id not in buff_data:
 			buff_data[buff_id] = {
 				'name': name,
@@ -175,7 +198,10 @@ def get_skills_data(skill_map: dict) -> None:
 		skill_id = skill
 		name = skill_map[skill]['name']
 		auto_attack = skill_map[skill]['autoAttack']
-		icon = skill_map[skill]['icon']
+		if 'icon' in skill_map[skill]:
+			icon = skill_map[skill]['icon']
+		else:
+			icon = "unknown.png"
 		if skill_id not in skill_data:
 			skill_data[skill_id] = {
 				'name': name,
@@ -251,7 +277,7 @@ def get_enemies_by_fight(fight_num: int, targets: dict) -> None:
 			top_stats["fight"][fight_num][team] = 0
 
 		top_stats["fight"][fight_num][team] += 1
-
+		top_stats['overall']['enemy_count'] = top_stats['overall'].get('enemy_count', 0) + 1
 
 def get_enemy_downed_and_killed_by_fight(fight_num: int, targets: dict, players: dict, log_type: str) -> None:
 	"""
@@ -325,6 +351,8 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 		name_prof (str): The name of the profession.
 	"""
 	for stat, value in player[stat_category][0].items():
+		if stat == 'max':
+			update_high_score(f"{stat_category}_{stat}", f"{name_prof}|{stat}", value)
 		top_stats['player'][name_prof][stat_category][stat] = top_stats['player'][name_prof][stat_category].get(stat, 0) + value
 		top_stats['fight'][fight_num][stat_category][stat] = top_stats['fight'][fight_num][stat_category].get(stat, 0) + value
 		top_stats['overall'][stat_category][stat] = top_stats['overall'][stat_category].get(stat, 0) + value
@@ -406,6 +434,8 @@ def get_stat_by_skill(fight_num: int, player: dict, stat_category: str, name_pro
 
 			for stat, value in skill.items():
 				if stat != 'id':
+					if stat == 'max':
+						update_high_score(f"{stat_category}_{stat}", f"{name_prof}|{skill_id}", value)
 					top_stats['player'][name_prof][stat_category][skill_id][stat] = top_stats['player'][name_prof][stat_category][skill_id].get(stat, 0) + value
 					top_stats['fight'][fight_num][stat_category][skill_id][stat] = top_stats['fight'][fight_num][stat_category][skill_id].get(stat, 0) + value
 					top_stats['overall'][stat_category][skill_id][stat] = top_stats['overall'][stat_category][skill_id].get(stat, 0) + value
@@ -493,27 +523,27 @@ def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_categ
 					#if buff_id not in top_stats['player'][name_prof][stat_category]:
 					if buff_id not in top_stats['player'][name_prof][stat_category]:
 						top_stats['player'][name_prof][stat_category][buff_id] = {
-							'generated': 0,
+							'uptime_ms': 0,
 							'applied_counts': 0,
 						}
 					if buff_id not in top_stats['fight'][fight_num][stat_category]:
 						top_stats['fight'][fight_num][stat_category][buff_id] = {
-							'generated': 0,
+							'uptime_ms': 0,
 							'applied_counts': 0,
 						}
 					if buff_id not in top_stats['overall'][stat_category]:
 						top_stats['overall'][stat_category][buff_id] = {
-							'generated': 0,
+							'uptime_ms': 0,
 							'applied_counts': 0,
 						}
 
-					top_stats['player'][name_prof][stat_category][buff_id]['generated'] += conditionTime
+					top_stats['player'][name_prof][stat_category][buff_id]['uptime_ms'] += conditionTime
 					top_stats['player'][name_prof][stat_category][buff_id]['applied_counts'] += appliedCounts
 
-					top_stats['fight'][fight_num][stat_category][buff_id]['generated'] += conditionTime
+					top_stats['fight'][fight_num][stat_category][buff_id]['uptime_ms'] += conditionTime
 					top_stats['fight'][fight_num][stat_category][buff_id]['applied_counts'] += appliedCounts
 
-					top_stats['overall'][stat_category][buff_id]['generated'] += conditionTime
+					top_stats['overall'][stat_category][buff_id]['uptime_ms'] += conditionTime
 					top_stats['overall'][stat_category][buff_id]['applied_counts'] += appliedCounts
 
 
@@ -611,7 +641,7 @@ def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: s
 	top_stats['skill_casts_by_role'][prof_role][name_prof]['ActiveTime'] += active_time
 
 	for skill in player[stat_category]:
-		skill_id = skill['id']
+		skill_id = 's'+str(skill['id'])
 		cast_count = len(skill['skills'])
 
 		if skill_id not in top_stats['skill_casts_by_role'][prof_role][name_prof]['Skills']:
@@ -727,7 +757,7 @@ def get_healing_skill_data(player: dict, stat_category: str, name_prof: str) -> 
 	if 'alliedHealingDist' in player[stat_category]:
 		for heal_target in player[stat_category]['alliedHealingDist']:
 			for skill in heal_target[0]:
-				skill_id = skill['id']
+				skill_id = 's'+str(skill['id'])
 				hits = skill['hits']
 				min_value = skill['min']
 				max_value = skill['max']
@@ -907,6 +937,7 @@ def parse_file(file_path, fight_num):
 	fight_link = json_data['uploadLinks'][0]
 	dist_to_com = []
 
+	enemy_engaged_count = sum(1 for enemy in targets if not enemy['isFake'])
 
 	log_type, fight_name = determine_log_type_and_extract_fight_name(fight_name)
 
@@ -987,14 +1018,29 @@ def parse_file(file_path, fight_num):
 				'team': team,
 				'guild': guild_id,
 				'num_fights': 0,
+				'enemy_engaged_count': 0,
 			}
 
+
+		# store last party the player was a member
+		top_stats['player'][name_prof]['last_party'] = group
+
+		# Check high scores
+		# Biggest outgoing hits
 		#get_max_hits(player['targetDamageDist'], skill_map, buff_map, name, profession)
+		# Biggest incoming hits
+		#get_max_damage(player['totalDamageTaken'], skill_map, buff_map, name, profession)
+		# Biggest outgoing heal
+		#get_max_hits(player['extHealingStats']['alliedHealingDist'], skill_map, buff_map, name, profession)
+		# Biggest outgoing barrier
+		#get_max_hits(player['extBarrierStats']['alliedBarrierDist'], skill_map, buff_map, name, profession)
+
 
 		# Cumulative group and squad supported counts
 		top_stats['player'][name_prof]['num_fights'] = top_stats['player'][name_prof].get('num_fights', 0) + 1
 		top_stats['player'][name_prof]['group_supported'] = top_stats['player'][name_prof].get('group_supported', 0) + group_count
 		top_stats['player'][name_prof]['squad_supported'] = top_stats['player'][name_prof].get('squad_supported', 0) + squad_count
+		top_stats['player'][name_prof]['enemy_engaged_count'] = top_stats['player'][name_prof].get('enemy_engaged_count', 0) + enemy_engaged_count
 
 		#Cumulative fight time  for player, fight and overall    
 		top_stats['player'][name_prof]['fight_time'] = top_stats['player'][name_prof].get('fight_time', 0) + fight_duration_ms

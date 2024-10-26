@@ -193,7 +193,10 @@ def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
     )
     for tag, tag_data in tag_summary.items():
         name = tag.split("|")[0]
-        profession = "{{"+tag.split("|")[1]+"}}"
+        if len(tag.split("|")) > 1:
+            profession = "{{"+tag.split("|")[1]+"}}"
+        else:
+            profession = ""
         fights = tag_data["num_fights"]
         downs = tag_data["downs"]
         kills = tag_data["kills"]
@@ -493,12 +496,12 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
                 
                 if stacking:
                     if uptime_percentage:
-                        uptime_percentage = f"{uptime_percentage:.1f}"
+                        uptime_percentage = f"{uptime_percentage:.2f}"
                     else:
                         uptime_percentage = " - "
                 else:
                     if uptime_percentage:
-                        uptime_percentage = f"{uptime_percentage:.1f}%"
+                        uptime_percentage = f"{uptime_percentage:.2f}%"
                     else:
                         uptime_percentage = " - "
 
@@ -515,38 +518,11 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
         tid_list
         )    
 
+
 def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
     """Print a table of boon uptime stats for all players in the log."""
 
     rows = []
-    # Build the Squad table header
-    header = "|thead-dark table-caption-top table-hover|k\n"
-    header += "|Squad Average Uptime |c\n"
-    header += "| |"
-    for boon_id, boon_name in boons.items():
-        if boon_id not in buff_data:
-            continue
-
-        skillIcon = buff_data[boon_id]["icon"]
-
-        header += f"![img width=24 [{boon_name}|{skillIcon}]]|"
-    header += "h"
-    rows.append(header)
-
-    row = f"|@@display:block;width:360px;Squad Average Uptime@@ |"
-    for boon_id in boons:
-        if boon_id not in buff_data:
-            continue
-        if boon_id not in top_stats['overall']["buffUptimes"]:
-            uptime_percentage = " - "
-        else:
-            uptime_ms = top_stats['overall']["buffUptimes"][boon_id]["uptime_ms"]
-            uptime_percentage = round((uptime_ms / top_stats['overall']["fight_time"]) * 100, 3)
-            uptime_percentage = f"{uptime_percentage:.2f}%"
-        row += f" {uptime_percentage}|" 
-    row += "f"
-    rows.append(row)    
-    rows.append("\n\n")
 
     # Build the player table header
     header = "|thead-dark table-caption-top table-hover sortable|k\n"
@@ -556,10 +532,25 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
             continue
         skillIcon = buff_data[boon_id]["icon"]
 
-        header += f"![img width=24 [{boon_name}|{skillIcon}]]|"
+        header += f" ![img width=24 [{boon_name}|{skillIcon}]] |"
     header += "h"
 
+    # Build the Squad table rows
+    header2 = f"|Squad Average Uptime |<|<|<|"
+    for boon_id in boons:
+        if boon_id not in buff_data:
+            continue
+        if boon_id not in top_stats["overall"]["buffUptimes"]:
+            uptime_percentage = " - "
+        else:
+            uptime_ms = top_stats["overall"]["buffUptimes"][boon_id]["uptime_ms"]
+            uptime_percentage = round((uptime_ms / top_stats['overall']["fight_time"]) * 100, 3)
+            uptime_percentage = f"{uptime_percentage:.3f}%"
+        header2 += f" {uptime_percentage}|" 
+    header2 += "h"
+
     rows.append(header)
+    rows.append(header2)
 
     # Build the table body
     for player in top_stats["player"].values():
@@ -567,13 +558,83 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
         for boon_id in boons:
             if boon_id not in buff_data:
                 continue
+
             if boon_id not in player["buffUptimes"]:
                 uptime_percentage = " - "
             else:
                 uptime_ms = player["buffUptimes"][boon_id]["uptime_ms"]
                 uptime_percentage = round(uptime_ms / player['fight_time'] * 100, 3)
-                uptime_percentage = f"{uptime_percentage:.2f}%"
+                uptime_percentage = f"{uptime_percentage:.3f}%"
+
             row += f" {uptime_percentage}|"
+        rows.append(row)
+    rows.append(f"|{caption} Table|c")
+
+    #push table to tid_list for output
+    tid_text = "\n".join(rows)
+
+    append_tid_for_output(
+        create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ','-')}", caption, tid_text),
+        tid_list
+    )
+
+
+def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
+    """Print a table of boon uptime stats for all players in the log."""
+
+    rows = []
+
+    # Build the player table header
+    header = "|thead-dark table-caption-top table-hover sortable|k\n"
+    header += "|!Name | !Prof |!Account | !{{FightTime}} |"
+    for boon_id, boon_name in boons.items():
+        if boon_id not in buff_data:
+            continue
+        skillIcon = buff_data[boon_id]["icon"]
+
+        header += f"! [img width=24 [{boon_name}|{skillIcon}]] |"
+    header += " !Applied<br>Count|"
+    header += "h"
+
+    # Build the Squad table rows
+    header2 = f"|Average Uptime |<|<|<|"
+    applied_counts = 0
+    for boon_id in boons:
+        if boon_id not in buff_data:
+            continue
+        if boon_id not in top_stats["overall"]["targetBuffs"]:
+            uptime_percentage = " - "
+        else:
+            applied_counts += top_stats["overall"]["targetBuffs"][boon_id]["applied_counts"]
+            uptime_ms = top_stats["overall"]["targetBuffs"][boon_id]["uptime_ms"]
+            uptime_percentage = round((uptime_ms / top_stats['overall']["fight_time"] / top_stats['overall']["enemy_count"]) * 100, 3)
+            uptime_percentage = f"{uptime_percentage:.3f}%"
+        header2 += f" {uptime_percentage}|" 
+    header2 += f" {applied_counts}|" 
+    header2 += "h"
+
+    rows.append(header)
+    rows.append(header2)
+
+    # Build the table body
+    for player in top_stats["player"].values():
+        row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:32]} | {player['fight_time'] / 1000:.2f}|"
+        applied_counts = 0
+        for boon_id in boons:
+            if boon_id not in buff_data:
+                continue
+
+            if boon_id not in player["targetBuffs"]:
+                uptime_percentage = " - "
+            else:
+                applied_counts += player["targetBuffs"][boon_id]["applied_counts"]
+                uptime_ms = player["targetBuffs"][boon_id]["uptime_ms"]
+                uptime_percentage = round((uptime_ms / player['fight_time'] / player['enemy_engaged_count']) * 100, 3)
+                uptime_percentage = f"{uptime_percentage:.3f}%"
+
+            row += f" {uptime_percentage}|"
+        row += f" {applied_counts}|"
+
         rows.append(row)
     rows.append(f"|{caption} Table|c")
 
@@ -745,7 +806,6 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
         header += "|!Name | !Prof | !{{FightTime}} |"
         i = 0
         for skill, count in sorted_cast_skills:
-            skill = 's'+str(skill)
             if i < 35:
                 skill_icon = skill_data[skill]['icon']
                 skill_name = skill_data[skill]['name']
@@ -767,7 +827,6 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
             row = f"|{name} |" + " " + f"{profession} " + f"|{time_secs:.2f}|"
             i = 0
             for skill, count in sorted_cast_skills:
-                skill = 's'+str(skill)
                 if i < 35:
                     if skill in player_data['Skills']:
                         row += f" {(player_data['Skills'][skill] / time_mins):.2f}|"
@@ -828,7 +887,6 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
     header = "|thead-dark table-caption-top table-hover sortable|k\n"
     header += "|!Name | !Prof | !{{FightTime}} |"
     for skill in sorted_res_skills:
-        skill=f'{skill}'
         if skill in skill_data:
             skill_icon = skill_data[skill]['icon']
             skill_name = skill_data[skill]['name']
@@ -937,7 +995,7 @@ def build_buffs_stats_tid(datetime):
     creator = "Drevarr@github.com"
 
     text = (f"<<tabs '[[{datetime}-Boons]] [[{datetime}-Offensive-Buffs]] [[{datetime}-Support-Buffs]] "
-            f"[[{datetime}-Defensive-Buffs]] [[{datetime}-Conditions-In]] [[{datetime}-Debuffs-In]]' "
+            f"[[{datetime}-Defensive-Buffs]] [[{datetime}-Conditions-In]] [[{datetime}-Debuffs-In]] [[{datetime}-Conditions-Out]] [[{datetime}-Debuffs-Out]]' "
             f"'{datetime}-Boons' '$:/state/tab1'>>")
 
     append_tid_for_output(

@@ -31,10 +31,10 @@ Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json out
          - [x] Outgoing Healing
          - [x] Downed Healing
          - [x] Outgoing Barrier
-         - [X] Outgoing Healing by Target
-         - [X] Outgoing Barrier by Target
-         - [X] Outgoing Healing by Skill
-         - [X] Outgoing Barrier by Skill
+         - [ ] Outgoing Healing by Target
+         - [ ] Outgoing Barrier by Target
+         - [ ] Outgoing Healing by Skill
+         - [ ] Outgoing Barrier by Skill
       - [ ] teamID
          - [x] Enemy Team Colors
          - [ ] Ally Team Colors ??
