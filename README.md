@@ -10,6 +10,8 @@ Run from the command line: `topstats.exe d:\path\to\logs`
 
 Drag and drop the `Drag_and_Drop_Log_Summary_for_datetime.json` file onto the `/Example_Output/Top_Stats_Index.html`
 
+---
+
 ### To Do
 - [ ] Parse multiple json logs
    - [x] fight data
