@@ -224,6 +224,9 @@ if __name__ == '__main__':
 	#get combat resurrection stats found and output table
 	build_combat_resurrection_stats_tid(top_stats, skill_data, buff_data, "Combat Resurrect", tid_date_time)
 
+	#get FB Pages and output table
+	build_fb_pages_tid(fb_pages, "FB Pages", tid_date_time)
+
 	tag_data = build_tag_summary(top_stats)
 	output_tag_summary(tag_data, tid_date_time)
 
@@ -232,7 +235,7 @@ if __name__ == '__main__':
 
 	write_tid_list_to_json(tid_list, args.output_filename)
 
-	output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, args.json_output_filename)
+	output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, fb_pages, args.json_output_filename)
 
 #if __name__ == '__main__':
 #    main()

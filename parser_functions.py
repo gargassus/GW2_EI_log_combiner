@@ -29,6 +29,7 @@ buff_data = {}
 skill_data = {}
 damage_mod_data = {}
 high_scores = {}
+fb_pages = {}
 personal_damage_mod_data = {
 	"total": [],
 }
@@ -63,37 +64,56 @@ def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 	return log_type, fight_name
 
 
-def update_high_score(stat: str, key: str, value: float) -> None:
+def update_high_score(stat_name: str, key: str, value: float) -> None:
+    """
+    Update the high scores dictionary with a new value if it is higher than the current lowest value.
 
-	if stat not in high_scores:
-		high_scores[stat] = {}
-	if len(high_scores[stat]) < 10:
-		high_scores[stat][key] = value
-	elif value > min(high_scores[stat].values()):
-		lowest_key = min(high_scores[stat], key=high_scores[stat].get)
-		del high_scores[stat][lowest_key]
-		high_scores[stat][key] = value
+    Args:
+        stat_name (str): The name of the stat to update.
+        key (str): The key to store the value under.
+        value (float): The value to store.
+
+    Returns:
+        None
+    """
+    if stat_name not in high_scores:
+        high_scores[stat_name] = {}
+    if len(high_scores[stat_name]) < 10 or value > min(high_scores[stat_name].values()):
+        if len(high_scores[stat_name]) == 10:
+            lowest_key = min(high_scores[stat_name], key=high_scores[stat_name].get)
+            del high_scores[stat_name][lowest_key]
+        high_scores[stat_name][key] = value
 
 
-def determine_player_role(player: dict) -> str:
-	crit_rate = player["statsAll"][0]["criticalRate"]
-	total_damage = player["dpsAll"][0]["damage"]
-	power_damage = player["dpsAll"][0]["powerDamage"]
-	condi_damage = player["dpsAll"][0]["condiDamage"]
-	if 'extHealingStats' in player:
-		total_healing = player["extHealingStats"]["outgoingHealing"][0]["healing"]
+
+def determine_player_role(player_data: dict) -> str:
+	"""
+	Determine the role of a player in combat based on their stats.
+
+	Args:
+		player_data (dict): The player data.
+
+	Returns:
+		str: The role of the player.
+	"""
+	crit_rate = player_data["statsAll"][0]["criticalRate"]
+	total_dps = player_data["dpsAll"][0]["damage"]
+	power_dps = player_data["dpsAll"][0]["powerDamage"]
+	condi_dps = player_data["dpsAll"][0]["condiDamage"]
+	if "extHealingStats" in player_data:
+		total_healing = player_data["extHealingStats"]["outgoingHealing"][0]["healing"]
 	else:
 		total_healing = 0
-	if 'extBarrierStats' in player:
-		total_barrier = player["extBarrierStats"]["outgoingBarrier"][0]["barrier"]
+	if "extBarrierStats" in player_data:
+		total_barrier = player_data["extBarrierStats"]["outgoingBarrier"][0]["barrier"]
 	else:
 		total_barrier = 0
 
-	if total_healing > total_damage:
+	if total_healing > total_dps:
 		return "Support"
-	if total_barrier > total_damage:
+	if total_barrier > total_dps:
 		return "Support"
-	if condi_damage > power_damage:
+	if condi_dps > power_dps:
 		return "Condi"
 	if crit_rate <= 40:
 		return "Support"
@@ -101,7 +121,7 @@ def determine_player_role(player: dict) -> str:
 		return "DPS"
 
 
-#get_max_hits(player['targetDamageDist'], skill_map, name_prof)
+#No Longer needs?
 def get_max_hits(targetDamageDist: dict, skill_data: dict, buff_map: dict, name: str, profession: str) -> None:
 	"""
 	Get the maximum damage hit by skill.
@@ -126,7 +146,7 @@ def get_max_hits(targetDamageDist: dict, skill_data: dict, buff_map: dict, name:
 				"{{"+profession+"}}"+name+" | "+f"{skill_name}",
 				f"{max_hit:,}"
 				)
-
+#No Longer needs?
 def get_max_damage(target_damage_dist: dict, skill_data: dict, buff_map: dict, name: str, profession: str) -> None:
 
 	for target in target_damage_dist[0]:
@@ -238,14 +258,20 @@ def get_damage_mods_data(damage_mod_map: dict, personal_damage_mod_data: dict) -
 
 
 def get_personal_mod_data(personal_damage_mods: dict) -> None:
-	for profession, mods in personal_damage_mods.items():
-		if profession not in personal_damage_mod_data:
-			personal_damage_mod_data[profession] = []
-		for mod_id in mods:
-			mod_id = "d"+str(mod_id)
-			if mod_id not in personal_damage_mod_data[profession]:
-				personal_damage_mod_data[profession].append(mod_id)
-				personal_damage_mod_data['total'].append(mod_id)
+    """
+    Populate the personal_damage_mod_data dictionary with modifiers from personal_damage_mods.
+
+    Args:
+        personal_damage_mods (dict): A dictionary where keys are professions and values are lists of modifier IDs.
+    """
+    for profession, mods in personal_damage_mods.items():
+        if profession not in personal_damage_mod_data:
+            personal_damage_mod_data[profession] = []
+        for mod_id in mods:
+            mod_id = "d" + str(mod_id)
+            if mod_id not in personal_damage_mod_data[profession]:
+                personal_damage_mod_data[profession].append(mod_id)
+                personal_damage_mod_data['total'].append(mod_id)
 
 
 def get_enemies_by_fight(fight_num: int, targets: dict) -> None:
@@ -903,6 +929,33 @@ def get_damage_mod_by_player(fight_num: int, player: dict, name_prof: str) -> No
 				)
 
 
+def get_firebrand_pages(player, name_prof, name, account, fight_duration_ms):
+		if player['profession'] == "Firebrand" and "rotation" in player:
+			if name_prof not in fb_pages:
+				fb_pages[name_prof] = {}
+				fb_pages[name_prof]["account"] = account
+				fb_pages[name_prof]["name"] = name
+				fb_pages[name_prof]["fightTime"] = 0
+				fb_pages[name_prof]["firebrand_pages"] = {}
+					
+			# Track Firebrand Buffs
+			tome1_skill_ids = ["41258", "40635", "42449", "40015", "42898"]
+			tome2_skill_ids = ["45022", "40679", "45128", "42008", "42925"]
+			tome3_skill_ids = ["42986", "41968", "41836", "40988", "44455"]
+			tome_skill_ids = [
+				*tome1_skill_ids,
+				*tome2_skill_ids,
+				*tome3_skill_ids,
+			]
+
+			fb_pages[name_prof]["fightTime"] += fight_duration_ms
+			for rotation_skill in player['rotation']:
+				skill_id = str(rotation_skill['id'])
+				if skill_id in tome_skill_ids:
+					pages_data = fb_pages[name_prof]["firebrand_pages"]
+					pages_data[skill_id] = pages_data.get(skill_id, 0) + len(rotation_skill['skills'])
+
+
 def parse_file(file_path, fight_num):
 	json_stats = config.json_stats
 
@@ -1025,16 +1078,7 @@ def parse_file(file_path, fight_num):
 		# store last party the player was a member
 		top_stats['player'][name_prof]['last_party'] = group
 
-		# Check high scores
-		# Biggest outgoing hits
-		#get_max_hits(player['targetDamageDist'], skill_map, buff_map, name, profession)
-		# Biggest incoming hits
-		#get_max_damage(player['totalDamageTaken'], skill_map, buff_map, name, profession)
-		# Biggest outgoing heal
-		#get_max_hits(player['extHealingStats']['alliedHealingDist'], skill_map, buff_map, name, profession)
-		# Biggest outgoing barrier
-		#get_max_hits(player['extBarrierStats']['alliedBarrierDist'], skill_map, buff_map, name, profession)
-
+		get_firebrand_pages(player, name_prof, name, account,fight_duration_ms)
 
 		# Cumulative group and squad supported counts
 		top_stats['player'][name_prof]['num_fights'] = top_stats['player'][name_prof].get('num_fights', 0) + 1
