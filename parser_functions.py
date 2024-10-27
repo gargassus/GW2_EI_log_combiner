@@ -240,7 +240,10 @@ def get_damage_mods_data(damage_mod_map: dict, personal_damage_mod_data: dict) -
 	for mod in damage_mod_map:
 		name = damage_mod_map[mod]['name']
 		icon = damage_mod_map[mod]['icon']
-		incoming = damage_mod_map[mod]['incoming']
+		if 'incoming' in damage_mod_map[mod]:
+			incoming = damage_mod_map[mod]['incoming']
+		else:
+			incoming = False
 		shared = False
 		if mod in personal_damage_mod_data['total']:
 			shared = False
@@ -289,20 +292,21 @@ def get_enemies_by_fight(fight_num: int, targets: dict) -> None:
 		if target["isFake"]:
 			continue
 
+		if target['enemyPlayer']:
+			team = target["teamID"]
+
+			if team in team_colors:
+				team = "enemy_" + team_colors[team]
+			else:
+				team = "enemy_Unk"
+
+			if team not in top_stats["fight"][fight_num]:
+				# Create a new team if it doesn't exist
+				top_stats["fight"][fight_num][team] = 0
+
+			top_stats["fight"][fight_num][team] += 1
+
 		top_stats["fight"][fight_num]["enemy_count"] += 1
-
-		team = target["teamID"]
-
-		if team in team_colors:
-			team = "enemy_" + team_colors[team]
-		else:
-			team = "enemy_Unk"
-
-		if team not in top_stats["fight"][fight_num]:
-			# Create a new team if it doesn't exist
-			top_stats["fight"][fight_num][team] = 0
-
-		top_stats["fight"][fight_num][team] += 1
 		top_stats['overall']['enemy_count'] = top_stats['overall'].get('enemy_count', 0) + 1
 
 def get_enemy_downed_and_killed_by_fight(fight_num: int, targets: dict, players: dict, log_type: str) -> None:
@@ -966,11 +970,13 @@ def parse_file(file_path, fight_num):
 		json_datafile = open(file_path, encoding='utf-8')
 		json_data = json.load(json_datafile)
 
-	if 'usedExtensions' in json_data:
-		for extension in json_data['usedExtensions']:
-			if extension['name'] == 'Healing Stats':
+	if 'usedExtensions' not in json_data:
+		players_running_healing_addon = []
+	else:
+		extensions = json_data['usedExtensions']
+		for extension in extensions:
+			if extension['name'] == "Healing Stats":
 				players_running_healing_addon = extension['runningExtension']
-				break
 
 	players = json_data['players']
 	targets = json_data['targets']
@@ -985,7 +991,6 @@ def parse_file(file_path, fight_num):
 	upload_link = json_data['uploadLinks'][0]
 	fight_duration = json_data['duration']
 	fight_duration_ms = json_data['durationMS']
-	check_detailed_wvw = json_data['detailedWvW']
 	fight_name = json_data['fightName']
 	fight_link = json_data['uploadLinks'][0]
 	dist_to_com = []
@@ -1050,7 +1055,10 @@ def parse_file(file_path, fight_num):
 		group_count = len(top_stats['parties_by_fight'][fight_num][group])
 		squad_count = top_stats['fight'][fight_num]['squad_count']
 		tag = player['hasCommanderTag']
-		team = player['teamID']
+		if 'teamID' in player:
+			team = player['teamID']
+		else:
+			team = None
 		active_time = player['activeTimes'][0]
 		name_prof = name + "|" + profession
 
@@ -1133,7 +1141,7 @@ def parse_file(file_path, fight_num):
 			if stat_cat == 'rotation' and 'rotation' in player:
 				get_skill_cast_by_prof_role(active_time, player, stat_cat, name_prof)
 
-			if stat_cat in ['extHealingStats', 'extBarrierStats']:
+			if stat_cat in ['extHealingStats', 'extBarrierStats'] and name in players_running_healing_addon:
 				get_healStats_data(fight_num, player, players, stat_cat, name_prof)
 				if stat_cat == 'extHealingStats':
 					get_healing_skill_data(player, stat_cat, name_prof)
