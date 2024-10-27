@@ -3,6 +3,13 @@ GW2 - Elite Insight Multiple Log Summary
 
 Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json output.
 
+
+Currently works with WVW and Detailed WVW logs. Partially working with PVElogs, still needs adjustments to handle the PVE formats.
+
+Run from the command line: `topstats.exe d:\path\to\logs`
+
+Drag and drop the `Drag_and_Drop_Log_Summary_for_datetime.json` file onto the `/Example_Output/Top_Stats_Index.html`
+
 ### To Do
 - [ ] Parse multiple json logs
    - [x] fight data
