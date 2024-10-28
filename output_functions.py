@@ -301,10 +301,11 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 			fight_link = f"[[{fight_data['fight_date']} - {fight_data['fight_end']} - {abbrv}|{fight_data['fight_link']}]]"
 		
 		# Build the row
+		damage_taken = fight_data['defenses']['damageTaken'] or 1
 		row += f"|{fight_num} |{fight_link} | {fight_data['fight_duration']}| {fight_data['squad_count']} | {fight_data['non_squad_count']} | {fight_data['enemy_count']} "
 		row += f"| {fight_data['enemy_Red']}/{fight_data['enemy_Green']}/{fight_data['enemy_Blue']} | {fight_data['statsTargets']['downed']} | {fight_data['statsTargets']['killed']} "
 		row += f"| {fight_data['defenses']['downCount']} | {fight_data['defenses']['deadCount']} | {fight_data['statsTargets']['totalDmg']:,}| {fight_data['defenses']['damageTaken']:,}"
-		row += f"| {fight_data['defenses']['damageBarrier']:,}| {(fight_data['defenses']['damageBarrier'] / fight_data['defenses']['damageTaken'] * 100):.2f}%| {fight_shield_damage:,}"
+		row += f"| {fight_data['defenses']['damageBarrier']:,}| {(fight_data['defenses']['damageBarrier'] / damage_taken * 100):.2f}%| {fight_shield_damage:,}"
 		# Calculate the shield damage percentage
 		shield_damage_pct = (fight_shield_damage / fight_data['statsTargets']['totalDmg'] * 100)
 		row += f"| {shield_damage_pct:.2f}%|"
@@ -344,17 +345,21 @@ def build_damage_summary_table(top_stats: dict, caption: str, tid_date_time: str
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += f"| {caption} |c\n"
 	header += "|!Name | !Prof |!Account | !{{FightTime}} |"
-	header += " !{{Target_Damage}}| !{{Target_Power}} | !{{Target_Condition}} | !{{Target_Breakbar_Damage}} | !{{All_Damage}}| !{{All_Power}} | !{{All_Condition}} | !{{All_Breakbar_Damage}} |h"
+	header += " !{{Target_Damage}} | !{{Target_Damage_PS}} | !{{Target_Power}} | !{{Target_Power_PS}} | !{{Target_Condition}} | !{{Target_Condition_PS}} | !{{Target_Breakbar_Damage}} | !{{All_Damage}}| !{{All_Power}} | !{{All_Condition}} | !{{All_Breakbar_Damage}} |h"
 
 	rows.append(header)
 
 	# Build the table body
 	for player, player_data in top_stats["player"].items():
+		fighttime = player_data["fight_time"] / 1000
 		row = f"|{player_data['name']} |"+" {{"+f"{player_data['profession']}"+"}} "+f"|{player_data['account'][:30]} | {player_data['fight_time'] / 1000:.1f}|"
-		row += " {:,}| {:,}| {:,}| {:,}| {:,}| {:,}| {:,}| {:,}|".format(
+		row += " {:,}| {:,.0f}| {:,}| {:,.0f}| {:,}| {:,.0f}| {:,}| {:,}| {:,}| {:,}| {:,}|".format(
 			player_data["dpsTargets"]["damage"],
+			player_data["dpsTargets"]["damage"]/fighttime,
 			player_data["dpsTargets"]["powerDamage"],
+			player_data["dpsTargets"]["powerDamage"]/fighttime,			
 			player_data["dpsTargets"]["condiDamage"],
+			player_data["dpsTargets"]["condiDamage"]/fighttime,
 			player_data["dpsTargets"]["breakbarDamage"],
 			player_data["statsAll"]["totalDmg"],
 			player_data["statsAll"]["directDmg"],
@@ -393,6 +398,7 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 	}
 	time_stats = ["resurrectTime", "condiCleanseTime", "condiCleanseTimeSelf", "boonStripsTime", "removedStunDuration"]
 	# Build the table header
+	rows.append('<$radio field="radio" value="1"}">Total</$radio> - <$radio field="radio" value="2">Average</$radio>')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += "|!Name | !Prof |!Account | !{{FightTime}} |"
 	for stat in category_stats:

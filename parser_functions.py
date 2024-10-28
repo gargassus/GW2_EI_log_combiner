@@ -836,7 +836,7 @@ def get_barrier_skill_data(player: dict, stat_category: str, name_prof: str) -> 
 		stat_category (str): The category of stats to collect.
 		name_prof (str): The name of the profession.
 	"""
-	if 'alliedBarrierDist' in player[stat_category]:
+	if 'extBarrierStats' in player and 'alliedBarrierDist' in player[stat_category]:
 		for barrier_target in player[stat_category]['alliedBarrierDist']:
 			for skill in barrier_target[0]:
 				skill_id = skill['id']
