@@ -296,7 +296,7 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 			abbrv += word[0]
 		# construct the fight link    
 		if fight_data['fight_link'] == "":
-			fight_link = f"[[{fight_data['fight_date']} - {fight_data['fight_end']} - {abbrv}"
+			fight_link = f"{fight_data['fight_date']} - {fight_data['fight_end']} - {abbrv}"
 		else:
 			fight_link = f"[[{fight_data['fight_date']} - {fight_data['fight_end']} - {abbrv}|{fight_data['fight_link']}]]"
 		
