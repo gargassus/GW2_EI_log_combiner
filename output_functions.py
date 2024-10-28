@@ -18,7 +18,7 @@ import json
 #list of tid files to output
 tid_list = []
 
-def create_new_tid_from_template(title, caption, text, tags=None, modified=None, created=None, creator=None) -> dict:
+def create_new_tid_from_template(title, caption, text, tags=None, modified=None, created=None, creator=None, field=None, value=None) -> dict:
 	"""Create a new TID from the template."""
 	temp_tid = {}
 	temp_tid['title'] = title
@@ -32,6 +32,8 @@ def create_new_tid_from_template(title, caption, text, tags=None, modified=None,
 		temp_tid['created'] = created
 	if creator:
 		temp_tid['creator'] = creator
+	if field and value:		
+		temp_tid[field] = value
 
 	return temp_tid
 
@@ -392,48 +394,58 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 	Returns:
 		None
 	"""
-	rows = []
 	pct_stats = {
 		"criticalRate": "critableDirectDamageCount", "flankingRate":"connectedDirectDamageCount", "glanceRate":"connectedDirectDamageCount", "againstMovingRate": "connectedDamageCount"
 	}
 	time_stats = ["resurrectTime", "condiCleanseTime", "condiCleanseTimeSelf", "boonStripsTime", "removedStunDuration"]
-	# Build the table header
-	rows.append('<$radio field="radio" value="1"}">Total</$radio> - <$radio field="radio" value="2">Average</$radio>')
-	header = "|thead-dark table-caption-top table-hover sortable|k\n"
-	header += "|!Name | !Prof |!Account | !{{FightTime}} |"
-	for stat in category_stats:
-		header += " !{{"+f"{stat}"+"}} |"
-	header += "h"
 
-	rows.append(header)
+	rows = []
 
-	# Build the table body
-	for player in top_stats["player"].values():
-		row = f"|{player['name']} | {{{{{player['profession']}}}}} |{player['account'][:30]} | {player['fight_time'] / 1000:.0f}|"
+	for toggle in ["Total", "Average"]:
+		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="radio" type="match" text="{toggle}" animate="yes">\n')
+		# Build the table header
+		header = "|thead-dark table-caption-top table-hover sortable|k\n"
+		header += "|!Name | !Prof |!Account | !{{FightTime}} |"
+		for stat in category_stats:
+			header += " !{{"+f"{stat}"+"}} |"
+		header += "h"
 
-		for stat, category in category_stats.items():
-			stat_value = player[category].get(stat, 0)
+		rows.append(header)
 
-			if stat in pct_stats:
-				divisor_value = player[category].get(pct_stats[stat], 0)
-				if divisor_value == 0:
-					divisor_value = 1
-				stat_value_percentage = round((stat_value / divisor_value) * 100, 1)
-				stat_value = f"{stat_value_percentage:.2f}%"
-			elif stat in time_stats:
-				stat_value = f"{stat_value:,.1f}"
-			else:
-				stat_value = f"{stat_value:,}"
-			row += f" {stat_value}|"
+		# Build the table body
+		for player in top_stats["player"].values():
+			row = f"|{player['name']} | {{{{{player['profession']}}}}} |{player['account'][:30]} | {player['fight_time'] / 1000:.0f}|"
+			fight_time = player["fight_time"] / 1000
+			for stat, category in category_stats.items():
+				stat_value = player[category].get(stat, 0)
 
-		rows.append(row)
-	rows.append(f"|{caption} Table|c")
+				if stat in pct_stats:
+					divisor_value = player[category].get(pct_stats[stat], 0)
+					if divisor_value == 0:
+						divisor_value = 1
+					stat_value_percentage = round((stat_value / divisor_value) * 100, 1)
+					stat_value = f"{stat_value_percentage:.2f}%"
+				elif stat in time_stats:
+					if toggle == "Average":
+						stat_value = f"{stat_value/fight_time:.2f}"
+					else:
+						stat_value = f"{stat_value:,.1f}"
+				else:
+					if toggle == "Average":
+						stat_value = f"{stat_value/fight_time:,.2f}"
+					else:
+						stat_value = f"{stat_value:,}"
+				row += f" {stat_value}|"
+
+			rows.append(row)
+		rows.append(f'|<$radio field="radio" value="Total">Total</$radio> - <$radio field="radio" value="Average">Average</$radio> - {caption} Table|c')
+		rows.append("\n</$reveal>")
 
 	#push table to tid_list for output
 	tid_text = "\n".join(rows)
 
 	append_tid_for_output(
-		create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ', '-')}", caption, tid_text),
+		create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ', '-')}", caption, tid_text, field="radio", value="Total"),
 		tid_list
 		)
 
@@ -949,7 +961,7 @@ def build_menu_tid(datetime):
 	menu_text = f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] [[{datetime}-Damage-Modifiers]] [[{datetime}-Skill-Usage]]" "{datetime}-Overview" "$:/state/menutab1">>'
 
 	append_tid_for_output(
-		create_new_tid_from_template(menu_title, menu_caption, menu_text, menu_tags),
+		create_new_tid_from_template(menu_title, menu_caption, menu_text, menu_tags, field='radio', value='Total'),
 		tid_list
 	)
 
@@ -967,7 +979,7 @@ def build_general_stats_tid(datetime):
 			f"'{datetime}-Offensive' '$:/state/tab1'>>")
 
 	append_tid_for_output(
-		create_new_tid_from_template(title, caption, text, tags, creator=creator),
+		create_new_tid_from_template(title, caption, text, tags, creator=creator, field='radio', value='Total'),
 		tid_list
 	)
 
