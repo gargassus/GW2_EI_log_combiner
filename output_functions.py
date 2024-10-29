@@ -1215,7 +1215,7 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 	for category in caption_dict:
 
 		table_title = caption_dict[category]
-		header = '    <div class="flex-col border">\n\n'
+		header = '    <div class="flex-col">\n\n'
 		header += "|thead-dark table-caption-top table-hover|k\n"
 		if category in ["statTarget_max", "totalDamageTaken_max"]:
 			header += "|@@display:block;width:200px;Player@@  |@@display:block;width:250px;Skill@@ | @@display:block;width:100px;Score@@|h"
