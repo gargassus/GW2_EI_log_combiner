@@ -12,6 +12,13 @@ Drag and drop the `Drag_and_Drop_Log_Summary_for_datetime.json` file onto the `/
 
 ---
 
+![GitHub](https://img.shields.io/github/license/Drevarr/GW2_EI_log_combiner)
+
+
+![Alt](https://repobeats.axiom.co/api/embed/d07727b06a0bcacb7692ccd3c30bd9cfdb2394f7.svg "Repobeats analytics image")
+
+---
+
 ### To Do
 - [ ] Parse multiple json logs
    - [x] fight data
@@ -53,11 +60,11 @@ Drag and drop the `Drag_and_Drop_Log_Summary_for_datetime.json` file onto the `/
    - [ ] target data
       - [X] teamID
    - [ ] Highlights / High Scores
-      - [ ] damage
-      - [ ] defense
-      - [ ] support
-      - [ ] tbd
-
+      - [x] damage
+      - [x] defense
+      - [x] support
+      - [x] Highest single damage hit
+      - [x] format output
 - [ ] Output summary
    - [ ] Mirror EI html output via TW5
    - [ ] Chart Dashboard?
