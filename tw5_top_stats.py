@@ -227,6 +227,8 @@ if __name__ == '__main__':
 	#get FB Pages and output table
 	build_fb_pages_tid(fb_pages, "FB Pages", tid_date_time)
 
+	build_high_scores_tid(high_scores, skill_data, buff_data, "High Scores", tid_date_time)
+
 	tag_data = build_tag_summary(top_stats)
 	output_tag_summary(tag_data, tid_date_time)
 

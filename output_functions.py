@@ -958,7 +958,7 @@ def build_menu_tid(datetime):
 	menu_title = f"{datetime}-Menu"
 	menu_caption = f"Menu"
 
-	menu_text = f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] [[{datetime}-Damage-Modifiers]] [[{datetime}-Skill-Usage]]" "{datetime}-Overview" "$:/state/menutab1">>'
+	menu_text = f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] [[{datetime}-Damage-Modifiers]] [[{datetime}-Skill-Usage]] [[{datetime}-High-Scores]]" "{datetime}-Overview" "$:/state/menutab1">>'
 
 	append_tid_for_output(
 		create_new_tid_from_template(menu_title, menu_caption, menu_text, menu_tags, field='radio', value='Total'),
@@ -1194,6 +1194,64 @@ def build_fb_pages_tid(fb_pages: dict, caption: str, tid_date_time: str):
 		create_new_tid_from_template(firebrand_pages_title, firebrand_pages_caption, firebrand_pages_text, firebrand_pages_tags),
 		tid_list
 	)
+
+
+
+def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
+	caption_dict = {
+	"statTarget_max": "Highest Outgoing Skill Damage", "totalDamageTaken_max": "Highest Incoming Skill Damage",
+	"fight_dps": "Damage per Second", "statTarget_killed": "Kills per Second", "statTarget_downed": "Downs per Second", "statTarget_downContribution": "Down Contrib per Second",
+	"defenses_blockedCount": "Blocks per Second", "defenses_evadedCount": "Evades per Second", "defenses_dodgeCount":  "Dodges per Second", "defenses_invulnedCount": "Invulned per Second",
+	"support_condiCleanse": "Cleanses per Second", "support_boonStrips": "Strips per Second", "extHealingStats_Healing": "Healing per Second",  "extBarrierStats_Barrier": "Barrier per Second", 
+	}
+
+	high_scores_tags = f"{tid_date_time}"
+	high_scores_title = f"{tid_date_time}-High-Scores"
+	high_scores_caption = f"{caption}"
+	high_scores_text = ""
+
+	rows = []
+	rows.append('<div class="flex-row">\n\n')
+	for category in caption_dict:
+
+		table_title = caption_dict[category]
+		header = '    <div class="flex-col border">\n\n'
+		header += "|thead-dark table-caption-top table-hover|k\n"
+		if category in ["statTarget_max", "totalDamageTaken_max"]:
+			header += "|@@display:block;width:200px;Player@@  |@@display:block;width:250px;Skill@@ | @@display:block;width:100px;Score@@|h"
+		else:
+			header += "|@@display:block;width:200px;Player@@ | @@display:block;width:100px;Score@@|h"
+		
+		rows.append(header)
+
+		sorted_high_scores = sorted(high_scores[category].items(), key=lambda x: x[1], reverse=True)
+		for player in sorted_high_scores:
+			player, score = player
+
+			if category in ["statTarget_max", "totalDamageTaken_max"]:
+				skill_id = player.split("| ")[1]
+				prof_name = player.split(" |")[0]
+				skill_name = skill_data["s"+str(skill_id)]['name']
+				skill_icon = skill_data["s"+str(skill_id)]['icon']
+				detailEntry = f'[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}'
+
+				row = f"|{prof_name} |{detailEntry} | {score:,.0f}|"
+			else:
+				prof_name = player.split(" |")[0]
+				row = f"|{prof_name} | {score:0.3f}|"
+			rows.append(row)
+
+		rows.append(f"| ''{table_title}'' |c")
+		rows.append("\n\n    </div>\n\n")
+		if category == "totalDamageTaken_max":
+			rows.append('\n<div class="flex-row">\n\n')
+	rows.append("</div>\n\n")
+	high_scores_text = "\n".join(rows)
+	append_tid_for_output(
+		create_new_tid_from_template(high_scores_title, high_scores_caption, high_scores_text, high_scores_tags),
+		tid_list
+	)
+		#header += f" ![img width=24 [{skill} - {skill_name}|{skill_icon}]] |"
 
 
 def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, fb_pages: dict, outfile: str) -> None:
