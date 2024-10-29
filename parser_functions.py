@@ -121,8 +121,8 @@ def determine_player_role(player_data: dict) -> str:
 		return "DPS"
 
 
-#No Longer needs?
-def get_max_hits(targetDamageDist: dict, skill_data: dict, buff_map: dict, name: str, profession: str) -> None:
+
+def get_player_fight_dps(dpsTargets: dict, name: str, profession: str, fight_time: int) -> None:
 	"""
 	Get the maximum damage hit by skill.
 
@@ -130,41 +130,33 @@ def get_max_hits(targetDamageDist: dict, skill_data: dict, buff_map: dict, name:
 		fight_data (dict): The fight data.
 
 	"""
-	for target in targetDamageDist:
-		for skill in target[0]:
-			max_hit = skill["max"]
-			skill_id = skill["id"]
-			if f"s{skill_id}" in skill_data:
-				skill_name = skill_data[f"s{skill_id}"]['name']
-			elif f"b{skill_id}" in buff_map:
-				skill_name = buff_map[f"b{skill_id}"]['name']
-			else:
-				continue
+	target_damage = 0
+	for target in dpsTargets:
+		target_damage += target[0]["damage"]
 
-			update_high_score(
-				"max_hits",
-				"{{"+profession+"}}"+name+" | "+f"{skill_name}",
-				f"{max_hit:,}"
-				)
-#No Longer needs?
-def get_max_damage(target_damage_dist: dict, skill_data: dict, buff_map: dict, name: str, profession: str) -> None:
+	target_damage = round(target_damage / fight_time,2)
 
-	for target in target_damage_dist[0]:
-		max_damage = target["max"]
-		skill_id = target["id"]
+	update_high_score(
+		"fight_dps",
+		"{{"+profession+"}}"+name+" | Fight DPS",
+		target_damage
+		)
 
-		if f"s{skill_id}" in skill_data:
-			skill_name = skill_data[f"s{skill_id}"]['name']
-		elif f"b{skill_id}" in buff_map:
-			skill_name = buff_map[f"b{skill_id}"]['name']
-		else:
-			continue
 
-		if skill_name:
-			update_high_score(
-				"max_damage",
-				"{{"+profession+"}}"+name+" | "+f"{skill_name}",
-				f"{max_damage:,}"
+def get_player_stats_targets(statsTargets: dict, name: str, profession: str, fight_time: int) -> None:
+	fight_stat_value= 0
+	fight_stats = ["killed", "downed", "downContribution"]
+	for stat in fight_stats:
+		for target in statsTargets:
+			if target[0]:
+				fight_stat_value += target[0][stat]
+
+		fight_stat_value = round(fight_stat_value / fight_time, 3)
+
+		update_high_score(
+			f"statTarget_{stat}",
+			"{{"+profession+"}}"+name+" | "+stat,
+			fight_stat_value
 			)
 
 
@@ -381,8 +373,9 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 		name_prof (str): The name of the profession.
 	"""
 	for stat, value in player[stat_category][0].items():
-		if stat == 'max':
-			update_high_score(f"{stat_category}_{stat}", f"{name_prof}|{stat}", value)
+		if stat in config.high_scores:
+			high_score_value = round(value/(player['activeTimes'][0]/1000),3)
+			update_high_score(f"{stat_category}_{stat}", f"{name_prof}|{stat}", high_score_value)
 		top_stats['player'][name_prof][stat_category][stat] = top_stats['player'][name_prof][stat_category].get(stat, 0) + value
 		top_stats['fight'][fight_num][stat_category][stat] = top_stats['fight'][fight_num][stat_category].get(stat, 0) + value
 		top_stats['overall'][stat_category][stat] = top_stats['overall'][stat_category].get(stat, 0) + value
@@ -683,7 +676,7 @@ def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: s
 		top_stats['skill_casts_by_role'][prof_role][name_prof]['Skills'][skill_id] = top_stats['skill_casts_by_role'][prof_role][name_prof]['Skills'].get(skill_id, 0) + cast_count
 
 
-def get_healStats_data(fight_num: int, player: dict, players: dict, stat_category: str, name_prof: str) -> None:
+def get_healStats_data(fight_num: int, player: dict, players: dict, stat_category: str, name_prof: str, fight_time: int) -> None:
 	"""
 	Collect data for extHealingStats and extBarrierStats
 
@@ -694,14 +687,14 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 		stat_category (str): The category of stats to collect.
 		name_prof (str): The name of the profession.
 	"""
-	
+	fight_healing = 0
 	if stat_category == 'extHealingStats' and 'extHealingStats' in player:
 		for index, heal_target in enumerate(player[stat_category]['outgoingHealingAllies']):
 			heal_target_name = players[index]['name']
 			outgoing_healing = heal_target[0]['healing'] - heal_target[0]['downedHealing']
 			downed_healing = heal_target[0]['downedHealing']
 
-			#print('Healing', heal_target_name, outgoing_healing, downed_healing)
+			fight_healing += outgoing_healing
 
 			if outgoing_healing or downed_healing:
 
@@ -742,11 +735,15 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 				top_stats['overall'][stat_category]['downed_healing'] = (
 					top_stats['overall'][stat_category].get('downed_healing', 0) + downed_healing
 				)
+	update_high_score(f"{stat_category}", f"{name_prof}|Healing", round(fight_healing/(fight_time/1000), 2))
 
+	fight_barrier = 0
 	if stat_category == 'extBarrierStats' and 'extBarrierStats' in player:
 		for index, barrier_target in enumerate(player[stat_category]['outgoingBarrierAllies']):
 			barrier_target_name = players[index]['name']
 			outgoing_barrier = barrier_target[0]['barrier']
+
+			fight_barrier += outgoing_barrier
 
 			if outgoing_barrier:
 
@@ -773,7 +770,7 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 				top_stats['overall'][stat_category]['outgoing_barrier'] = (
 					top_stats['overall'][stat_category].get('outgoing_barrier', 0) + outgoing_barrier
 				)
-
+	update_high_score(f"{stat_category}", f"{name_prof}|Barrier", round(fight_barrier/(fight_time/1000), 2))
 
 def get_healing_skill_data(player: dict, stat_category: str, name_prof: str) -> None:
 	"""
@@ -1088,6 +1085,9 @@ def parse_file(file_path, fight_num):
 
 		get_firebrand_pages(player, name_prof, name, account,fight_duration_ms)
 
+		get_player_fight_dps(player["dpsTargets"], name, profession, (fight_duration_ms/1000))
+		get_player_stats_targets(player["statsTargets"], name, profession, (fight_duration_ms/1000))
+
 		# Cumulative group and squad supported counts
 		top_stats['player'][name_prof]['num_fights'] = top_stats['player'][name_prof].get('num_fights', 0) + 1
 		top_stats['player'][name_prof]['group_supported'] = top_stats['player'][name_prof].get('group_supported', 0) + group_count
@@ -1142,7 +1142,7 @@ def parse_file(file_path, fight_num):
 				get_skill_cast_by_prof_role(active_time, player, stat_cat, name_prof)
 
 			if stat_cat in ['extHealingStats', 'extBarrierStats'] and name in players_running_healing_addon:
-				get_healStats_data(fight_num, player, players, stat_cat, name_prof)
+				get_healStats_data(fight_num, player, players, stat_cat, name_prof, fight_duration_ms)
 				if stat_cat == 'extHealingStats':
 					get_healing_skill_data(player, stat_cat, name_prof)
 				else:

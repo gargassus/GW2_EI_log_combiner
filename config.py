@@ -61,3 +61,6 @@ team_colors = {
     432: 'Blue', 
     1277: 'Blue'
     }
+
+# High scores stats
+high_scores = ["dodgeCount", "evadedCount", "blockedCount", "invulnedCount", "boonStrips", "condiCleanse"]
