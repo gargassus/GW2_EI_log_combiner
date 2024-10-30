@@ -185,7 +185,7 @@ def build_gear_skill_summary(top_stats: dict, gear_skill_ids: list, skill_data: 
 				totalDamage = player["targetDamageDist"][_skill]["totalDamage"]
 				connectedHits = player["targetDamageDist"][_skill]["connectedHits"]
 				crit = player["targetDamageDist"][_skill]["crit"]
-				crit_pct = f"{crit/connectedHits*100:.2f}"
+				crit_pct = f"{crit/connectedHits*100:.2f}" if crit > 0 else "0"
 				critDamage = player["targetDamageDist"][_skill]["critDamage"]
 				tooltip = f"Connected Hits: {connectedHits} <br>Crit: {crit} - ({crit_pct}%) <br>Crit Damage: {critDamage:,.0f}"
 				detailEntry = f'<div class="xtooltip"> {totalDamage:,.0f} <span class="xtooltiptext">'+tooltip+'</span></div>'
@@ -245,18 +245,18 @@ def build_tag_summary(top_stats):
 			tag_summary[commander] = {
 				"num_fights": 0,
 				"fight_time": 0,
-				"kills": 0,
-				"downs": 0,
-				"downed": 0,
-				"deaths": 0,
+				"enemy_killed": 0,
+				"enemy_downed": 0,
+				"squad_downed": 0,
+				"squad_deaths": 0,
 			}
 
 		tag_summary[commander]["num_fights"] += 1
 		tag_summary[commander]["fight_time"] += fight_data["fight_durationMS"]
-		tag_summary[commander]["kills"] += fight_data["enemy_killed"]
-		tag_summary[commander]["downs"] += fight_data["enemy_downed"]
-		tag_summary[commander]["downed"] += fight_data["defenses"]["downCount"]
-		tag_summary[commander]["deaths"] += fight_data["defenses"]["deadCount"]
+		tag_summary[commander]["enemy_killed"] += fight_data["enemy_killed"]
+		tag_summary[commander]["enemy_downed"] += fight_data["enemy_downed"]
+		tag_summary[commander]["squad_downed"] += fight_data["defenses"]["downCount"]
+		tag_summary[commander]["squad_deaths"] += fight_data["defenses"]["deadCount"]
 
 	return tag_summary
 
@@ -265,6 +265,9 @@ def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
 	rows = []
 	rows.append("|thead-dark table-caption-top table-hover sortable|k")
 	rows.append("| Summary by Command Tag |c")
+	rows.append(
+		"| | | | Enemy |<| Squad|<| |h"
+	)	
 	rows.append(
 		"|Name | Prof | Fights | {{DownedEnemy}} | {{killed}} | {{DownedAlly}} | {{DeadAlly}} | KDR |h"
 	)
@@ -275,22 +278,22 @@ def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
 		else:
 			profession = ""
 		fights = tag_data["num_fights"]
-		downs = tag_data["downs"]
-		kills = tag_data["kills"]
-		downed = tag_data["downed"]
-		deaths = tag_data["deaths"]
+		downs = tag_data["enemy_downed"]
+		kills = tag_data["enemy_killed"]
+		downed = tag_data["squad_downed"]
+		deaths = tag_data["squad_deaths"]
 		kdr = kills / deaths if deaths else kills
 		rows.append(
 			f"|{name} | {profession} | {fights} | {downs} | {kills} | {downed} | {deaths} | {kdr:.2f}|"
 		)
 
-	# Sum all tags
-	total_fights = sum(tag_data["num_fights"] for tag_data in tag_summary.values())
-	total_kills = sum(tag_data["kills"] for tag_data in tag_summary.values())
-	total_downs = sum(tag_data["downs"] for tag_data in tag_summary.values())
-	total_downed = sum(tag_data["downed"] for tag_data in tag_summary.values())
-	total_deaths = sum(tag_data["deaths"] for tag_data in tag_summary.values())
-	total_kdr = total_kills / total_deaths if total_deaths else total_kills
+		# Sum all tags
+		total_fights = sum(tag_data["num_fights"] for tag_data in tag_summary.values())
+		total_kills = sum(tag_data["enemy_killed"] for tag_data in tag_summary.values())
+		total_downs = sum(tag_data["enemy_downed"] for tag_data in tag_summary.values())
+		total_downed = sum(tag_data["squad_downed"] for tag_data in tag_summary.values())
+		total_deaths = sum(tag_data["squad_deaths"] for tag_data in tag_summary.values())
+		total_kdr = total_kills / total_deaths if total_deaths else total_kills
 
 	rows.append(
 		f"|Totals |<| {total_fights} | {total_downs} | {total_kills} | {total_downed} | {total_deaths} | {total_kdr:.2f}|f"
@@ -352,8 +355,8 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 	# Get the total downs, deaths, and damage out/in/barrier/shield
 	enemy_downed = top_stats['overall']['enemy_downed']
 	enemy_killed = top_stats['overall']['enemy_killed']
-	squad_down = top_stats['overall']['statsTargets']['downed']
-	squad_dead = top_stats['overall']['statsTargets']['killed']
+	squad_down = top_stats['overall']['defenses']['downCount']
+	squad_dead = top_stats['overall']['defenses']['deadCount']
 	total_damage_out = top_stats['overall']['statsTargets']['totalDmg']
 	total_damage_in = top_stats['overall']['defenses']['damageTaken']
 	total_barrier_damage = top_stats['overall']['defenses']['damageBarrier']
@@ -394,7 +397,7 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 
 	raid_duration = convert_duration(total_durationMS)
 	# Build the footer
-	footer = f"|Total Fights: {last_fight}|<| {raid_duration}| {avg_squad_count:.1f},,avg,,| {avg_ally_count:.1f},,avg,,| {avg_enemy_count:.1f},,avg,,|     | {squad_down} | {squad_dead} | {enemy_downed} | {enemy_killed} | {total_damage_out:,}| {total_damage_in:,}| {total_barrier_damage:,}| {total_shield_damage_percent:.2f}%| {total_shield_damage:,}| {total_barrier_damage_percent:.2f}%|f"
+	footer = f"|Total Fights: {last_fight}|<| {raid_duration}| {avg_squad_count:.1f},,avg,,| {avg_ally_count:.1f},,avg,,| {avg_enemy_count:.1f},,avg,,|     | {enemy_downed} | {enemy_killed} | {squad_down} | {squad_dead} | {total_damage_out:,}| {total_damage_in:,}| {total_barrier_damage:,}| {total_shield_damage_percent:.2f}%| {total_shield_damage:,}| {total_barrier_damage_percent:.2f}%|f"
 	rows.append(footer)
 	# push the table to tid_list
 
