@@ -403,7 +403,16 @@ def get_stat_by_target_and_skill(fight_num: int, player: dict, stat_category: st
 				for stat, value in skill.items():
 					if stat == 'max':
 						update_high_score(f"statTarget_{stat}", "{{"+player["profession"]+"}}"+player["name"]+" | "+str(skill_id), value)
-					if stat != 'id':
+						if value > top_stats['player'][name_prof][stat_category][skill_id].get(stat, 0):
+							top_stats['player'][name_prof][stat_category][skill_id][stat] = value
+							top_stats['fight'][fight_num][stat_category][skill_id][stat] = value
+							top_stats['overall'][stat_category][skill_id][stat] = value
+					elif stat == 'min':
+						if value <= top_stats['player'][name_prof][stat_category][skill_id].get(stat, 0):
+							top_stats['player'][name_prof][stat_category][skill_id][stat] = value
+							top_stats['fight'][fight_num][stat_category][skill_id][stat] = value
+							top_stats['overall'][stat_category][skill_id][stat] = value
+					elif stat not in ['id', 'max', 'min']:
 						top_stats['player'][name_prof][stat_category][skill_id][stat] = top_stats['player'][name_prof][stat_category][skill_id].get(
 							stat, 0) + value
 						top_stats['fight'][fight_num][stat_category][skill_id][stat] = top_stats['fight'][fight_num][stat_category][skill_id].get(
