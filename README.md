@@ -1,6 +1,6 @@
-# GW2_EI_log_combiner
+# GW2_EI_log_combiner  ![GitHub Release](https://img.shields.io/github/v/release/Drevarr/GW2_EI_log_combiner?include_prereleases&display_name=release)
+
 GW2 - Elite Insight Multiple Log Summary
-![GitHub Release](https://img.shields.io/github/v/release/Drevarr/GW2_EI_log_combiner?include_prereleases&display_name=release)
 
 
 Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json output.
