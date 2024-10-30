@@ -26,6 +26,8 @@ Drag and drop the `Drag_and_Drop_Log_Summary_for_datetime.json` file onto the `/
       - [x] buffMap
       - [x] damage_mod_map
       - [X] personal_buff_map
+      - [ ] Squad Comp (Friendly/Enemies)
+      - [ ] Party Comp by Fight
    - [ ] player data
       - [x] defenses
       - [x] support
@@ -43,6 +45,9 @@ Drag and drop the `Drag_and_Drop_Log_Summary_for_datetime.json` file onto the `/
       - [x] groupBuffsActive
       - [x] selfBuffsActive
       - [X] rotation
+      - [ ] Gear Buffs
+      - [ ] Minion Data
+      - [ ] Top Dmg Skils      
       - [x] HealStats Data
          - [x] Outgoing Healing
          - [x] Downed Healing
