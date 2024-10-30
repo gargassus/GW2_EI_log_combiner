@@ -6,7 +6,7 @@ GW2 - Elite Insight Multiple Log Summary
 Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json output.
 
 
-Currently works with WVW and Detailed WVW logs. Partially working with PVElogs, still needs adjustments to handle the PVE formats.
+Currently works with WVW and Detailed WVW logs. Partially working with PVElogs, still needs adjustments to handle the PVE formats. Example config file for Elite Insight included, load settings to ensure most compatible log output.
 
 Run from the command line: `topstats.exe d:\path\to\logs`
 
