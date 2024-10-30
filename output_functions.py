@@ -114,22 +114,53 @@ def extract_gear_buffs_and_skills(buff_data: dict, skill_data: dict) -> tuple:
 	gear_buff_ids = []
 	gear_skill_ids = []
 
-	for buff in buff_data.values():
-		if "Relic of" in buff["name"] or "Superior Sigil of" in buff["name"]:
-			gear_buff_ids.append(buff["id"])
+	for buff, buff_data in buff_data.items():
+		if "Relic of" in buff_data["name"] or "Superior Sigil of" in buff_data["name"]:
+			gear_buff_ids.append(buff)
 
-	for skill in skill_data.values():
-		if "Relic of" in skill["name"] or "Superior Sigil of" in skill["name"]:
-			gear_skill_ids.append(skill["id"])
+	for skill, skill_data in skill_data.items():
+		if "Relic of" in skill_data["name"] or "Superior Sigil of" in skill_data["name"]:
+			gear_skill_ids.append(skill)
 
 	return gear_buff_ids, gear_skill_ids
 
 
-def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list) -> str:
+def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dict, tid_date_time: str) -> str:
+	rows = []
+	header = "|thead-dark table-caption-top table-hover sortable|k\n"
+	header += "|!Name | !Prof |!Account | !{{FightTime}} |"
 	for buff_id in gear_buff_ids:
-		for player in top_stats["player"]:
+		buff_icon = buff_data[buff_id]["icon"]
+		buff_name = buff_data[buff_id]["name"]
+		header += f" ![img width=24 [{buff_name}|{buff_icon}]] |"
+	header += "h"
+	rows.append(header)
+
+	for player in top_stats["player"].values():
+		fight_time = player["fight_time"]
+		profession = "{{"+player["profession"]+"}}"
+		row = f"|{player['name']} | {profession} |{player['account'][:30]} | {fight_time/1000:.1f}|"
+
+		for buff_id in gear_buff_ids:
 			if buff_id in player["buffUptimes"]:
 				buff_uptime_ms = player["buffUptimes"][buff_id]['uptime_ms']
+				uptime_pct = f"{((buff_uptime_ms / fight_time) * 100):.2f}%"
+			else:
+				uptime_pct = " - "
+
+			row += f" {uptime_pct} |"
+		rows.append(row)
+	rows.append(f"| Gear Buff Uptime Table|c")
+
+		#push table to tid_list for output
+	tid_text = "\n".join(rows)
+	temp_title = f"{tid_date_time}-Gear-Buff-Uptimes"
+
+	append_tid_for_output(
+		create_new_tid_from_template(temp_title, "Gear Buff Uptimes", tid_text),
+		tid_list
+		)    
+
 
 def get_total_shield_damage(fight_data: dict) -> int:
 	"""Extract the total shield damage from the fight data.
@@ -572,7 +603,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 
 	# Build the table body
 	for player in top_stats["player"].values():
-		row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:32]} | {player['fight_time'] / 1000:.2f}|"
+		row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:30]} | {player['fight_time'] / 1000:.2f}|"
 		for boon_id in boons:
 			if boon_id not in buff_data:
 				continue
@@ -1012,8 +1043,8 @@ def build_buffs_stats_tid(datetime):
 	caption = "Buffs"
 	creator = "Drevarr@github.com"
 
-	text = (f"<<tabs '[[{datetime}-Boons]] [[{datetime}-Offensive-Buffs]] [[{datetime}-Support-Buffs]] "
-			f"[[{datetime}-Defensive-Buffs]] [[{datetime}-Conditions-In]] [[{datetime}-Debuffs-In]] [[{datetime}-Conditions-Out]] [[{datetime}-Debuffs-Out]]' "
+	text = (f"<<tabs '[[{datetime}-Boons]] [[{datetime}-Offensive-Buffs]] [[{datetime}-Support-Buffs]] [[{datetime}-Defensive-Buffs]]"
+			f"[[{datetime}-Gear-Buff-Uptimes]] [[{datetime}-Conditions-In]] [[{datetime}-Debuffs-In]] [[{datetime}-Conditions-Out]] [[{datetime}-Debuffs-Out]]' "
 			f"'{datetime}-Boons' '$:/state/tab1'>>")
 
 	append_tid_for_output(
@@ -1196,7 +1227,6 @@ def build_fb_pages_tid(fb_pages: dict, caption: str, tid_date_time: str):
 	)
 
 
-
 def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
 	caption_dict = {
 	"statTarget_max": "Highest Outgoing Skill Damage", "totalDamageTaken_max": "Highest Incoming Skill Damage",
@@ -1251,7 +1281,7 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 		create_new_tid_from_template(high_scores_title, high_scores_caption, high_scores_text, high_scores_tags),
 		tid_list
 	)
-		#header += f" ![img width=24 [{skill} - {skill_name}|{skill_icon}]] |"
+
 
 
 def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, fb_pages: dict, outfile: str) -> None:

@@ -229,6 +229,11 @@ if __name__ == '__main__':
 
 	build_high_scores_tid(high_scores, skill_data, buff_data, "High Scores", tid_date_time)
 
+
+	#build_gear_buff_summary
+	gear_buff_ids, gear_skill_ids = extract_gear_buffs_and_skills(buff_data, skill_data)
+	build_gear_buff_summary(top_stats, gear_buff_ids, buff_data, tid_date_time)
+
 	tag_data = build_tag_summary(top_stats)
 	output_tag_summary(tag_data, tid_date_time)
 
