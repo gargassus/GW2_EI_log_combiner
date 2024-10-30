@@ -162,6 +162,50 @@ def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dic
 		)    
 
 
+def build_gear_skill_summary(top_stats: dict, gear_skill_ids: list, skill_data: dict, tid_date_time: str) -> str:
+	rows = []
+	header = "|thead-dark table-caption-top table-hover sortable|k\n"
+	header += "|!Name | !Prof |!Account | !{{FightTime}} |"
+	
+	for skill_id in gear_skill_ids:
+		skill_icon = skill_data[skill_id]["icon"]
+		skill_name = skill_data[skill_id]["name"]
+		header += f" ![img width=24 [{skill_name}|{skill_icon}]] |"
+	header += "h"
+	rows.append(header)
+
+	for player in top_stats["player"].values():
+		fight_time = player["fight_time"]
+		profession = "{{"+player["profession"]+"}}"
+		row = f"|{player['name']} | {profession} |{player['account'][:30]} | {fight_time/1000:.1f}|"
+
+		for skill in gear_skill_ids:
+			_skill = int(skill[1:])
+			if _skill in player["targetDamageDist"]:
+				totalDamage = player["targetDamageDist"][_skill]["totalDamage"]
+				connectedHits = player["targetDamageDist"][_skill]["connectedHits"]
+				crit = player["targetDamageDist"][_skill]["crit"]
+				crit_pct = f"{crit/connectedHits*100:.2f}"
+				critDamage = player["targetDamageDist"][_skill]["critDamage"]
+				tooltip = f"Connected Hits: {connectedHits} <br>Crit: {crit} - ({crit_pct}%) <br>Crit Damage: {critDamage:,.0f}"
+				detailEntry = f'<div class="xtooltip"> {totalDamage:,.0f} <span class="xtooltiptext">'+tooltip+'</span></div>'
+			else:
+				detailEntry = " - "
+			row += f" {detailEntry} |"
+		rows.append(row)
+	rows.append(f"| Gear Skill Damage Table|c")
+
+	#push table to tid_list for output
+	tid_text = "\n".join(rows)
+	temp_title = f"{tid_date_time}-Gear-Skill-Damage"
+
+	append_tid_for_output(
+		create_new_tid_from_template(temp_title, "Gear Skill Damage", tid_text),
+		tid_list
+	)
+
+
+
 def get_total_shield_damage(fight_data: dict) -> int:
 	"""Extract the total shield damage from the fight data.
 
@@ -1044,7 +1088,8 @@ def build_buffs_stats_tid(datetime):
 	creator = "Drevarr@github.com"
 
 	text = (f"<<tabs '[[{datetime}-Boons]] [[{datetime}-Offensive-Buffs]] [[{datetime}-Support-Buffs]] [[{datetime}-Defensive-Buffs]]"
-			f"[[{datetime}-Gear-Buff-Uptimes]] [[{datetime}-Conditions-In]] [[{datetime}-Debuffs-In]] [[{datetime}-Conditions-Out]] [[{datetime}-Debuffs-Out]]' "
+			f" [[{datetime}-Gear-Buff-Uptimes]] [[{datetime}-Gear-Skill-Damage]]"
+			f"[[{datetime}-Conditions-In]] [[{datetime}-Debuffs-In]] [[{datetime}-Conditions-Out]] [[{datetime}-Debuffs-Out]]' "
 			f"'{datetime}-Boons' '$:/state/tab1'>>")
 
 	append_tid_for_output(

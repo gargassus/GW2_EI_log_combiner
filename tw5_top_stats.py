@@ -233,7 +233,8 @@ if __name__ == '__main__':
 	#build_gear_buff_summary
 	gear_buff_ids, gear_skill_ids = extract_gear_buffs_and_skills(buff_data, skill_data)
 	build_gear_buff_summary(top_stats, gear_buff_ids, buff_data, tid_date_time)
-
+	build_gear_skill_summary(top_stats, gear_skill_ids, skill_data, tid_date_time)
+	
 	tag_data = build_tag_summary(top_stats)
 	output_tag_summary(tag_data, tid_date_time)
 
