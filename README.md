@@ -1,5 +1,7 @@
 # GW2_EI_log_combiner
 GW2 - Elite Insight Multiple Log Summary
+![GitHub Release](https://img.shields.io/github/v/release/Drevarr/GW2_EI_log_combiner?include_prereleases&display_name=release)
+
 
 Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json output.
 
@@ -45,7 +47,7 @@ Drag and drop the `Drag_and_Drop_Log_Summary_for_datetime.json` file onto the `/
       - [x] groupBuffsActive
       - [x] selfBuffsActive
       - [X] rotation
-      - [ ] Gear Buffs
+      - [x] Gear Buffs
       - [ ] Minion Data
       - [ ] Top Dmg Skils      
       - [x] HealStats Data
