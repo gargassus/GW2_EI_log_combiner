@@ -1331,8 +1331,46 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 	)
 
 
+def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_time: str) -> None:
+	for fight in mechanics:
+		player_list = mechanics[fight]['player_list']
+		mechanics_list = []
+		for mechanic in mechanics[fight]:
+			if mechanic == 'player_list':
+				continue
+			else:
+				mechanics_list.append(mechanic)
 
-def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, fb_pages: dict, outfile: str) -> None:
+		rows = []
+		rows.append('\n<div style="overflow-x:auto;">\n\n')
+		header = "|thead-dark table-caption-top table-hover freeze-col|k\n"
+		header += "|!@@display:block;width:200px;Player@@ |"
+		for mechanic in mechanics_list:
+			tooltip = f"{mechanics[fight][mechanic]['tip']}"
+			detailed_entry = f"<span class=\"tooltip\" title=\"{tooltip}\">{mechanic}</span>"
+			header += f" !{detailed_entry} |"
+
+		header += "h"
+		rows.append(header)
+
+		for player in player_list:
+			row = f"|{player} |"
+			for mechanic in mechanics_list:
+				if player in mechanics[fight][mechanic]['data']:
+					row += f" {mechanics[fight][mechanic]['data'][player]} |"
+				else:
+					row += " - |"
+			rows.append(row)
+
+		rows.append(f"| ''{caption}'' |c")
+		rows.append("\n\n</div>\n\n")
+		text = "\n".join(rows)
+		append_tid_for_output(
+			create_new_tid_from_template(f"{caption}-{fight}", caption, text, tid_date_time),
+			tid_list
+		)
+
+def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, fb_pages: dict, mechanics: dict, outfile: str) -> None:
 	"""Print the top_stats dictionary as a JSON object to the console."""
 
 	json_dict = {}
@@ -1346,8 +1384,10 @@ def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, da
 	json_dict["skill_casts_by_role"] = {key: value for key, value in top_stats["skill_casts_by_role"].items()}
 	json_dict["high_scores"] = {key: value for key, value in high_scores.items()}    
 	json_dict["personal_damage_mod_data"] = {key: value for key, value in personal_damage_mod_data.items()}
-	json_dict["fb_pages"] = {key: value for key, value in fb_pages.items()}    
+	json_dict["fb_pages"] = {key: value for key, value in fb_pages.items()}
+	json_dict["mechanics"] = {key: value for key, value in mechanics.items()}    
 	with open(outfile, 'w') as json_file:
 		json.dump(json_dict, json_file, indent=4)
 
-	print("JSON File Complete : "+outfile)
+		print("JSON File Complete : "+outfile)
+	json_file.close()

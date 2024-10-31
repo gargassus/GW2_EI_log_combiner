@@ -67,9 +67,6 @@ if __name__ == '__main__':
 	if args.log_file is None:
 		args.log_file = args.input_directory+"/log_detailed_"+tid_date_time+".txt"
 
-	#output = open(args.output_filename, "w",encoding="utf-8")
-	#log = open(args.log_file, "w")
-
 	print_string = "Using input directory "+args.input_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
 	print(print_string)
 
@@ -80,10 +77,7 @@ if __name__ == '__main__':
 	files = listdir(input_directory)
 	sorted_files = sorted(files)
 
-
 	file_date = datetime.datetime.now()
-	# file_tid = file_date.strftime('%Y%m%d%H%M')+"_Fight_Review.tid"
-	# output = open(file_tid, "w", encoding="utf-8")
 
 	fight_num = 0
 
@@ -229,12 +223,14 @@ if __name__ == '__main__':
 
 	build_high_scores_tid(high_scores, skill_data, buff_data, "High Scores", tid_date_time)
 
+	build_mechanics_tid(mechanics, top_stats['player'], "Mechanics", tid_date_time)
+
 
 	#build_gear_buff_summary
 	gear_buff_ids, gear_skill_ids = extract_gear_buffs_and_skills(buff_data, skill_data)
 	build_gear_buff_summary(top_stats, gear_buff_ids, buff_data, tid_date_time)
 	build_gear_skill_summary(top_stats, gear_skill_ids, skill_data, tid_date_time)
-	
+
 	tag_data = build_tag_summary(top_stats)
 	output_tag_summary(tag_data, tid_date_time)
 
@@ -243,7 +239,7 @@ if __name__ == '__main__':
 
 	write_tid_list_to_json(tid_list, args.output_filename)
 
-	output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, fb_pages, args.json_output_filename)
+	output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, fb_pages, mechanics, args.json_output_filename)
 
 #if __name__ == '__main__':
 #    main()

@@ -30,6 +30,7 @@ skill_data = {}
 damage_mod_data = {}
 high_scores = {}
 fb_pages = {}
+mechanics = {}
 personal_damage_mod_data = {
 	"total": [],
 }
@@ -962,6 +963,37 @@ def get_firebrand_pages(player, name_prof, name, account, fight_duration_ms):
 					pages_data = fb_pages[name_prof]["firebrand_pages"]
 					pages_data[skill_id] = pages_data.get(skill_id, 0) + len(rotation_skill['skills'])
 
+def get_mechanics_by_fight(fight_number, mechanics_map, players):
+	"""Collects mechanics data from a fight and stores it in a dictionary."""
+	if fight_number not in mechanics:
+		mechanics[fight_number] = {"player_list": []}
+
+	for mechanic_data in mechanics_map:
+		mechanic_name = mechanic_data['name']
+		description = mechanic_data['description']
+		is_eligible = mechanic_data['isAchievementEligibility']
+
+		if mechanic_name not in mechanics[fight_number]:
+			mechanics[fight_number][mechanic_name] = {
+				'tip': description,
+				'eligibile': is_eligible,
+				'data': {}
+			}
+
+			for data_item in mechanic_data['mechanicsData']:
+				actor = data_item['actor']
+				for player in players:
+					if player['name'] == actor:
+						prof_name = "{{" + player['profession'] + "}} " + player['name']
+						actor = prof_name
+
+				if actor not in mechanics[fight_number]['player_list']:
+					mechanics[fight_number]['player_list'].append(actor)
+				if actor not in mechanics[fight_number][mechanic_name]['data']:
+					mechanics[fight_number][mechanic_name]['data'][actor] = 1
+				else:
+					mechanics[fight_number][mechanic_name]['data'][actor] += 1
+
 
 def parse_file(file_path, fight_num):
 	json_stats = config.json_stats
@@ -985,6 +1017,7 @@ def parse_file(file_path, fight_num):
 	targets = json_data['targets']
 	skill_map = json_data['skillMap']
 	buff_map = json_data['buffMap']
+	mechanics_map = json_data['mechanics']
 	damage_mod_map = json_data.get('damageModMap', {})
 	personal_buffs = json_data.get('personalBuffs', {})
 	personal_damage_mods = json_data.get('personalDamageMods', {})
@@ -1043,6 +1076,9 @@ def parse_file(file_path, fight_num):
 	#collect damage mods data
 	get_personal_mod_data(personal_damage_mods)
 	get_damage_mods_data(damage_mod_map, personal_damage_mod_data)
+
+	#collect mechanics data
+	get_mechanics_by_fight(fight_num, mechanics_map, players)
 
 	#process each player in the fight
 	for player in players:
