@@ -963,13 +963,21 @@ def get_firebrand_pages(player, name_prof, name, account, fight_duration_ms):
 					pages_data = fb_pages[name_prof]["firebrand_pages"]
 					pages_data[skill_id] = pages_data.get(skill_id, 0) + len(rotation_skill['skills'])
 
-def get_mechanics_by_fight(fight_number, mechanics_map, players):
+def get_mechanics_by_fight(fight_number, mechanics_map, players, log_type):
 	"""Collects mechanics data from a fight and stores it in a dictionary."""
-	if fight_number not in mechanics:
-		mechanics[fight_number] = {
-			"player_list": [],
-			"enemy_list": [],
-			}
+	if log_type == "PVE":
+		if fight_number not in mechanics:
+			mechanics[fight_number] = {
+				"player_list": [],
+				"enemy_list": [],
+				}
+	else:
+		fight_number = "WVW"
+		if fight_number not in mechanics:
+			mechanics[fight_number] = {
+				"player_list": [],
+				"enemy_list": [],
+				}
 
 	for mechanic_data in mechanics_map:
 		mechanic_name = mechanic_data['name']
@@ -1088,7 +1096,7 @@ def parse_file(file_path, fight_num):
 	get_damage_mods_data(damage_mod_map, personal_damage_mod_data)
 
 	#collect mechanics data
-	get_mechanics_by_fight(fight_num, mechanics_map, players)
+	get_mechanics_by_fight(fight_num, mechanics_map, players, log_type)
 
 	#process each player in the fight
 	for player in players:

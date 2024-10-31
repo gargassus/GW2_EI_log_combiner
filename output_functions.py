@@ -1360,8 +1360,10 @@ def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_t
 				else:
 					row += " - |"
 			rows.append(row)
-
-		rows.append(f"|''Fight-{fight:02d}-Mechanics'' |c")
+		if fight == "WVW":
+			rows.append(f"|''Fight-WVW-Mechanics'' |c")
+		else:
+			rows.append(f"|''Fight-{fight:02d}-Mechanics'' |c")
 		rows.append("\n\n</div>\n\n")
 	text = "\n".join(rows)
 	mechanics_title = f"{tid_date_time}-Mechanics"
