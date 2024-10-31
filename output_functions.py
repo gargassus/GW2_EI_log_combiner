@@ -1342,7 +1342,7 @@ def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_t
 				mechanics_list.append(mechanic)
 
 		rows.append('\n<div style="overflow-x:auto;">\n\n')
-		header = "|thead-dark table-caption-top-left table-hover freeze-col|k\n"
+		header = "|thead-dark table-caption-top-left table-hover sortable freeze-col|k\n"
 		header += "|!@@display:block;width:200px;Player@@ |"
 		for mechanic in mechanics_list:
 			tooltip = f"{mechanics[fight][mechanic]['tip']}"
