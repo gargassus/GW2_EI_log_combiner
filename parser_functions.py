@@ -966,7 +966,10 @@ def get_firebrand_pages(player, name_prof, name, account, fight_duration_ms):
 def get_mechanics_by_fight(fight_number, mechanics_map, players):
 	"""Collects mechanics data from a fight and stores it in a dictionary."""
 	if fight_number not in mechanics:
-		mechanics[fight_number] = {"player_list": []}
+		mechanics[fight_number] = {
+			"player_list": [],
+			"enemy_list": [],
+			}
 
 	for mechanic_data in mechanics_map:
 		mechanic_name = mechanic_data['name']
@@ -977,23 +980,30 @@ def get_mechanics_by_fight(fight_number, mechanics_map, players):
 			mechanics[fight_number][mechanic_name] = {
 				'tip': description,
 				'eligibile': is_eligible,
-				'data': {}
+				'data': {},
+				'enemy_data': {}
 			}
 
 			for data_item in mechanic_data['mechanicsData']:
 				actor = data_item['actor']
+				prof_name = None
 				for player in players:
 					if player['name'] == actor:
 						prof_name = "{{" + player['profession'] + "}} " + player['name']
-						actor = prof_name
-
-				if actor not in mechanics[fight_number]['player_list']:
-					mechanics[fight_number]['player_list'].append(actor)
-				if actor not in mechanics[fight_number][mechanic_name]['data']:
-					mechanics[fight_number][mechanic_name]['data'][actor] = 1
+				if prof_name:
+					if prof_name not in mechanics[fight_number]['player_list']:
+						mechanics[fight_number]['player_list'].append(prof_name)
+					if prof_name not in mechanics[fight_number][mechanic_name]['data']:
+						mechanics[fight_number][mechanic_name]['data'][prof_name] = 1
+					else:
+						mechanics[fight_number][mechanic_name]['data'][prof_name] += 1
 				else:
-					mechanics[fight_number][mechanic_name]['data'][actor] += 1
-
+					if actor not in mechanics[fight_number]['enemy_list']:
+						mechanics[fight_number]['enemy_list'].append(actor)
+					if actor not in mechanics[fight_number][mechanic_name]['enemy_data']:
+						mechanics[fight_number][mechanic_name]['enemy_data'][actor] = 1
+					else:
+						mechanics[fight_number][mechanic_name]['enemy_data'][actor] += 1
 
 def parse_file(file_path, fight_num):
 	json_stats = config.json_stats

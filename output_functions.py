@@ -205,7 +205,6 @@ def build_gear_skill_summary(top_stats: dict, gear_skill_ids: list, skill_data: 
 	)
 
 
-
 def get_total_shield_damage(fight_data: dict) -> int:
 	"""Extract the total shield damage from the fight data.
 
@@ -1036,7 +1035,7 @@ def build_menu_tid(datetime):
 	menu_title = f"{datetime}-Menu"
 	menu_caption = f"Menu"
 
-	menu_text = f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] [[{datetime}-Damage-Modifiers]] [[{datetime}-Skill-Usage]] [[{datetime}-High-Scores]]" "{datetime}-Overview" "$:/state/menutab1">>'
+	menu_text = f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] [[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] [[{datetime}-High-Scores]]" "{datetime}-Overview" "$:/state/menutab1">>'
 
 	append_tid_for_output(
 		create_new_tid_from_template(menu_title, menu_caption, menu_text, menu_tags, field='radio', value='Total'),
@@ -1332,18 +1331,18 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 
 
 def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_time: str) -> None:
+	rows = []
 	for fight in mechanics:
 		player_list = mechanics[fight]['player_list']
 		mechanics_list = []
 		for mechanic in mechanics[fight]:
-			if mechanic == 'player_list':
+			if mechanic in ['player_list', 'enemy_list']:
 				continue
 			else:
 				mechanics_list.append(mechanic)
 
-		rows = []
 		rows.append('\n<div style="overflow-x:auto;">\n\n')
-		header = "|thead-dark table-caption-top table-hover freeze-col|k\n"
+		header = "|thead-dark table-caption-top-left table-hover freeze-col|k\n"
 		header += "|!@@display:block;width:200px;Player@@ |"
 		for mechanic in mechanics_list:
 			tooltip = f"{mechanics[fight][mechanic]['tip']}"
@@ -1362,13 +1361,14 @@ def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_t
 					row += " - |"
 			rows.append(row)
 
-		rows.append(f"| ''{caption}'' |c")
+		rows.append(f"|''Fight-{fight:02d}-Mechanics'' |c")
 		rows.append("\n\n</div>\n\n")
-		text = "\n".join(rows)
-		append_tid_for_output(
-			create_new_tid_from_template(f"{caption}-{fight}", caption, text, tid_date_time),
-			tid_list
-		)
+	text = "\n".join(rows)
+	mechanics_title = f"{tid_date_time}-Mechanics"
+	append_tid_for_output(
+		create_new_tid_from_template(f"{mechanics_title}", caption, text, tid_date_time),
+		tid_list
+	)
 
 def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, fb_pages: dict, mechanics: dict, outfile: str) -> None:
 	"""Print the top_stats dictionary as a JSON object to the console."""
