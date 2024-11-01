@@ -784,8 +784,8 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
 		if (healer[1]['healing'] + healer[1]['downed_healing'] + healer[1]['barrier']):
 			fighttime = healer[1]['fight_time'] / 1000
 			row = f"|{healer[0]} |"+" {{"+f"{healer[1]['profession']}"+"}} "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
-			row += f" {healer[1]['healing']:,}| {healer[1]['healing'] / fighttime:.2f}| {healer[1]['barrier']:,}|"
-			row += f"{healer[1]['barrier'] / fighttime:.2f}| {healer[1]['downed_healing']:,}| {healer[1]['downed_healing'] / fighttime:.2f}|"
+			row += f" {healer[1]['healing']:,}| {healer[1]['healing'] / fighttime:,.2f}| {healer[1]['barrier']:,}|"
+			row += f"{healer[1]['barrier'] / fighttime:,.2f}| {healer[1]['downed_healing']:,}| {healer[1]['downed_healing'] / fighttime:,.2f}|"
 			rows.append(row)
 	rows.append(f"|{caption} Table|c")
 
@@ -1044,7 +1044,7 @@ def build_menu_tid(datetime):
 	menu_title = f"{datetime}-Menu"
 	menu_caption = f"Menu"
 
-	menu_text = f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] [[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] [[{datetime}-High-Scores]]" "{datetime}-Overview" "$:/state/menutab1">>'
+	menu_text = f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] [[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] [[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}Top-Damage-By-Skill]]" "{datetime}-Overview" "$:/state/menutab1">>'
 
 	append_tid_for_output(
 		create_new_tid_from_template(menu_title, menu_caption, menu_text, menu_tags, field='radio', value='Total'),
@@ -1350,9 +1350,9 @@ def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_t
 			else:
 				mechanics_list.append(mechanic)
 
-		rows.append('\n<div style="overflow-x:auto;">\n\n')
+		rows.append('\n<div class="div1">\n\n')
 		header = "|thead-dark table-caption-top-left table-hover sortable freeze-col|k\n"
-		header += "|!@@display:block;width:200px;Player@@ |"
+		header += "|!Player |"
 		for mechanic in mechanics_list:
 			tooltip = f"{mechanics[fight][mechanic]['tip']}"
 			detailed_entry = f"<span class=\"tooltip\" title=\"{tooltip}\">{mechanic}</span>"
@@ -1381,7 +1381,127 @@ def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_t
 		tid_list
 	)
 
-def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, fb_pages: dict, mechanics: dict, outfile: str) -> None:
+def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time: str) -> None:
+	minion_stats_tags = f"{tid_date_time}"
+	minion_stats_title = f"{tid_date_time}-Minions"
+	minion_stats_caption = f"{caption}"
+	minion_stats_creator = f"Drevarr@github.com"
+	minion_stats_text ="<<tabs '"
+
+	for profession in minions:
+		tab_name = f"{tid_date_time}-{caption.replace(' ','-')}-{profession}"
+		minion_stats_text += f'[[{tab_name}]]'
+	minion_stats_text += f"' '{tab_name}' '$:/state/tab1'>>"
+	append_tid_for_output(
+		create_new_tid_from_template(minion_stats_title, minion_stats_caption, minion_stats_text, minion_stats_tags, creator=minion_stats_creator),
+		tid_list
+	)
+
+	for profession in minions:
+		rows = []
+		rows.append('\n<div class="div1">\n\n')
+		header = "|thead-dark table-caption-top-left table-hover sortable freeze-col|k\n"
+		header += "|!Player | Fights| Fight Time|"
+		for minion in minions[profession]['pets_list']:
+			header += f" !{minion} |"
+		header += "h"
+		rows.append(header)
+
+		for player in minions[profession]['player']:
+			name_prof = f"{player}|{profession}"
+			prof_name = "{{"+profession+"}}"+player
+			fights = players[name_prof]['num_fights']
+			fight_time = f"{players[name_prof]['fight_time']/1000:,.1f}"
+
+			row = f"|{prof_name} | {fights}| {fight_time}|"
+			for minion in minions[profession]['pets_list']:
+				if minion in minions[profession]['player'][player]:
+					entry = f" {minions[profession]['player'][player][minion]} |"
+				else:
+					entry = " - |"
+				row += entry
+			rows.append(row)
+		#rows.append(f"| {profession}_{caption} |c")
+		rows.append("\n\n</div>\n\n")
+		text = "\n".join(rows)
+		minion_stats_title = f"{tid_date_time}-{caption.replace(' ','-')}-{profession}"
+		profession = "{{"+f"{profession}"+"}}"
+		prof_caption = f"{profession}-Minions"
+
+		append_tid_for_output(
+			create_new_tid_from_template(minion_stats_title, prof_caption, text, tid_date_time),
+			tid_list
+		)
+
+def build_top_damage_by_skill(totalDamageTaken, targetDamageDist, skill_data, buff_data, caption, tid_date_time):
+	"""Builds a table of top damage by skill."""
+	sorted_totalDamageTaken = dict(sorted(totalDamageTaken.items(), key=lambda item: item[1]["totalDamage"], reverse=True))
+	sorted_targetDamageDist = dict(sorted(targetDamageDist.items(), key=lambda item: item[1]["totalDamage"], reverse=True))
+
+	total_damage_taken = 0
+	total_damage_distributed = 0
+	for skill in sorted_totalDamageTaken.values():
+		total_damage_taken += skill["totalDamage"]
+	for skill in sorted_targetDamageDist.values():
+		total_damage_distributed += skill["totalDamage"]
+
+	rows = []
+	rows.append("|thead-dark table-borderless w-75 table-center|k")
+	rows.append("|!Top 25 Skills by Damage Output|")
+	rows.append("\n\n")
+	rows.append('\n<div class="flex-row">\n\n    <div class="flex-col">\n\n')
+	header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
+	header += "|!SKill Name | Damage Taken | % of Total|h"
+	rows.append(header)
+	i=0
+
+	for indx,skill in sorted_targetDamageDist.items():
+		if i <25:
+			if 's'+str(indx) in skill_data:
+				skill_name = skill_data['s'+str(indx)]['name'] or buff_data['b'+str(indx)]['name']
+				skill_icon = skill_data['s'+str(indx)]['icon'] or buff_data['b'+str(indx)]['icon']
+			elif 'b'+str(indx) in buff_data:
+				skill_name = buff_data['b'+str(indx)]['name']
+				skill_icon = buff_data['b'+str(indx)]['icon']
+			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+			row = f"|{entry} | {skill['totalDamage']:,.0f} | {skill['totalDamage']/total_damage_distributed*100:,.1f}% |"
+
+			rows.append(row)
+		i += 1
+	rows.append(f"| Squad Damage Output |c")
+	rows.append('\n\n</div>\n\n    <div class="flex-col">\n\n')
+		
+
+	header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
+	header += "|!SKill Name | Damage Taken | % of Total|h"
+	rows.append(header)
+	i=0
+
+	for indx, skill in sorted_totalDamageTaken.items():
+		if i <25:
+			if 's'+str(indx) in skill_data:
+				skill_name = skill_data['s'+str(indx)]['name'] or buff_data['b'+str(indx)]['name']
+				skill_icon = skill_data['s'+str(indx)]['icon'] or buff_data['b'+str(indx)]['icon']
+			elif 'b'+str(indx) in buff_data:
+				skill_name = buff_data['b'+str(indx)]['name']
+				skill_icon = buff_data['b'+str(indx)]['icon']
+			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+			row = f"|{entry} | {skill['totalDamage']:,.0f} | {skill['totalDamage']/total_damage_taken*100:,.1f}% |"
+
+			rows.append(row)
+		i += 1
+	rows.append(f"| Enemy Damage Output |c")
+	rows.append("\n\n</div>\n\n</div>")
+
+	text = "\n".join(rows)
+
+	top_skills_title = f"{tid_date_time}-{caption.replace(' ','-')}"
+	append_tid_for_output(
+		create_new_tid_from_template(top_skills_title, caption, text, tid_date_time),
+		tid_list
+	)
+
+def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, fb_pages: dict, mechanics: dict, minions: dict, outfile: str) -> None:
 	"""Print the top_stats dictionary as a JSON object to the console."""
 
 	json_dict = {}
@@ -1396,7 +1516,8 @@ def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, da
 	json_dict["high_scores"] = {key: value for key, value in high_scores.items()}    
 	json_dict["personal_damage_mod_data"] = {key: value for key, value in personal_damage_mod_data.items()}
 	json_dict["fb_pages"] = {key: value for key, value in fb_pages.items()}
-	json_dict["mechanics"] = {key: value for key, value in mechanics.items()}    
+	json_dict["mechanics"] = {key: value for key, value in mechanics.items()}
+	json_dict["minions"] = {key: value for key, value in minions.items()}    	
 	with open(outfile, 'w') as json_file:
 		json.dump(json_dict, json_file, indent=4)
 

@@ -31,6 +31,7 @@ damage_mod_data = {}
 high_scores = {}
 fb_pages = {}
 mechanics = {}
+minions = {}
 personal_damage_mod_data = {
 	"total": [],
 }
@@ -1013,6 +1014,37 @@ def get_mechanics_by_fight(fight_number, mechanics_map, players, log_type):
 					else:
 						mechanics[fight_number][mechanic_name]['enemy_data'][actor] += 1
 
+
+def get_minions_by_player(player_data: dict, player_name: str, profession: str) -> None:
+    """
+    Collects minions created by a player and stores them in a global dictionary.
+
+    Args:
+        player_data (dict): The player data containing minions information.
+        player_name (str): The name of the player.
+        profession (str): The profession of the player.
+
+    Returns:
+        None
+    """
+    if "minions" in player_data:
+        if profession not in minions:
+            minions[profession] = {"player": {}, "pets_list": []}
+
+        for minion in player_data["minions"]:
+            minion_name = minion["name"].replace("Juvenile ", "").replace("UNKNOWN", "Unknown")
+            minion_count = len(minion["combatReplayData"])
+
+            if minion_name not in minions[profession]["pets_list"]:
+                minions[profession]["pets_list"].append(minion_name)
+            if player_name not in minions[profession]["player"]:
+                minions[profession]["player"][player_name] = {}
+            if minion_name not in minions[profession]["player"][player_name]:
+                minions[profession]["player"][player_name][minion_name] = minion_count
+            else:
+                minions[profession]["player"][player_name][minion_name] += minion_count
+
+
 def parse_file(file_path, fight_num):
 	json_stats = config.json_stats
 
@@ -1137,6 +1169,7 @@ def parse_file(file_path, fight_num):
 				'guild': guild_id,
 				'num_fights': 0,
 				'enemy_engaged_count': 0,
+				'minions': {},
 			}
 
 
@@ -1147,6 +1180,8 @@ def parse_file(file_path, fight_num):
 
 		get_player_fight_dps(player["dpsTargets"], name, profession, (fight_duration_ms/1000))
 		get_player_stats_targets(player["statsTargets"], name, profession, (fight_duration_ms/1000))
+
+		get_minions_by_player(player, name, profession)
 
 		# Cumulative group and squad supported counts
 		top_stats['player'][name_prof]['num_fights'] = top_stats['player'][name_prof].get('num_fights', 0) + 1

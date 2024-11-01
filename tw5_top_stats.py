@@ -225,6 +225,9 @@ if __name__ == '__main__':
 
 	build_mechanics_tid(mechanics, top_stats['player'], "Mechanics", tid_date_time)
 
+	build_minions_tid(minions, top_stats['player'], "Minions", tid_date_time)
+
+	build_top_damage_by_skill(top_stats['overall']['totalDamageTaken'], top_stats['overall']['targetDamageDist'], skill_data, buff_data, "Top Damage By Skill", tid_date_time)
 
 	#build_gear_buff_summary
 	gear_buff_ids, gear_skill_ids = extract_gear_buffs_and_skills(buff_data, skill_data)
@@ -239,7 +242,7 @@ if __name__ == '__main__':
 
 	write_tid_list_to_json(tid_list, args.output_filename)
 
-	output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, fb_pages, mechanics, args.json_output_filename)
+	output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, fb_pages, mechanics, minions, args.json_output_filename)
 
 #if __name__ == '__main__':
 #    main()
