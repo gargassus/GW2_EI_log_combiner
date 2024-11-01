@@ -531,78 +531,87 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 
 	# Build the table header
 	rows = []
-	header = "|thead-dark table-caption-top table-hover sortable|k\n"
-	header += "|!Name | !Prof |!Account | !{{FightTime}} |"
-	for boon_id, boon_name in boons.items():
-		header += "!{{"+f"{boon_name}"+"}}|"
-	header += "h"
+	for toggle in ["Total", "Average"]:
+		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="radio" type="match" text="{toggle}" animate="yes">\n')
 
-	rows.append(header)
+		header = "|thead-dark table-caption-top table-hover sortable|k\n"
+		header += "|!Name | !Prof |!Account | !{{FightTime}} |"
+		for boon_id, boon_name in boons.items():
+			header += "!{{"+f"{boon_name}"+"}}|"
+		header += "h"
 
-	caption = ""
-	# Build the table body
-	for player in top_stats["player"].values():
-		row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:30]} | {player['fight_time'] / 1000:.1f}|"
+		rows.append(header)
 
-		for boon_id in boons:
-			if boon_id not in player[category]:
-				uptime_percentage = " - "
+		caption = ""
+		# Build the table body
+		for player in top_stats["player"].values():
+			row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:30]} | {player['fight_time'] / 1000:.1f}|"
 
-			else:
-				stacking = buff_data[boon_id].get('stacking', False)                
-				num_fights = player["num_fights"]
-				group_supported = player["group_supported"]
-				squad_supported = player["squad_supported"]
+			for boon_id in boons:
+				if boon_id not in player[category]:
+					entry = " - "
 
-				if category == "selfBuffs":
-					caption = "Self Generation"
-					generation_ms = player[category][boon_id]["generation"]
-					if stacking:
-						uptime_percentage = round((generation_ms / player['fight_time'] / num_fights), 3)
-					else:
-						uptime_percentage = round((generation_ms / player['fight_time'] / num_fights) * 100, 3)
-				elif category == "groupBuffs":
-					caption = "Group Generation"
-					generation_ms = player[category][boon_id]["generation"]
-					if stacking:
-						uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights), 3)
-					else:
-						uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights) * 100, 3)
-				elif category == "squadBuffs":
-					caption = "Squad Generation"
-					generation_ms = player[category][boon_id]["generation"]
-					if stacking:
-						uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights), 3)
-					else:
-						uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights) * 100, 3)
-				elif category == "totalBuffs":
-					caption = "Total Generation"
-					generation_ms = 0
-					if boon_id in player["selfBuffs"]:
-						generation_ms += player["selfBuffs"][boon_id]["generation"] 
-					if boon_id in player["squadBuffs"]:
-						generation_ms += player["squadBuffs"][boon_id]["generation"]
-					if stacking:
-						uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported), 3)
-					else:
-						uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported) * 100, 3)
 				else:
-					raise ValueError(f"Invalid category: {category}")
-				
-				if stacking:
-					if uptime_percentage:
-						uptime_percentage = f"{uptime_percentage:.2f}"
-					else:
-						uptime_percentage = " - "
-				else:
-					if uptime_percentage:
-						uptime_percentage = f"{uptime_percentage:.2f}%"
-					else:
-						uptime_percentage = " - "
+					stacking = buff_data[boon_id].get('stacking', False)                
+					num_fights = player["num_fights"]
+					group_supported = player["group_supported"]
+					squad_supported = player["squad_supported"]
 
-			row += f" {uptime_percentage}|"
-		rows.append(row)
-	rows.append(f"|{caption} Table|c")
+					if category == "selfBuffs":
+						caption = "Self Generation"
+						generation_ms = player[category][boon_id]["generation"]
+						if stacking:
+							uptime_percentage = round((generation_ms / player['fight_time'] / num_fights), 3)
+						else:
+							uptime_percentage = round((generation_ms / player['fight_time'] / num_fights) * 100, 3)
+					elif category == "groupBuffs":
+						caption = "Group Generation"
+						generation_ms = player[category][boon_id]["generation"]
+						if stacking:
+							uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights), 3)
+						else:
+							uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights) * 100, 3)
+					elif category == "squadBuffs":
+						caption = "Squad Generation"
+						generation_ms = player[category][boon_id]["generation"]
+						if stacking:
+							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights), 3)
+						else:
+							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights) * 100, 3)
+					elif category == "totalBuffs":
+						caption = "Total Generation"
+						generation_ms = 0
+						if boon_id in player["selfBuffs"]:
+							generation_ms += player["selfBuffs"][boon_id]["generation"] 
+						if boon_id in player["squadBuffs"]:
+							generation_ms += player["squadBuffs"][boon_id]["generation"]
+						if stacking:
+							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported), 3)
+						else:
+							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported) * 100, 3)
+					else:
+						raise ValueError(f"Invalid category: {category}")
+					
+					if stacking:
+						if uptime_percentage:
+							uptime_percentage = f"{uptime_percentage:.2f}"
+						else:
+							uptime_percentage = " - "
+					else:
+						if uptime_percentage:
+							uptime_percentage = f"{uptime_percentage:.2f}%"
+						else:
+							uptime_percentage = " - "
+					if toggle == "Total":
+						entry = f"{generation_ms/1000:,.1f}"
+					else:
+						entry = uptime_percentage
+
+				row += f" {entry}|"
+			rows.append(row)
+		#rows.append(f"|{caption} Table|c")
+		rows.append(f'|<$radio field="radio" value="Total">Total Gen</$radio> - <$radio field="radio" value="Average">Uptime Gen</$radio> - {caption} Table|c')
+		rows.append("\n</$reveal>")
 
 	#push table to tid_list for output
 	tid_text = "\n".join(rows)
