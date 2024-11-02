@@ -18,32 +18,65 @@ import json
 #list of tid files to output
 tid_list = []
 
-def create_new_tid_from_template(title, caption, text, tags=None, modified=None, created=None, creator=None, field=None, value=None) -> dict:
-	"""Create a new TID from the template."""
-	temp_tid = {}
-	temp_tid['title'] = title
-	temp_tid['caption'] = caption
-	temp_tid['text'] = text
-	if tags:
-		temp_tid['tags'] = tags
-	if modified:
-		temp_tid['modified'] = modified
-	if created:
-		temp_tid['created'] = created
-	if creator:
-		temp_tid['creator'] = creator
-	if field and value:		
-		temp_tid[field] = value
+def create_new_tid_from_template(
+    title: str,
+    caption: str,
+    text: str,
+    tags: list[str] = None,
+    modified: str = None,
+    created: str = None,
+    creator: str = None,
+    field: str = None,
+    value: str = None,
+) -> dict:
+    """
+    Create a new TID from the template.
 
-	return temp_tid
+    Args:
+        title (str): The title of the TID.
+        caption (str): The caption of the TID.
+        text (str): The text of the TID.
+        tags (list[str], optional): The tags for the TID. Defaults to None.
+        modified (str, optional): The modified date of the TID. Defaults to None.
+        created (str, optional): The created date of the TID. Defaults to None.
+        creator (str, optional): The creator of the TID. Defaults to None.
+        field (str, optional): The field to add to the TID. Defaults to None.
+        value (str, optional): The value to add to the TID. Defaults to None.
+
+    Returns:
+        dict: The new TID.
+    """
+    temp_tid = {}
+    temp_tid['title'] = title
+    temp_tid['caption'] = caption
+    temp_tid['text'] = text
+    if tags:
+        temp_tid['tags'] = tags
+    if modified:
+        temp_tid['modified'] = modified
+    if created:
+        temp_tid['created'] = created
+    if creator:
+        temp_tid['creator'] = creator
+    if field and value:        
+        temp_tid[field] = value
+
+    return temp_tid
 
 def append_tid_for_output(input, output):
 	output.append(input)
 	print(input['title']+'.tid has been created.')
 
-def write_tid_list_to_json(tid_list, output_filename):
+def write_tid_list_to_json(tid_list: list, output_filename: str) -> None:
 	"""
 	Write the list of tid files to a json file
+
+	Args:
+		tid_list (list): The list of tid files.
+		output_filename (str): The name of the output file.
+
+	Returns:
+		None
 	"""
 	with open(output_filename, 'w') as outfile:
 		json.dump(tid_list, outfile, indent=4, sort_keys=True)
@@ -99,7 +132,6 @@ def calculate_average_squad_count(fight_data: dict) -> tuple:
 
 	return avg_squad_count, avg_ally_count, avg_enemy_count
 
-
 def extract_gear_buffs_and_skills(buff_data: dict, skill_data: dict) -> tuple:
 	"""
 	Extract gear buffs and skills from the top stats data.
@@ -123,7 +155,6 @@ def extract_gear_buffs_and_skills(buff_data: dict, skill_data: dict) -> tuple:
 			gear_skill_ids.append(skill)
 
 	return gear_buff_ids, gear_skill_ids
-
 
 def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dict, tid_date_time: str) -> str:
 	rows = []
@@ -160,7 +191,6 @@ def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dic
 		create_new_tid_from_template(temp_title, "Gear Buff Uptimes", tid_text),
 		tid_list
 		)    
-
 
 def build_gear_skill_summary(top_stats: dict, gear_skill_ids: list, skill_data: dict, tid_date_time: str) -> str:
 	rows = []
@@ -203,7 +233,6 @@ def build_gear_skill_summary(top_stats: dict, gear_skill_ids: list, skill_data: 
 		create_new_tid_from_template(temp_title, "Gear Skill Damage", tid_text),
 		tid_list
 	)
-
 
 def get_total_shield_damage(fight_data: dict) -> int:
 	"""Extract the total shield damage from the fight data.
@@ -622,7 +651,6 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 		tid_list
 		)    
 
-
 def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
 	"""Print a table of boon uptime stats for all players in the log."""
 
@@ -681,7 +709,6 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 		create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ','-')}", caption, tid_text),
 		tid_list
 	)
-
 
 def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
 	"""Print a table of boon uptime stats for all players in the log."""
@@ -750,7 +777,6 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 		tid_list
 	)
 
-
 def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> None:
 	"""Print a table of healing stats for all players in the log running the extension."""
 
@@ -796,7 +822,6 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
 		create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ','-')}", caption, tid_text),
 		tid_list
 	)
-
 
 def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_data: dict, damage_mod_data: dict, caption: str, tid_date_time: str) -> None:
 	"""Print a table of personal damage modifier stats for all players in the log running the extension."""
@@ -847,7 +872,6 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
 			tid_list
 		)
 
-
 def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict, caption: str, tid_date_time: str) -> None:
 	"""Print a table of shared damage modifier stats for all players in the log running the extension."""
 	shared_mod_list = []
@@ -894,7 +918,6 @@ def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict,
 		create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ','-')}", caption, tid_text),
 		tid_list
 	)
-
 
 def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, caption: str, tid_date_time: str) -> None:
 	"""
@@ -950,7 +973,6 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 			create_new_tid_from_template(tid_title, tid_caption, tid_text),
 			tid_list
 		)
-
 
 def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
 	"""Build a table of combat resurrection stats for all players in the log running the extension."""
@@ -1022,7 +1044,6 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 		tid_list
 	)
 
-
 def build_main_tid(datetime):
 	main_created = f"{datetime}"
 	main_modified = f"{datetime}"
@@ -1038,18 +1059,31 @@ def build_main_tid(datetime):
 		tid_list
 	)
 
+def build_menu_tid(datetime: str) -> None:
+    """
+    Build a TID for the main menu.
 
-def build_menu_tid(datetime):
-	menu_tags = f"{datetime}"
-	menu_title = f"{datetime}-Menu"
-	menu_caption = f"Menu"
+    Args:
+        datetime (str): The datetime string of the log.
 
-	menu_text = f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] [[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] [[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}Top-Damage-By-Skill]]" "{datetime}-Overview" "$:/state/menutab1">>'
+    Returns:
+        None
+    """
+    tags = f"{datetime}"
+    title = f"{datetime}-Menu"
+    caption = "Menu"
+    
+    text = (
+        f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] '
+        f'[[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] '
+        f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]]" '
+        f'"{datetime}-Overview" "$:/state/menutab1">>'
+    )
 
-	append_tid_for_output(
-		create_new_tid_from_template(menu_title, menu_caption, menu_text, menu_tags, field='radio', value='Total'),
-		tid_list
-	)
+    append_tid_for_output(
+        create_new_tid_from_template(title, caption, text, tags, field='radio', value='Total'),
+        tid_list
+    )
 
 
 def build_general_stats_tid(datetime):
@@ -1069,7 +1103,6 @@ def build_general_stats_tid(datetime):
 		tid_list
 	)
 
-
 def build_damage_modifiers_menu_tid(datetime: str) -> None:
 	"""
 	Build a TID for the damage modifiers menu.
@@ -1088,7 +1121,6 @@ def build_damage_modifiers_menu_tid(datetime: str) -> None:
 		tid_list
 	)
 
-	
 def build_buffs_stats_tid(datetime):
 	"""
 	Build a TID for buffs menu.
@@ -1108,7 +1140,6 @@ def build_buffs_stats_tid(datetime):
 		tid_list
 	)
 
-
 def build_boon_stats_tid(datetime):
 	buff_stats_tags = f"{datetime}"
 	buff_stats_title = f"{datetime}-Boons"
@@ -1121,7 +1152,6 @@ def build_boon_stats_tid(datetime):
 		create_new_tid_from_template(buff_stats_title, buff_stats_caption, buff_stats_text, buff_stats_tags, creator=buff_stats_creator),
 		tid_list
 	)
-
 
 def build_profession_damage_modifier_stats_tid(personal_damage_mod_data: dict, caption: str, tid_date_time: str):
 
@@ -1141,7 +1171,6 @@ def build_profession_damage_modifier_stats_tid(personal_damage_mod_data: dict, c
 		tid_list
 	)   
 
-
 def build_skill_usage_stats_tid(skill_casts_by_role: dict, caption: str, tid_date_time: str):
 	skill_stats_tags = f"{tid_date_time}"
 	skill_stats_title = f"{tid_date_time}-Skill-Usage"
@@ -1157,7 +1186,6 @@ def build_skill_usage_stats_tid(skill_casts_by_role: dict, caption: str, tid_dat
 		create_new_tid_from_template(skill_stats_title, skill_stats_caption, skill_stats_text, skill_stats_tags, creator=skill_stats_creator),
 		tid_list
 	)
-
 
 def fmt_firebrand_page_total(page_casts, page_cost, fight_time, page_total):
 	output_string = ' <span data-tooltip="'
@@ -1179,7 +1207,6 @@ def fmt_firebrand_page_total(page_casts, page_cost, fight_time, page_total):
 	output_string += '</span>|'
 
 	return output_string
-
 
 def build_fb_pages_tid(fb_pages: dict, caption: str, tid_date_time: str):
 	# Firebrand pages
@@ -1282,7 +1309,6 @@ def build_fb_pages_tid(fb_pages: dict, caption: str, tid_date_time: str):
 		tid_list
 	)
 
-
 def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
 	caption_dict = {
 	"statTarget_max": "Highest Outgoing Skill Damage", "totalDamageTaken_max": "Highest Incoming Skill Damage",
@@ -1337,7 +1363,6 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 		create_new_tid_from_template(high_scores_title, high_scores_caption, high_scores_text, high_scores_tags),
 		tid_list
 	)
-
 
 def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_time: str) -> None:
 	rows = []
@@ -1433,17 +1458,14 @@ def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time:
 			tid_list
 		)
 
-def build_top_damage_by_skill(totalDamageTaken, targetDamageDist, skill_data, buff_data, caption, tid_date_time):
+def build_top_damage_by_skill(total_damage_taken: dict, target_damage_dist: dict, skill_data: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
 	"""Builds a table of top damage by skill."""
-	sorted_totalDamageTaken = dict(sorted(totalDamageTaken.items(), key=lambda item: item[1]["totalDamage"], reverse=True))
-	sorted_targetDamageDist = dict(sorted(targetDamageDist.items(), key=lambda item: item[1]["totalDamage"], reverse=True))
 
-	total_damage_taken = 0
-	total_damage_distributed = 0
-	for skill in sorted_totalDamageTaken.values():
-		total_damage_taken += skill["totalDamage"]
-	for skill in sorted_targetDamageDist.values():
-		total_damage_distributed += skill["totalDamage"]
+	sorted_total_damage_taken = dict(sorted(total_damage_taken.items(), key=lambda item: item[1]["totalDamage"], reverse=True))
+	sorted_target_damage_dist = dict(sorted(target_damage_dist.items(), key=lambda item: item[1]["totalDamage"], reverse=True))
+
+	total_damage_taken_value = sum(skill["totalDamage"] for skill in sorted_total_damage_taken.values())
+	total_damage_distributed_value = sum(skill["totalDamage"] for skill in sorted_target_damage_dist.values())
 
 	rows = []
 	rows.append("|thead-dark table-borderless w-75 table-center|k")
@@ -1451,51 +1473,39 @@ def build_top_damage_by_skill(totalDamageTaken, targetDamageDist, skill_data, bu
 	rows.append("\n\n")
 	rows.append('\n<div class="flex-row">\n\n    <div class="flex-col">\n\n')
 	header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
-	header += "|!SKill Name | Damage Taken | % of Total|h"
+	header += "|!Skill Name | Damage Taken | % of Total|h"
 	rows.append(header)
-	i=0
-
-	for indx,skill in sorted_targetDamageDist.items():
-		if i <25:
-			if 's'+str(indx) in skill_data:
-				skill_name = skill_data['s'+str(indx)]['name'] or buff_data['b'+str(indx)]['name']
-				skill_icon = skill_data['s'+str(indx)]['icon'] or buff_data['b'+str(indx)]['icon']
-			elif 'b'+str(indx) in buff_data:
-				skill_name = buff_data['b'+str(indx)]['name']
-				skill_icon = buff_data['b'+str(indx)]['icon']
+	for i, (skill_id, skill) in enumerate(sorted_target_damage_dist.items()):
+		if i < 25:
+			skill_name = skill_data.get(f"s{skill_id}", {}).get("name", buff_data.get(f"b{skill_id}", {}).get("name", ""))
+			skill_icon = skill_data.get(f"s{skill_id}", {}).get("icon", buff_data.get(f"b{skill_id}", {}).get("icon", ""))
 			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
-			row = f"|{entry} | {skill['totalDamage']:,.0f} | {skill['totalDamage']/total_damage_distributed*100:,.1f}% |"
+			row = f"|{entry} | {skill['totalDamage']:,.0f} | {skill['totalDamage']/total_damage_distributed_value*100:,.1f}% |"
 
 			rows.append(row)
-		i += 1
+
 	rows.append(f"| Squad Damage Output |c")
 	rows.append('\n\n</div>\n\n    <div class="flex-col">\n\n')
-		
 
 	header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
-	header += "|!SKill Name | Damage Taken | % of Total|h"
+	header += "|!Skill Name | Damage Taken | % of Total|h"
 	rows.append(header)
-	i=0
-
-	for indx, skill in sorted_totalDamageTaken.items():
-		if i <25:
-			if 's'+str(indx) in skill_data:
-				skill_name = skill_data['s'+str(indx)]['name'] or buff_data['b'+str(indx)]['name']
-				skill_icon = skill_data['s'+str(indx)]['icon'] or buff_data['b'+str(indx)]['icon']
-			elif 'b'+str(indx) in buff_data:
-				skill_name = buff_data['b'+str(indx)]['name']
-				skill_icon = buff_data['b'+str(indx)]['icon']
+	for i, (skill_id, skill) in enumerate(sorted_total_damage_taken.items()):
+		if i < 25:
+			skill_name = skill_data.get(f"s{skill_id}", {}).get("name", buff_data.get(f"b{skill_id}", {}).get("name", ""))
+			skill_icon = skill_data.get(f"s{skill_id}", {}).get("icon", buff_data.get(f"b{skill_id}", {}).get("icon", ""))
 			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
-			row = f"|{entry} | {skill['totalDamage']:,.0f} | {skill['totalDamage']/total_damage_taken*100:,.1f}% |"
+			row = f"|{entry} | {skill['totalDamage']:,.0f} | {skill['totalDamage']/total_damage_taken_value*100:,.1f}% |"
 
 			rows.append(row)
-		i += 1
+
 	rows.append(f"| Enemy Damage Output |c")
 	rows.append("\n\n</div>\n\n</div>")
 
 	text = "\n".join(rows)
 
-	top_skills_title = f"{tid_date_time}-{caption.replace(' ','-')}"
+	top_skills_title = f"{tid_date_time}-{caption.replace(' ', '-')}"
+
 	append_tid_for_output(
 		create_new_tid_from_template(top_skills_title, caption, text, tid_date_time),
 		tid_list
