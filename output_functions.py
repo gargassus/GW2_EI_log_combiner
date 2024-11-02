@@ -1077,7 +1077,7 @@ def build_menu_tid(datetime: str) -> None:
         f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] '
         f'[[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] '
         f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]]" '
-        f'"{datetime}-Overview" "$:/state/menutab1">>'
+        f'"{datetime}-Overview" "$:/temp/menutab1">>'
     )
 
     append_tid_for_output(
@@ -1095,8 +1095,8 @@ def build_general_stats_tid(datetime):
 	caption = "General Stats"
 	creator = "Drevarr@github.com"
 	text = (f"<<tabs '[[{datetime}-Damage]] [[{datetime}-Offensive]] "
-			f"[[{datetime}-Defenses]] [[{datetime}-Support]] [[{datetime}-Heal-Stats]] [[{datetime}-Combat-Resurrect]] [[{datetime}-FB-Pages]]' "
-			f"'{datetime}-Offensive' '$:/state/tab1'>>")
+			f"[[{datetime}-Defenses]] [[{datetime}-Support]] [[{datetime}-Heal-Stats]] [[{datetime}-Healers]] [[{datetime}-Combat-Resurrect]] [[{datetime}-FB-Pages]]' "
+			f"'{datetime}-Offensive' '$:/temp/tab1'>>")
 
 	append_tid_for_output(
 		create_new_tid_from_template(title, caption, text, tags, creator=creator, field='radio', value='Total'),
@@ -1114,7 +1114,7 @@ def build_damage_modifiers_menu_tid(datetime: str) -> None:
 	creator = "Drevarr@github.com"
 
 	text = (f"<<tabs '[[{datetime}-Shared-Damage-Mods]] [[{datetime}-Profession_Damage_Mods]]' "
-			f"'{datetime}-Shared-Damage-Mods' '$:/state/tab1'>>")
+			f"'{datetime}-Shared-Damage-Mods' '$:/temp/tab1'>>")
 
 	append_tid_for_output(
 		create_new_tid_from_template(title, caption, text, tags, creator=creator),
@@ -1133,7 +1133,7 @@ def build_buffs_stats_tid(datetime):
 	text = (f"<<tabs '[[{datetime}-Boons]] [[{datetime}-Offensive-Buffs]] [[{datetime}-Support-Buffs]] [[{datetime}-Defensive-Buffs]]"
 			f" [[{datetime}-Gear-Buff-Uptimes]] [[{datetime}-Gear-Skill-Damage]]"
 			f"[[{datetime}-Conditions-In]] [[{datetime}-Debuffs-In]] [[{datetime}-Conditions-Out]] [[{datetime}-Debuffs-Out]]' "
-			f"'{datetime}-Boons' '$:/state/tab1'>>")
+			f"'{datetime}-Boons' '$:/temp/tab1'>>")
 
 	append_tid_for_output(
 		create_new_tid_from_template(title, caption, text, tags, creator=creator),
@@ -1146,7 +1146,7 @@ def build_boon_stats_tid(datetime):
 	buff_stats_caption = f"Boons"
 	buff_stats_creator = f"Drevarr@github.com"
 
-	buff_stats_text = f"<<tabs '[[{datetime}-Uptimes]] [[{datetime}-Self-Generation]] [[{datetime}-Group-Generation]] [[{datetime}-Squad-Generation]]' '{datetime}-Uptimes' '$:/state/tab1'>>"
+	buff_stats_text = f"<<tabs '[[{datetime}-Uptimes]] [[{datetime}-Self-Generation]] [[{datetime}-Group-Generation]] [[{datetime}-Squad-Generation]]' '{datetime}-Uptimes' '$:/temp/tab1'>>"
 
 	append_tid_for_output(
 		create_new_tid_from_template(buff_stats_title, buff_stats_caption, buff_stats_text, buff_stats_tags, creator=buff_stats_creator),
@@ -1165,7 +1165,7 @@ def build_profession_damage_modifier_stats_tid(personal_damage_mod_data: dict, c
 			continue
 		tab_name = f"{tid_date_time}-{caption.replace(' ','-')}-{profession}"
 		prof_mod_stats_text += f'[[{tab_name}]]'
-	prof_mod_stats_text += f"' '{tab_name}' '$:/state/tab1'>>"
+	prof_mod_stats_text += f"' '{tab_name}' '$:/temp/tab1'>>"
 	append_tid_for_output(
 		create_new_tid_from_template(prof_mod_stats_title, prof_mod_stats_caption, prof_mod_stats_text, prof_mod_stats_tags, creator=prof_mod_stats_creator),
 		tid_list
@@ -1181,7 +1181,7 @@ def build_skill_usage_stats_tid(skill_casts_by_role: dict, caption: str, tid_dat
 	for prof_role in skill_casts_by_role:
 		tab_name = f"{tid_date_time}-{caption.replace(' ','-')}-{prof_role}"
 		skill_stats_text += f'[[{tab_name}]]'
-	skill_stats_text += f"' '{tab_name}' '$:/state/tab1'>>"
+	skill_stats_text += f"' '{tab_name}' '$:/temp/tab1'>>"
 	append_tid_for_output(
 		create_new_tid_from_template(skill_stats_title, skill_stats_caption, skill_stats_text, skill_stats_tags, creator=skill_stats_creator),
 		tid_list
@@ -1416,7 +1416,7 @@ def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time:
 	for profession in minions:
 		tab_name = f"{tid_date_time}-{caption.replace(' ','-')}-{profession}"
 		minion_stats_text += f'[[{tab_name}]]'
-	minion_stats_text += f"' '{tab_name}' '$:/state/tab1'>>"
+	minion_stats_text += f"' '{tab_name}' '$:/temp/tab1'>>"
 	append_tid_for_output(
 		create_new_tid_from_template(minion_stats_title, minion_stats_caption, minion_stats_text, minion_stats_tags, creator=minion_stats_creator),
 		tid_list
@@ -1510,6 +1510,142 @@ def build_top_damage_by_skill(total_damage_taken: dict, target_damage_dist: dict
 		create_new_tid_from_template(top_skills_title, caption, text, tid_date_time),
 		tid_list
 	)
+
+def build_healer_menu_tabs(top_stats: dict, caption: str, tid_date_time: str) -> None:
+	"""Builds a menu tab macro for healers."""
+
+	# Get the list of healers
+	healers = {}
+	for name_prof in top_stats['players_running_healing_addon']:
+		name = name_prof.split('|')[0]
+		prof = name_prof.split('|')[1]
+		healers[name] = prof
+
+	# Sort healers by profession
+	sorted_healers = dict(sorted(healers.items(), key=lambda item: item[1]))
+
+	# Build the menu tab macro
+	menu_tags = f"{tid_date_time}"
+	menu_title = f"{tid_date_time}-Healers"
+	menu_caption = f"Healer - Outgoing"
+	menu_creator = f"Drevarr@github.com"
+	menu_text = "<<tabs '"
+	for healer_name, healer_profession in sorted_healers.items():
+		tab_name = f"{tid_date_time}-{caption.replace(' ', '-')}-{healer_profession}-{healer_name}"
+		menu_text += f"[[{tab_name}]]"
+	menu_text += f"' '{tab_name}' '$:/temp/tab1'>>"
+
+	# Push the menu tab to the output list
+	append_tid_for_output(
+		create_new_tid_from_template(menu_title, menu_caption, menu_text, menu_tags, creator=menu_creator),
+		tid_list
+	)
+
+def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
+	# Get the list of healers
+	# Get the list of healers
+	healers = {}
+	for name_prof in top_stats['players_running_healing_addon']:
+		name = name_prof.split('|')[0]
+		prof = name_prof.split('|')[1]
+		healers[name] = prof
+
+	for healer in healers:
+		name_prof = f"{healer}|{healers[healer]}"
+		healer_name = healer
+		healer_profession = healers[healer]
+		healer_tags = f"{tid_date_time}"
+		healer_title = f"{tid_date_time}-{caption.replace(' ', '-')}-{healer_profession}-{healer_name}"
+		healer_caption = "{{"+healer_profession+"}}"+f" - {healer_name}"
+
+		rows = []
+		rows.append("---\n\n")
+		rows.append("|thead-dark table-borderless w-75 table-center|k")
+		rows.append("|!Healer Outgoing Stats - excludes downed healing|")
+		rows.append("\n\n")
+		rows.append('\n<div class="flex-row">\n\n    <div class="flex-col">\n\n')
+
+		header = "|thead-dark table-caption-top table-hover sortable|k\n"
+		header += "|!Skill Name |!Hits | !Total Healing| !Avg Healing| !Pct|h"
+		rows.append(header)
+		print("Healer: ", name_prof)
+		print(healers)
+		if 'outgoing_healing' in top_stats['player'][name_prof]['extHealingStats']:
+			outgoing_healing = top_stats['player'][name_prof]['extHealingStats']['outgoing_healing']
+		else:
+			outgoing_healing = 0
+		if 'skills' in top_stats['player'][name_prof]['extHealingStats']:
+			for skill in top_stats['player'][name_prof]['extHealingStats']['skills']:
+				if skill in skill_data:
+					skill_name = skill_data[skill]['name']	
+					skill_icon = skill_data[skill]['icon']
+					entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+				elif skill.replace("s", "b") in buff_data:
+					skill_name = buff_data[skill.replace("s", "b")]['name']
+					skill_icon = buff_data[skill.replace("s", "b")]['icon']
+					entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+				else:
+					skill_name = skill
+					skill_icon = "unknown.png"
+					entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+
+				hits = top_stats['player'][name_prof]['extHealingStats']['skills'][skill]['hits']
+				total_healing = top_stats['player'][name_prof]['extHealingStats']['skills'][skill]['healing']
+				avg_healing = total_healing/hits if hits > 0 else 0
+
+				row = f"|{entry} | {hits:,.0f} | {total_healing:,.0f}| {avg_healing:,.0f}| {total_healing/outgoing_healing*100:,.2f}%|"
+
+				rows.append(row)
+
+		rows.append(f"| Total Healing |c")
+
+		rows.append("\n\n</div>")
+
+		rows.append("\n\n")
+		rows.append('\n<div class="flex-col">\n\n')
+
+		header = "|thead-dark table-caption-top table-hover sortable|k\n"
+		header += "| Total Barrier |c\n"
+		header += "|!Skill Name |!Hits | !Total Barrier| !Avg Barrier| !Pct|h"
+		rows.append(header)
+		print("Healer: ", name_prof)
+		print(healers)
+		if 'outgoing_barrier' in top_stats['player'][name_prof]['extBarrierStats']:
+			outgoing_barrier = top_stats['player'][name_prof]['extBarrierStats']['outgoing_barrier']
+		else:
+			outgoing_barrier = 0
+
+		if 'skills' in top_stats['player'][name_prof]['extBarrierStats']:
+			for skill in top_stats['player'][name_prof]['extBarrierStats']['skills']:
+				if skill in skill_data:
+					skill_name = skill_data[skill]['name']	
+					skill_icon = skill_data[skill]['icon']
+					entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+				elif skill.replace("s", "b") in buff_data:
+					skill_name = buff_data[skill.replace("s", "b")]['name']
+					skill_icon = buff_data[skill.replace("s", "b")]['icon']
+					entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+				else:
+					skill_name = skill
+					skill_icon = "unknown.png"
+					entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+
+				hits = top_stats['player'][name_prof]['extBarrierStats']['skills'][skill]['hits']
+				total_barrier = top_stats['player'][name_prof]['extBarrierStats']['skills'][skill]['totalBarrier']
+				avg_barrier = total_healing/hits if hits > 0 else 0
+
+				row = f"|{entry} | {hits:,.0f} | {total_barrier:,.0f}| {avg_barrier:,.0f}| {total_barrier/outgoing_barrier*100:,.2f}%|"
+
+				rows.append(row)
+
+		rows.append("\n\n</div>\n\n</div>")
+
+		text = "\n".join(rows)
+
+		append_tid_for_output(
+			create_new_tid_from_template(healer_title, healer_caption, text, healer_tags),
+			tid_list
+		)
 
 def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, fb_pages: dict, mechanics: dict, minions: dict, outfile: str) -> None:
 	"""Print the top_stats dictionary as a JSON object to the console."""

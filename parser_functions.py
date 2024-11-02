@@ -844,7 +844,7 @@ def get_barrier_skill_data(player: dict, stat_category: str, name_prof: str) -> 
 	if 'extBarrierStats' in player and 'alliedBarrierDist' in player[stat_category]:
 		for barrier_target in player[stat_category]['alliedBarrierDist']:
 			for skill in barrier_target[0]:
-				skill_id = skill['id']
+				skill_id = 's'+str(skill['id'])
 				hits = skill['hits']
 				min_value = skill['min']
 				max_value = skill['max']
@@ -1150,6 +1150,10 @@ def parse_file(file_path, fight_num):
 			team = None
 		active_time = player['activeTimes'][0]
 		name_prof = name + "|" + profession
+
+		if name in players_running_healing_addon:
+			if name_prof not in top_stats['players_running_healing_addon']:
+				top_stats['players_running_healing_addon'].append(name_prof)
 
 		if 'guildID' in player:
 			guild_id = player['guildID']

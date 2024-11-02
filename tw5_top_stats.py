@@ -105,6 +105,9 @@ if __name__ == '__main__':
 
 	build_damage_modifiers_menu_tid(tid_date_time)
 
+	build_healer_menu_tabs(top_stats, "Healers", tid_date_time)
+	build_healer_outgoing_tids(top_stats, skill_data, buff_data, "Healers", tid_date_time)
+
 	build_profession_damage_modifier_stats_tid(personal_damage_mod_data, "Damage Modifiers", tid_date_time)
 
 	build_shared_damage_modifier_summary(top_stats, damage_mod_data, "Shared Damage Mods", tid_date_time)
