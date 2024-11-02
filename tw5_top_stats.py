@@ -26,23 +26,14 @@ import gzip
 
 from collections import OrderedDict
 
-#from gooey import Gooey, GooeyParser
-
 import config
 import config_output
 from parser_functions import *
 from output_functions import *
 
-#@Gooey(
-#		program_name='GW2 - EI - Log Combiner',
-#		image_dir='./',
-#		default_size=(600, 750)
-#)
 
 if __name__ == '__main__':
-	#parser = GooeyParser(description='This reads a set of arcdps reports in json format and generates a summary.')
 	parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
-	#parser.add_argument('input_directory', help='Directory containing .json files from Elite Insights', widget="DirChooser")
 	parser.add_argument('input_directory', help='Directory containing .json files from Elite Insights')
 	parser.add_argument('-o', '--output', dest="output_filename", help="Not required. Override json file name to write the computed summary")
 	parser.add_argument('-x', '--xls_output', dest="xls_output_filename", help="Not required. Override .xls file to write the computed summary")    
@@ -80,7 +71,6 @@ if __name__ == '__main__':
 	file_date = datetime.datetime.now()
 
 	fight_num = 0
-
 
 
 	for filename in sorted_files:
@@ -243,6 +233,3 @@ if __name__ == '__main__':
 	write_tid_list_to_json(tid_list, args.output_filename)
 
 	output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, fb_pages, mechanics, minions, args.json_output_filename)
-
-#if __name__ == '__main__':
-#    main()
