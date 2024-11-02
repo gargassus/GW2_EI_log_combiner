@@ -1568,8 +1568,6 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += "|!Skill Name |!Hits | !Total Healing| !Avg Healing| !Pct|h"
 		rows.append(header)
-		print("Healer: ", name_prof)
-		print(healers)
 		if 'outgoing_healing' in top_stats['player'][name_prof]['extHealingStats']:
 			outgoing_healing = top_stats['player'][name_prof]['extHealingStats']['outgoing_healing']
 		else:
@@ -1608,8 +1606,6 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 		header += "| Total Barrier |c\n"
 		header += "|!Skill Name |!Hits | !Total Barrier| !Avg Barrier| !Pct|h"
 		rows.append(header)
-		print("Healer: ", name_prof)
-		print(healers)
 		if 'outgoing_barrier' in top_stats['player'][name_prof]['extBarrierStats']:
 			outgoing_barrier = top_stats['player'][name_prof]['extBarrierStats']['outgoing_barrier']
 		else:
@@ -1635,6 +1631,41 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 				avg_barrier = total_healing/hits if hits > 0 else 0
 
 				row = f"|{entry} | {hits:,.0f} | {total_barrier:,.0f}| {avg_barrier:,.0f}| {total_barrier/outgoing_barrier*100:,.2f}%|"
+
+				rows.append(row)
+
+		rows.append("\n\n</div>")
+
+		rows.append("\n\n")
+		rows.append('\n<div class="flex-col">\n\n')
+
+		header = "|thead-dark table-caption-top table-hover sortable|k\n"
+		header += "| Heal/Barrier by Target |c\n"
+		header += "|!Player |!Total Healing | !Downed Healing| !Total Barrier|h"
+		rows.append(header)
+		targets_used = []
+		if 'heal_targets' in top_stats['player'][name_prof]['extHealingStats']:
+			for target in top_stats['player'][name_prof]['extHealingStats']['heal_targets']:
+				targets_used.append(target)
+				target_healing = top_stats['player'][name_prof]['extHealingStats']['heal_targets'][target]['outgoing_healing']
+				target_downed = top_stats['player'][name_prof]['extHealingStats']['heal_targets'][target]['downed_healing']
+				if 'barrier_targets' in top_stats['player'][name_prof]['extBarrierStats']:
+					if target in top_stats['player'][name_prof]['extBarrierStats']['barrier_targets']:
+						target_barrier = top_stats['player'][name_prof]['extBarrierStats']['barrier_targets'][target]['outgoing_barrier']
+				else:
+					target_barrier = 0
+				row = f"|{target} | {target_healing:,.0f} | {target_downed:,.0f}| {target_barrier:,.0f}|"
+
+				rows.append(row)
+
+		if 'barrier_targets' in top_stats['player'][name_prof]['extBarrierStats']:
+			for target in top_stats['player'][name_prof]['extBarrierStats']['barrier_targets']:
+				if target not in targets_used:
+					target_healing = 0
+					target_downed = 0
+					target_barrier = top_stats['player'][name_prof]['extBarrierStats']['barrier_targets'][target]['outgoing_barrier']
+
+				row = f"|{target} | {target_healing:,.0f} | {target_downed:,.0f}| {target_barrier:,.0f}|"
 
 				rows.append(row)
 
