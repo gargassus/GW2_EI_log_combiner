@@ -1343,8 +1343,15 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 			if category in ["statTarget_max", "totalDamageTaken_max"]:
 				skill_id = player.split("| ")[1]
 				prof_name = player.split(" |")[0]
-				skill_name = skill_data["s"+str(skill_id)]['name']
-				skill_icon = skill_data["s"+str(skill_id)]['icon']
+				if "s"+str(skill_id) in skill_data:
+					skill_name = skill_data["s"+str(skill_id)]['name']
+					skill_icon = skill_data["s"+str(skill_id)]['icon']
+				elif "b"+str(skill_id) in buff_data:
+					skill_name = buff_data["b"+str(skill_id)]['name']
+					skill_icon = buff_data["b"+str(skill_id)]['icon']
+				else:
+					skill_name = skill_id
+					skill_icon = "unknown.png"
 				detailEntry = f'[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}'
 
 				row = f"|{prof_name} |{detailEntry} | {score:,.0f}|"
@@ -1416,7 +1423,7 @@ def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time:
 	for profession in minions:
 		tab_name = f"{tid_date_time}-{caption.replace(' ','-')}-{profession}"
 		minion_stats_text += f'[[{tab_name}]]'
-	minion_stats_text += f"' '{tab_name}' '$:/temp/tab1'>>"
+		minion_stats_text += f"' '{tab_name}' '$:/temp/tab1'>>"
 	append_tid_for_output(
 		create_new_tid_from_template(minion_stats_title, minion_stats_caption, minion_stats_text, minion_stats_tags, creator=minion_stats_creator),
 		tid_list
@@ -1628,7 +1635,7 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 
 				hits = top_stats['player'][name_prof]['extBarrierStats']['skills'][skill]['hits']
 				total_barrier = top_stats['player'][name_prof]['extBarrierStats']['skills'][skill]['totalBarrier']
-				avg_barrier = total_healing/hits if hits > 0 else 0
+				avg_barrier = total_barrier/hits if hits > 0 else 0
 
 				row = f"|{entry} | {hits:,.0f} | {total_barrier:,.0f}| {avg_barrier:,.0f}| {total_barrier/outgoing_barrier*100:,.2f}%|"
 
@@ -1677,6 +1684,41 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 			create_new_tid_from_template(healer_title, healer_caption, text, healer_tags),
 			tid_list
 		)
+
+def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict, buff_data: dict, tid_list: list) -> None:
+	damage_totals = {}
+	for player in top_stats['player']:
+		damage_totals[player] = top_stats['player'][player]['statsTargets']['totalDmg']
+	sorted_damage_totals = sorted(damage_totals.items(), key=lambda x: x[1], reverse=True)
+
+	for player, damage in sorted_damage_totals:
+		player_damage = {}
+		for skill in top_stats['player'][player]['targetDamageDist']['skills']:
+			player_damage[skill] = top_stats['player'][player]['targetDamageDist']['skills'][skill]['totalDamage']
+
+		sorted_player_damage = sorted(player_damage.items(), key=lambda x: x[1], reverse=True)
+
+		rows = []
+
+		name, profession = player.split("|")
+		spacedName = name.ljust(21, '.')
+
+		rows.append(f'<$reveal type="match" stateTitle="$:/temp/Player_Selected" stateField="{spacedName}{profession}" text="{spacedName}{profession}">')
+		rows.append('\n<div class="flex-col">\n\n')
+		header = "|thead-dark table-borderless w-75 table-center|k\n"
+		header += "|@@display:block;width:50px;Player@@ | Profession | Total Damage|h"
+
+		rows.append(header)
+		rows.append("|"+name+" | {{"+profession +"}} | "+f"{damage:,.0f}|")
+
+		for skill in sorted_player_damage:
+			skill_name = skill_data.get(f"s{skill[0]}", {}).get("name", buff_data.get(f"b{skill[0]}", {}).get("name", ""))
+			skill_icon = skill_data.get(f"s{skill[0]}", {}).get("icon", buff_data.get(f"b{skill[0]}", {}).get("icon", ""))
+			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+			row = f"|{entry} | {skill[1]:,.0f} | {skill[1]/damage*100:,.1f}%|"
+
+			rows = []
+			rows.append("\n\n")
 
 def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, fb_pages: dict, mechanics: dict, minions: dict, outfile: str) -> None:
 	"""Print the top_stats dictionary as a JSON object to the console."""

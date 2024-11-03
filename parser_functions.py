@@ -1067,7 +1067,10 @@ def parse_file(file_path, fight_num):
 	targets = json_data['targets']
 	skill_map = json_data['skillMap']
 	buff_map = json_data['buffMap']
-	mechanics_map = json_data['mechanics']
+	if 'mechanics' in json_data:
+		mechanics_map = json_data['mechanics']
+	else:
+		mechanics_map = {}
 	damage_mod_map = json_data.get('damageModMap', {})
 	personal_buffs = json_data.get('personalBuffs', {})
 	personal_damage_mods = json_data.get('personalDamageMods', {})
