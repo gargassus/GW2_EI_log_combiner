@@ -1419,11 +1419,12 @@ def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time:
 	minion_stats_caption = f"{caption}"
 	minion_stats_creator = f"Drevarr@github.com"
 	minion_stats_text ="<<tabs '"
-
+	tab_name = ""
 	for profession in minions:
 		tab_name = f"{tid_date_time}-{caption.replace(' ','-')}-{profession}"
 		minion_stats_text += f'[[{tab_name}]]'
-		minion_stats_text += f"' '{tab_name}' '$:/temp/tab1'>>"
+
+	minion_stats_text += f"' '{tab_name}' '$:/temp/tab1'>>"
 	append_tid_for_output(
 		create_new_tid_from_template(minion_stats_title, minion_stats_caption, minion_stats_text, minion_stats_tags, creator=minion_stats_creator),
 		tid_list
@@ -1537,6 +1538,7 @@ def build_healer_menu_tabs(top_stats: dict, caption: str, tid_date_time: str) ->
 	menu_caption = f"Healer - Outgoing"
 	menu_creator = f"Drevarr@github.com"
 	menu_text = "<<tabs '"
+	tab_name = ""
 	for healer_name, healer_profession in sorted_healers.items():
 		tab_name = f"{tid_date_time}-{caption.replace(' ', '-')}-{healer_profession}-{healer_name}"
 		menu_text += f"[[{tab_name}]]"
