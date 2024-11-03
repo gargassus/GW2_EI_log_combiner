@@ -638,9 +638,9 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 
 				row += f" {entry}|"
 			rows.append(row)
-		#rows.append(f"|{caption} Table|c")
-		rows.append(f'|<$radio field="radio" value="Total">Total Gen</$radio> - <$radio field="radio" value="Average">Uptime Gen</$radio> - {caption} Table|c')
-		rows.append("\n</$reveal>")
+	#rows.append(f"|{caption} Table|c")
+	rows.append(f'|<$radio field="radio" value="Total">Total Gen</$radio> - <$radio field="radio" value="Average">Uptime Gen</$radio> - {caption} Table|c')
+	rows.append("\n</$reveal>")
 
 	#push table to tid_list for output
 	tid_text = "\n".join(rows)
@@ -724,7 +724,7 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 		skillIcon = buff_data[boon_id]["icon"]
 
 		header += f"! [img width=24 [{boon_name}|{skillIcon}]] |"
-	header += " !Applied<br>Count|"
+	header += " !Count|"
 	header += "h"
 
 	# Build the Squad table rows
