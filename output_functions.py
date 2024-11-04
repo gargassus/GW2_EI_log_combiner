@@ -415,7 +415,10 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 		row += f"| {fight_data['defenses']['downCount']} | {fight_data['defenses']['deadCount']} | {fight_data['statsTargets']['totalDmg']:,}| {fight_data['defenses']['damageTaken']:,}"
 		row += f"| {fight_data['defenses']['damageBarrier']:,}| {(fight_data['defenses']['damageBarrier'] / damage_taken * 100):.2f}%| {fight_shield_damage:,}"
 		# Calculate the shield damage percentage
-		shield_damage_pct = (fight_shield_damage / fight_data['statsTargets']['totalDmg'] * 100)
+		if fight_data['statsTargets']['totalDmg']:
+			shield_damage_pct = (fight_shield_damage / fight_data['statsTargets']['totalDmg'] * 100)
+		else:
+			shield_damage_pct = 0
 		row += f"| {shield_damage_pct:.2f}%|"
 		# Keep track of the last fight number, end time, and total duration
 		last_fight = fight_num
@@ -570,8 +573,9 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 		header += "h"
 
 		rows.append(header)
+		category_caption = {'selfBuffs': "Self Generation", 'groupBuffs': "Group Generation", 'squadBuffs': "Squad Generation", 'totalBuffs': "Total Generation"}
+		caption = category_caption[category] or ""
 
-		caption = ""
 		# Build the table body
 		for player in top_stats["player"].values():
 			row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:30]} | {player['fight_time'] / 1000:.1f}|"
@@ -587,28 +591,24 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 					squad_supported = player["squad_supported"]
 
 					if category == "selfBuffs":
-						caption = "Self Generation"
 						generation_ms = player[category][boon_id]["generation"]
 						if stacking:
 							uptime_percentage = round((generation_ms / player['fight_time'] / num_fights), 3)
 						else:
 							uptime_percentage = round((generation_ms / player['fight_time'] / num_fights) * 100, 3)
 					elif category == "groupBuffs":
-						caption = "Group Generation"
 						generation_ms = player[category][boon_id]["generation"]
 						if stacking:
 							uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights), 3)
 						else:
 							uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights) * 100, 3)
 					elif category == "squadBuffs":
-						caption = "Squad Generation"
 						generation_ms = player[category][boon_id]["generation"]
 						if stacking:
 							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights), 3)
 						else:
 							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights) * 100, 3)
 					elif category == "totalBuffs":
-						caption = "Total Generation"
 						generation_ms = 0
 						if boon_id in player["selfBuffs"]:
 							generation_ms += player["selfBuffs"][boon_id]["generation"] 
@@ -638,9 +638,9 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 
 				row += f" {entry}|"
 			rows.append(row)
-	#rows.append(f"|{caption} Table|c")
-	rows.append(f'|<$radio field="radio" value="Total">Total Gen</$radio> - <$radio field="radio" value="Average">Uptime Gen</$radio> - {caption} Table|c')
-	rows.append("\n</$reveal>")
+		#rows.append(f"|{caption} Table|c")
+		rows.append(f'|<$radio field="radio" value="Total">Total Gen</$radio> - <$radio field="radio" value="Average">Uptime Gen</$radio> - {caption} Table|c')
+		rows.append("\n</$reveal>")
 
 	#push table to tid_list for output
 	tid_text = "\n".join(rows)
@@ -1010,8 +1010,9 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 	combat_resurrect_text = ""
 
 	rows = []
+	rows.append('<div style="overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
-	header += "|!Name | !Prof | !{{FightTime}} |"
+	header += "|@@display:block;width:150px;!Name@@ | !Prof | !{{FightTime}} |"
 	for skill in sorted_res_skills:
 		if skill in skill_data:
 			skill_icon = skill_data[skill]['icon']
@@ -1020,7 +1021,8 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 			skill_icon = buff_data[skill]['icon']
 			skill_name = buff_data[skill]['name']
 		else:
-			continue
+			skill_icon = "unknown.png"
+			skill_name = skill
 		header += f" ![img width=24 [{skill} - {skill_name}|{skill_icon}]] |"
 
 	header += "h"
@@ -1038,6 +1040,7 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 
 		rows.append(row)
 	rows.append(f"| {caption} |c")
+	rows.append('\n\n</div>\n\n')
 	combat_resurrect_text = "\n".join(rows)
 	append_tid_for_output(
 		create_new_tid_from_template(combat_resurrect_title, combat_resurrect_caption, combat_resurrect_text, combat_resurrect_tags),
@@ -1160,6 +1163,7 @@ def build_profession_damage_modifier_stats_tid(personal_damage_mod_data: dict, c
 	prof_mod_stats_caption = f"Profession Damage Modifiers"
 	prof_mod_stats_creator = f"Drevarr@github.com"
 	prof_mod_stats_text ="<<tabs '"
+	tab_name = ""
 	for profession in personal_damage_mod_data:
 		if  'total' in profession:
 			continue
@@ -1354,10 +1358,10 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 					skill_icon = "unknown.png"
 				detailEntry = f'[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}'
 
-				row = f"|{prof_name} |{detailEntry} | {score:,.0f}|"
+				row = f"|{prof_name} |{detailEntry} | {score:03,.2f}|"
 			else:
 				prof_name = player.split(" |")[0]
-				row = f"|{prof_name} | {score:0.3f}|"
+				row = f"|{prof_name} | {score:03,.2f}|"
 			rows.append(row)
 
 		rows.append(f"| ''{table_title}'' |c")
@@ -1655,14 +1659,14 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 		targets_used = []
 		if 'heal_targets' in top_stats['player'][name_prof]['extHealingStats']:
 			for target in top_stats['player'][name_prof]['extHealingStats']['heal_targets']:
+				target_barrier = 0
 				targets_used.append(target)
 				target_healing = top_stats['player'][name_prof]['extHealingStats']['heal_targets'][target]['outgoing_healing']
 				target_downed = top_stats['player'][name_prof]['extHealingStats']['heal_targets'][target]['downed_healing']
 				if 'barrier_targets' in top_stats['player'][name_prof]['extBarrierStats']:
 					if target in top_stats['player'][name_prof]['extBarrierStats']['barrier_targets']:
 						target_barrier = top_stats['player'][name_prof]['extBarrierStats']['barrier_targets'][target]['outgoing_barrier']
-				else:
-					target_barrier = 0
+
 				row = f"|{target} | {target_healing:,.0f} | {target_downed:,.0f}| {target_barrier:,.0f}|"
 
 				rows.append(row)

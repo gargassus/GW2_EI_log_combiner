@@ -161,3 +161,30 @@ buffs_debuff = {
     'b10179': "Morphed (Polymorph Moa)", 'b15859': "Morphed (Polymorph Tuna)", 'b14499': "Impaled", 'b30778': "Hunter's Mark", 'b44633':'Disenchantment',
     'b833': 'Daze', 'b872': 'Stun'
 }
+
+
+arrow_cart_skill_ids = [18850, 18853, 18855, 18860, 18862, 18865, 18867, 18869, 18872]
+trebuchet_skill_ids = [21037, 21038]
+catapult_skill_ids = [20242, 20272]
+cannon_skill_ids = [14626, 14658, 14659, 18535, 18531, 18543, 19626]
+burning_oil_skill_ids = [18887]
+dragon_banner_skill_ids = [32980, 31968, 33232]
+golem_skills = [14627, 14639, 14709, 14710, 14708, 14713, 63185, 1656, 14642]
+downed_skills = [9149, 9096, 9095, 28180, 27063, 27792, 14390, 14515, 14391, 5820,
+				5962, 5963, 12486, 12485, 12515, 13003, 13138, 13140, 13033
+               ]
+other_skills = [14601, 14600, 23284, 23285, -2, 58083, 20285, 9284, 23275, 54877,
+               54941, 54953, 21615, 23267, 18792, 18793, 25533, 27927, 30765, 34797
+              ]
+
+exclude_skill_ids = [
+	*arrow_cart_skill_ids,
+	*trebuchet_skill_ids,
+	*catapult_skill_ids,
+	*cannon_skill_ids,
+	*burning_oil_skill_ids,
+	*dragon_banner_skill_ids,
+    *golem_skills,
+    *downed_skills,
+    *other_skills
+]
