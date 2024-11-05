@@ -24,6 +24,9 @@ Currently works with WVW and Detailed WVW logs. Partially working with PVElogs, 
 
 -  Drag and drop the `Drag_and_Drop_Log_Summary_for_datetime.json` file onto the `/Example_Output/Top_Stats_Index.html`
 
+
+### Example Output of current state:[Log Summary](https://wvwlogs.com/#202411051122-Log-Summary)
+
 ---
 
 ![GitHub](https://img.shields.io/github/license/Drevarr/GW2_EI_log_combiner)
