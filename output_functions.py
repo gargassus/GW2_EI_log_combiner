@@ -1333,71 +1333,102 @@ def build_fb_pages_tid(fb_pages: dict, caption: str, tid_date_time: str):
 	)
 
 def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
-	caption_dict = {
-	"statTarget_max": "Highest Outgoing Skill Damage", "totalDamageTaken_max": "Highest Incoming Skill Damage",
-	"fight_dps": "Damage per Second", "statTarget_killed": "Kills per Second", "statTarget_downed": "Downs per Second", "statTarget_downContribution": "Down Contrib per Second",
-	"defenses_blockedCount": "Blocks per Second", "defenses_evadedCount": "Evades per Second", "defenses_dodgeCount":  "Dodges per Second", "defenses_invulnedCount": "Invulned per Second",
-	"support_condiCleanse": "Cleanses per Second", "support_boonStrips": "Strips per Second", "extHealingStats_Healing": "Healing per Second",  "extBarrierStats_Barrier": "Barrier per Second", 
-	}
+    """
+    Build a table of high score statistics for each category.
 
-	high_scores_tags = f"{tid_date_time}"
-	high_scores_title = f"{tid_date_time}-High-Scores"
-	high_scores_caption = f"{caption}"
-	high_scores_text = ""
+    Args:
+        high_scores (dict): Dictionary containing high scores for each category.
+        skill_data (dict): Dictionary containing skill data including name and icon.
+        buff_data (dict): Dictionary containing buff data including name and icon.
+        caption (str): The caption for the table.
+        tid_date_time (str): A string to use as the date and time for the table id.
+    """
+    # Define mapping for categories to their titles
+    caption_dict = {
+        "statTarget_max": "Highest Outgoing Skill Damage", 
+        "totalDamageTaken_max": "Highest Incoming Skill Damage",
+        "fight_dps": "Damage per Second", 
+        "statTarget_killed": "Kills per Second", 
+        "statTarget_downed": "Downs per Second", 
+        "statTarget_downContribution": "Down Contrib per Second",
+        "defenses_blockedCount": "Blocks per Second", 
+        "defenses_evadedCount": "Evades per Second", 
+        "defenses_dodgeCount": "Dodges per Second", 
+        "defenses_invulnedCount": "Invulned per Second",
+        "support_condiCleanse": "Cleanses per Second", 
+        "support_boonStrips": "Strips per Second", 
+        "extHealingStats_Healing": "Healing per Second", 
+        "extBarrierStats_Barrier": "Barrier per Second"
+    }
 
-	rows = []
-	rows.append('<div style="overflow-x:auto;">\n\n')
-	rows.append('<div class="flex-row">\n\n')
-	for category in caption_dict:
+    # Initialize the HTML components
+    high_scores_tags = f"{tid_date_time}"
+    high_scores_title = f"{tid_date_time}-High-Scores"
+    high_scores_caption = f"{caption}"
+    rows = []
+    rows.append('<div style="overflow-x:auto;">\n\n')
+    rows.append('<div class="flex-row">\n\n')
 
-		table_title = caption_dict[category]
-		header = '    <div class="flex-col">\n\n'
-		header += "|thead-dark table-caption-top table-hover|k\n"
-		if category in ["statTarget_max", "totalDamageTaken_max"]:
-			header += "|@@display:block;width:200px;Player@@  |@@display:block;width:250px;Skill@@ | @@display:block;width:100px;Score@@|h"
-		else:
-			header += "|@@display:block;width:200px;Player@@ | @@display:block;width:100px;Score@@|h"
-		
-		rows.append(header)
+    # Iterate over each category to build the table
+    for category in caption_dict:
+        table_title = caption_dict[category]
+        header = '    <div class="flex-col">\n\n'
+        header += "|thead-dark table-caption-top table-hover|k\n"
+        
+        # Determine the header based on category
+        if category in ["statTarget_max", "totalDamageTaken_max"]:
+            header += "|@@display:block;width:200px;Player@@  |@@display:block;width:250px;Skill@@ | @@display:block;width:100px;Score@@|h"
+        else:
+            header += "|@@display:block;width:200px;Player@@ | @@display:block;width:100px;Score@@|h"
+        
+        rows.append(header)
 
-		sorted_high_scores = sorted(high_scores[category].items(), key=lambda x: x[1], reverse=True)
-		for player in sorted_high_scores:
-			player, score = player
+        # Sort high scores for the current category
+        sorted_high_scores = sorted(high_scores[category].items(), key=lambda x: x[1], reverse=True)
+        
+        # Build rows for each player
+        for player in sorted_high_scores:
+            player, score = player
+            prof_name = player.split(" |")[0]
+            
+            if category in ["statTarget_max", "totalDamageTaken_max"]:
+                skill_id = player.split("| ")[1]
+                if "s" + str(skill_id) in skill_data:
+                    skill_name = skill_data["s" + str(skill_id)]['name']
+                    skill_icon = skill_data["s" + str(skill_id)]['icon']
+                elif "b" + str(skill_id) in buff_data:
+                    skill_name = buff_data["b" + str(skill_id)]['name']
+                    skill_icon = buff_data["b" + str(skill_id)]['icon']
+                else:
+                    skill_name = skill_id
+                    skill_icon = "unknown.png"
+                
+                detailEntry = f'[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}'
+                row = f"|{prof_name} |{detailEntry} | {score:03,.2f}|"
+            else:
+                row = f"|{prof_name} | {score:03,.2f}|"
+            rows.append(row)
 
-			if category in ["statTarget_max", "totalDamageTaken_max"]:
-				skill_id = player.split("| ")[1]
-				prof_name = player.split(" |")[0]
-				if "s"+str(skill_id) in skill_data:
-					skill_name = skill_data["s"+str(skill_id)]['name']
-					skill_icon = skill_data["s"+str(skill_id)]['icon']
-				elif "b"+str(skill_id) in buff_data:
-					skill_name = buff_data["b"+str(skill_id)]['name']
-					skill_icon = buff_data["b"+str(skill_id)]['icon']
-				else:
-					skill_name = skill_id
-					skill_icon = "unknown.png"
-				detailEntry = f'[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}'
+        # Add table title and close the div
+        rows.append(f"| ''{table_title}'' |c")
+        rows.append("\n\n    </div>\n\n")
+        
+        # Add a new row for the next category if applicable
+        if category == "totalDamageTaken_max":
+            rows.append('\n<div class="flex-row">\n\n')
 
-				row = f"|{prof_name} |{detailEntry} | {score:03,.2f}|"
-			else:
-				prof_name = player.split(" |")[0]
-				row = f"|{prof_name} | {score:03,.2f}|"
-			rows.append(row)
+    # Close all divs and join rows
+    rows.append("</div>\n\n")
+    rows.append("</div>\n\n")
+    high_scores_text = "\n".join(rows)
 
-		rows.append(f"| ''{table_title}'' |c")
-		rows.append("\n\n    </div>\n\n")
-		if category == "totalDamageTaken_max":
-			rows.append('\n<div class="flex-row">\n\n')
-	rows.append("</div>\n\n")
-	rows.append("</div>\n\n")
-	high_scores_text = "\n".join(rows)
-	append_tid_for_output(
-		create_new_tid_from_template(high_scores_title, high_scores_caption, high_scores_text, high_scores_tags),
-		tid_list
-	)
+    # Append the high scores table to the output list
+    append_tid_for_output(
+        create_new_tid_from_template(high_scores_title, high_scores_caption, high_scores_text, high_scores_tags),
+        tid_list
+    )
 
 def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_time: str) -> None:
-/*************  ✨ Codeium Command ⭐  *************/
 	"""
 	Build a table of fight mechanics for all players in the log running the extension.
 	Args:
@@ -1406,7 +1437,6 @@ def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_t
 		caption (str): A string to use as the caption for the table.
 		tid_date_time (str): A string to use as the date and time for the table id.
 	"""
-/******  a72c6764-c5c9-4966-bfd6-5ac7c0ec0179  *******/
 	rows = []
 	for fight in mechanics:
 		player_list = mechanics[fight]['player_list']
