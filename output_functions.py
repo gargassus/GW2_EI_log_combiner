@@ -1578,23 +1578,25 @@ def build_healer_menu_tabs(top_stats: dict, caption: str, tid_date_time: str) ->
 	)
 
 def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
-	# Get the list of healers
-	# Get the list of healers
-	healers = {}
-	for name_prof in top_stats['players_running_healing_addon']:
-		name = name_prof.split('|')[0]
-		prof = name_prof.split('|')[1]
-		healers[name] = prof
+	"""
+	Builds tables of outgoing healing and barrier by player and skill.
 
-	for healer in healers:
-		name_prof = f"{healer}|{healers[healer]}"
-		healer_name = healer
-		healer_profession = healers[healer]
+	Iterates through each healer and builds a table of their outgoing healing and barrier by skill.
+	It also builds a table of the total healing and barrier by target.
+	"""
+
+	# Iterate through each healer
+	for healer in top_stats['players_running_healing_addon']:
+		name = healer.split('|')[0]
+		profession = healer.split('|')[1]
+		healer_name = name
+		healer_profession = profession
 		healer_tags = f"{tid_date_time}"
 		healer_title = f"{tid_date_time}-{caption.replace(' ', '-')}-{healer_profession}-{healer_name}"
 		healer_caption = "{{"+healer_profession+"}}"+f" - {healer_name}"
 
 		rows = []
+
 		rows.append("---\n\n")
 		rows.append('<div style="overflow-x:auto;">\n\n')
 		rows.append("|thead-dark table-borderless w-75 table-center|k")
@@ -1605,32 +1607,20 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += "|!Skill Name |!Hits | !Total Healing| !Avg Healing| !Pct|h"
 		rows.append(header)
-		if 'outgoing_healing' in top_stats['player'][name_prof]['extHealingStats']:
-			outgoing_healing = top_stats['player'][name_prof]['extHealingStats']['outgoing_healing']
-		else:
-			outgoing_healing = 0
-		if 'skills' in top_stats['player'][name_prof]['extHealingStats']:
-			for skill in top_stats['player'][name_prof]['extHealingStats']['skills']:
-				if skill in skill_data:
-					skill_name = skill_data[skill]['name']	
-					skill_icon = skill_data[skill]['icon']
-					entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
-				elif skill.replace("s", "b") in buff_data:
-					skill_name = buff_data[skill.replace("s", "b")]['name']
-					skill_icon = buff_data[skill.replace("s", "b")]['icon']
-					entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
-				else:
-					skill_name = skill
-					skill_icon = "unknown.png"
-					entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
 
-				hits = top_stats['player'][name_prof]['extHealingStats']['skills'][skill]['hits']
-				total_healing = top_stats['player'][name_prof]['extHealingStats']['skills'][skill]['healing']
-				avg_healing = total_healing/hits if hits > 0 else 0
+		outgoing_healing = top_stats['player'][healer]['extHealingStats'].get('outgoing_healing', 0)
+		for skill in top_stats['player'][healer]['extHealingStats']['skills']:
+			skill_name = skill_data.get(skill, {}).get("name", buff_data.get(skill.replace("s", "b"), {}).get("name", ""))
+			skill_icon = skill_data.get(skill, {}).get("icon", buff_data.get(skill.replace("s", "b"), {}).get("icon", ""))
+			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
 
-				row = f"|{entry} | {hits:,.0f} | {total_healing:,.0f}| {avg_healing:,.0f}| {total_healing/outgoing_healing*100:,.2f}%|"
+			hits = top_stats['player'][healer]['extHealingStats']['skills'][skill]['hits']
+			total_healing = top_stats['player'][healer]['extHealingStats']['skills'][skill]['healing']
+			avg_healing = total_healing/hits if hits > 0 else 0
 
-				rows.append(row)
+			row = f"|{entry} | {hits:,.0f} | {total_healing:,.0f}| {avg_healing:,.0f}| {total_healing/outgoing_healing*100:,.2f}%|"
+
+			rows.append(row)
 
 		rows.append(f"| Total Healing |c")
 
@@ -1643,28 +1633,17 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 		header += "| Total Barrier |c\n"
 		header += "|!Skill Name |!Hits | !Total Barrier| !Avg Barrier| !Pct|h"
 		rows.append(header)
-		if 'outgoing_barrier' in top_stats['player'][name_prof]['extBarrierStats']:
-			outgoing_barrier = top_stats['player'][name_prof]['extBarrierStats']['outgoing_barrier']
-		else:
-			outgoing_barrier = 0
 
-		if 'skills' in top_stats['player'][name_prof]['extBarrierStats']:
-			for skill in top_stats['player'][name_prof]['extBarrierStats']['skills']:
-				if skill in skill_data:
-					skill_name = skill_data[skill]['name']	
-					skill_icon = skill_data[skill]['icon']
-					entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
-				elif skill.replace("s", "b") in buff_data:
-					skill_name = buff_data[skill.replace("s", "b")]['name']
-					skill_icon = buff_data[skill.replace("s", "b")]['icon']
-					entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
-				else:
-					skill_name = skill
-					skill_icon = "unknown.png"
-					entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+		outgoing_barrier = top_stats['player'][healer]['extBarrierStats'].get('outgoing_barrier', 0)
+		if outgoing_barrier:
 
-				hits = top_stats['player'][name_prof]['extBarrierStats']['skills'][skill]['hits']
-				total_barrier = top_stats['player'][name_prof]['extBarrierStats']['skills'][skill]['totalBarrier']
+			for skill in top_stats['player'][healer]['extBarrierStats']['skills']:
+				skill_name = skill_data.get(skill, {}).get("name", buff_data.get(skill.replace("s", "b"), {}).get("name", ""))
+				skill_icon = skill_data.get(skill, {}).get("icon", buff_data.get(skill.replace("s", "b"), {}).get("icon", ""))
+				entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+
+				hits = top_stats['player'][healer]['extBarrierStats']['skills'][skill]['hits']
+				total_barrier = top_stats['player'][healer]['extBarrierStats']['skills'][skill]['totalBarrier']
 				avg_barrier = total_barrier/hits if hits > 0 else 0
 
 				row = f"|{entry} | {hits:,.0f} | {total_barrier:,.0f}| {avg_barrier:,.0f}| {total_barrier/outgoing_barrier*100:,.2f}%|"
@@ -1680,27 +1659,28 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 		header += "| Heal/Barrier by Target |c\n"
 		header += "|!Player |!Total Healing | !Downed Healing| !Total Barrier|h"
 		rows.append(header)
+
 		targets_used = []
-		if 'heal_targets' in top_stats['player'][name_prof]['extHealingStats']:
-			for target in top_stats['player'][name_prof]['extHealingStats']['heal_targets']:
+		if 'heal_targets' in top_stats['player'][healer]['extHealingStats']:
+			for target in top_stats['player'][healer]['extHealingStats']['heal_targets']:
 				target_barrier = 0
 				targets_used.append(target)
-				target_healing = top_stats['player'][name_prof]['extHealingStats']['heal_targets'][target]['outgoing_healing']
-				target_downed = top_stats['player'][name_prof]['extHealingStats']['heal_targets'][target]['downed_healing']
-				if 'barrier_targets' in top_stats['player'][name_prof]['extBarrierStats']:
-					if target in top_stats['player'][name_prof]['extBarrierStats']['barrier_targets']:
-						target_barrier = top_stats['player'][name_prof]['extBarrierStats']['barrier_targets'][target]['outgoing_barrier']
+				target_healing = top_stats['player'][healer]['extHealingStats']['heal_targets'][target]['outgoing_healing']
+				target_downed = top_stats['player'][healer]['extHealingStats']['heal_targets'][target]['downed_healing']
+				if 'barrier_targets' in top_stats['player'][healer]['extBarrierStats']:
+					if target in top_stats['player'][healer]['extBarrierStats']['barrier_targets']:
+						target_barrier = top_stats['player'][healer]['extBarrierStats']['barrier_targets'][target]['outgoing_barrier']
 
 				row = f"|{target} | {target_healing:,.0f} | {target_downed:,.0f}| {target_barrier:,.0f}|"
 
 				rows.append(row)
 
-		if 'barrier_targets' in top_stats['player'][name_prof]['extBarrierStats']:
-			for target in top_stats['player'][name_prof]['extBarrierStats']['barrier_targets']:
+		if 'barrier_targets' in top_stats['player'][healer]['extBarrierStats']:
+			for target in top_stats['player'][healer]['extBarrierStats']['barrier_targets']:
 				if target not in targets_used:
 					target_healing = 0
 					target_downed = 0
-					target_barrier = top_stats['player'][name_prof]['extBarrierStats']['barrier_targets'][target]['outgoing_barrier']
+					target_barrier = top_stats['player'][healer]['extBarrierStats']['barrier_targets'][target]['outgoing_barrier']
 
 				row = f"|{target} | {target_healing:,.0f} | {target_downed:,.0f}| {target_barrier:,.0f}|"
 
