@@ -1492,59 +1492,81 @@ def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time:
 		)
 
 def build_top_damage_by_skill(total_damage_taken: dict, target_damage_dist: dict, skill_data: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
-	"""Builds a table of top damage by skill."""
+    """
+    Builds a table of top damage by skill.
 
-	sorted_total_damage_taken = dict(sorted(total_damage_taken.items(), key=lambda item: item[1]["totalDamage"], reverse=True))
-	sorted_target_damage_dist = dict(sorted(target_damage_dist.items(), key=lambda item: item[1]["totalDamage"], reverse=True))
+    This function generates a table displaying the top 25 skills by damage output and damage taken.
+    It sorts the skills based on their total damage and formats them into a presentable HTML table.
 
-	total_damage_taken_value = sum(skill["totalDamage"] for skill in sorted_total_damage_taken.values())
-	total_damage_distributed_value = sum(skill["totalDamage"] for skill in sorted_target_damage_dist.values())
+    Args:
+        total_damage_taken (dict): A dictionary with skill IDs as keys and their damage taken stats as values.
+        target_damage_dist (dict): A dictionary with skill IDs as keys and their damage output stats as values.
+        skill_data (dict): A dictionary containing skill metadata, such as name and icon.
+        buff_data (dict): A dictionary containing buff metadata, such as name and icon.
+        caption (str): A string caption for the table.
+        tid_date_time (str): A string representing the timestamp or unique identifier for the TID.
+    """
+    # Sort skills by total damage in descending order
+    sorted_total_damage_taken = dict(sorted(total_damage_taken.items(), key=lambda item: item[1]["totalDamage"], reverse=True))
+    sorted_target_damage_dist = dict(sorted(target_damage_dist.items(), key=lambda item: item[1]["totalDamage"], reverse=True))
 
-	rows = []
-	rows.append('<div style="overflow-x:auto;">\n\n')
-	rows.append("|thead-dark table-borderless w-75 table-center|k")
-	rows.append("|!Top 25 Skills by Damage Output|")
-	rows.append("\n\n")
-	rows.append('\n<div class="flex-row">\n\n    <div class="flex-col">\n\n')
-	header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
-	header += "|!Skill Name | Damage Taken | % of Total|h"
-	rows.append(header)
-	for i, (skill_id, skill) in enumerate(sorted_target_damage_dist.items()):
-		if i < 25:
-			skill_name = skill_data.get(f"s{skill_id}", {}).get("name", buff_data.get(f"b{skill_id}", {}).get("name", ""))
-			skill_icon = skill_data.get(f"s{skill_id}", {}).get("icon", buff_data.get(f"b{skill_id}", {}).get("icon", ""))
-			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
-			row = f"|{entry} | {skill['totalDamage']:,.0f} | {skill['totalDamage']/total_damage_distributed_value*100:,.1f}% |"
+    # Calculate total damage values for percentage calculations
+    total_damage_taken_value = sum(skill["totalDamage"] for skill in sorted_total_damage_taken.values())
+    total_damage_distributed_value = sum(skill["totalDamage"] for skill in sorted_target_damage_dist.values())
 
-			rows.append(row)
+    # Prepare HTML rows for the table
+    rows = []
+    rows.append('<div style="overflow-x:auto;">\n\n')
+    rows.append("|thead-dark table-borderless w-75 table-center|k")
+    rows.append("|!Top 25 Skills by Damage Output|")
+    rows.append("\n\n")
+    rows.append('\n<div class="flex-row">\n\n    <div class="flex-col">\n\n')
 
-	rows.append(f"| Squad Damage Output |c")
-	rows.append('\n\n</div>\n\n    <div class="flex-col">\n\n')
+    # Header for damage output table
+    header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
+    header += "|!Skill Name | Damage Taken | % of Total|h"
+    rows.append(header)
+    
+    # Populate the table with top 25 skills by damage output
+    for i, (skill_id, skill) in enumerate(sorted_target_damage_dist.items()):
+        if i < 25:
+            skill_name = skill_data.get(f"s{skill_id}", {}).get("name", buff_data.get(f"b{skill_id}", {}).get("name", ""))
+            skill_icon = skill_data.get(f"s{skill_id}", {}).get("icon", buff_data.get(f"b{skill_id}", {}).get("icon", ""))
+            entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+            row = f"|{entry} | {skill['totalDamage']:,.0f} | {skill['totalDamage']/total_damage_distributed_value*100:,.1f}% |"
+            rows.append(row)
 
-	header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
-	header += "|!Skill Name | Damage Taken | % of Total|h"
-	rows.append(header)
-	for i, (skill_id, skill) in enumerate(sorted_total_damage_taken.items()):
-		if i < 25:
-			skill_name = skill_data.get(f"s{skill_id}", {}).get("name", buff_data.get(f"b{skill_id}", {}).get("name", ""))
-			skill_icon = skill_data.get(f"s{skill_id}", {}).get("icon", buff_data.get(f"b{skill_id}", {}).get("icon", ""))
-			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
-			row = f"|{entry} | {skill['totalDamage']:,.0f} | {skill['totalDamage']/total_damage_taken_value*100:,.1f}% |"
+    rows.append(f"| Squad Damage Output |c")
+    rows.append('\n\n</div>\n\n    <div class="flex-col">\n\n')
 
-			rows.append(row)
+    # Header for damage taken table
+    header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
+    header += "|!Skill Name | Damage Taken | % of Total|h"
+    rows.append(header)
 
-	rows.append(f"| Enemy Damage Output |c")
-	rows.append("\n\n</div>\n\n</div>")
+    # Populate the table with top 25 skills by damage taken
+    for i, (skill_id, skill) in enumerate(sorted_total_damage_taken.items()):
+        if i < 25:
+            skill_name = skill_data.get(f"s{skill_id}", {}).get("name", buff_data.get(f"b{skill_id}", {}).get("name", ""))
+            skill_icon = skill_data.get(f"s{skill_id}", {}).get("icon", buff_data.get(f"b{skill_id}", {}).get("icon", ""))
+            entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+            row = f"|{entry} | {skill['totalDamage']:,.0f} | {skill['totalDamage']/total_damage_taken_value*100:,.1f}% |"
+            rows.append(row)
 
-	rows.append("\n\n</div>\n\n")
-	text = "\n".join(rows)
+    rows.append(f"| Enemy Damage Output |c")
+    rows.append("\n\n</div>\n\n</div>")
 
-	top_skills_title = f"{tid_date_time}-{caption.replace(' ', '-')}"
+    rows.append("\n\n</div>\n\n")
+    text = "\n".join(rows)
 
-	append_tid_for_output(
-		create_new_tid_from_template(top_skills_title, caption, text, tid_date_time),
-		tid_list
-	)
+    # Define the title for the TID
+    top_skills_title = f"{tid_date_time}-{caption.replace(' ', '-')}"
+
+    # Append the TID for output
+    append_tid_for_output(
+        create_new_tid_from_template(top_skills_title, caption, text, tid_date_time),
+        tid_list
+    )
 
 def build_healer_menu_tabs(top_stats: dict, caption: str, tid_date_time: str) -> None:
 	"""Builds a menu tab macro for healers."""
