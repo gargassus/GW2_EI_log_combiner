@@ -3,14 +3,26 @@
 GW2 - Elite Insight Multiple Log Summary
 
 
+
 Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json output.
 
 
-Currently works with WVW and Detailed WVW logs. Partially working with PVElogs, still needs adjustments to handle the PVE formats. Example config file for Elite Insight included, load settings to ensure most compatible log output.
+Currently works with WVW and Detailed WVW logs. Partially working with PVElogs, still needs adjustments to handle the PVE formats.
 
-Run from the command line: `topstats.exe d:\path\to\logs`
 
-Drag and drop the `Drag_and_Drop_Log_Summary_for_datetime.json` file onto the `/Example_Output/Top_Stats_Index.html`
+- Parse [ArcDps](https://www.deltaconnected.com/arcdps/x64/) logs with [Elite Insight](https://github.com/baaron4/GW2-Elite-Insights-Parser/releases) utilizing the included `Example Elite Insight Config file for log parsing.conf` to load EI settings.
+
+
+- Run compiled exe from the command line:
+
+  -  `topstats.exe d:\path\to\logs`
+
+- or run from source:
+
+   -  `python tw5_top_stats.py d:\path\to\logs`
+
+
+-  Drag and drop the `Drag_and_Drop_Log_Summary_for_datetime.json` file onto the `/Example_Output/Top_Stats_Index.html`
 
 ---
 
@@ -48,16 +60,16 @@ Drag and drop the `Drag_and_Drop_Log_Summary_for_datetime.json` file onto the `/
       - [x] selfBuffsActive
       - [X] rotation
       - [x] Gear Buffs
-      - [ ] Minion Data
-      - [ ] Top Dmg Skils      
+      - [x] Minion Data
+      - [x] Top Dmg Skils      
       - [x] HealStats Data
          - [x] Outgoing Healing
          - [x] Downed Healing
          - [x] Outgoing Barrier
-         - [ ] Outgoing Healing by Target
-         - [ ] Outgoing Barrier by Target
-         - [ ] Outgoing Healing by Skill
-         - [ ] Outgoing Barrier by Skill
+         - [x] Outgoing Healing by Target
+         - [x] Outgoing Barrier by Target
+         - [x] Outgoing Healing by Skill
+         - [x] Outgoing Barrier by Skill
       - [ ] teamID
          - [x] Enemy Team Colors
          - [ ] Ally Team Colors ??
