@@ -566,102 +566,138 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 		)
 
 def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: dict, tid_date_time: str) -> None:
-	"""Print a table of boon uptime stats for all players in the log."""
+    """Print a table of boon uptime stats for all players in the log."""
+    
+    # Initialize a list to hold the rows of the table
+    rows = []
+    rows.append('<div style="overflow-x:auto;">\n\n')
+    
+    # Iterate for "Total" and "Average" views
+    for toggle in ["Total", "Average"]:
+        # Add a reveal widget to toggle between Total and Average views
+        rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="radio" type="match" text="{toggle}" animate="yes">\n')
 
-	# Build the table header
-	rows = []
-	rows.append('<div style="overflow-x:auto;">\n\n')
-	for toggle in ["Total", "Average"]:
-		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="radio" type="match" text="{toggle}" animate="yes">\n')
+        # Create table header
+        header = "|thead-dark table-caption-top table-hover sortable|k\n"
+        header += "|!Name | !Prof |!Account | !{{FightTime}} |"
+        # Add a column for each boon
+        for boon_id, boon_name in boons.items():
+            header += "!{{"+f"{boon_name}"+"}}|"
+        header += "h"
 
-		header = "|thead-dark table-caption-top table-hover sortable|k\n"
-		header += "|!Name | !Prof |!Account | !{{FightTime}} |"
-		for boon_id, boon_name in boons.items():
-			header += "!{{"+f"{boon_name}"+"}}|"
-		header += "h"
+        rows.append(header)
 
-		rows.append(header)
-		category_caption = {'selfBuffs': "Self Generation", 'groupBuffs': "Group Generation", 'squadBuffs': "Squad Generation", 'totalBuffs': "Total Generation"}
-		caption = category_caption[category] or ""
+        # Create a mapping from category to caption
+        category_caption = {
+            'selfBuffs': "Self Generation", 
+            'groupBuffs': "Group Generation", 
+            'squadBuffs': "Squad Generation", 
+            'totalBuffs': "Total Generation"
+        }
+        # Get the caption for the current category
+        caption = category_caption[category] or ""
 
-		# Build the table body
-		for player in top_stats["player"].values():
-			row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:30]} | {player['fight_time'] / 1000:.1f}|"
+        # Build the table body by iterating over each player
+        for player in top_stats["player"].values():
+            # Create a row for the player with basic info
+            row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:30]} | {player['fight_time'] / 1000:.1f}|"
 
-			for boon_id in boons:
-				if boon_id not in player[category]:
-					entry = " - "
+            # Iterate over each boon
+            for boon_id in boons:
+                # Check if the boon is not in player's category, set entry to "-"
+                if boon_id not in player[category]:
+                    entry = " - "
+                else:
+                    # Determine if the boon is stacking
+                    stacking = buff_data[boon_id].get('stacking', False)                
+                    num_fights = player["num_fights"]
+                    group_supported = player["group_supported"]
+                    squad_supported = player["squad_supported"]
 
-				else:
-					stacking = buff_data[boon_id].get('stacking', False)                
-					num_fights = player["num_fights"]
-					group_supported = player["group_supported"]
-					squad_supported = player["squad_supported"]
+                    # Calculate generation and uptime percentage based on category
+                    if category == "selfBuffs":
+                        generation_ms = player[category][boon_id]["generation"]
+                        if stacking:
+                            uptime_percentage = round((generation_ms / player['fight_time'] / num_fights), 3)
+                        else:
+                            uptime_percentage = round((generation_ms / player['fight_time'] / num_fights) * 100, 3)
+                    elif category == "groupBuffs":
+                        generation_ms = player[category][boon_id]["generation"]
+                        if stacking:
+                            uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights), 3)
+                        else:
+                            uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights) * 100, 3)
+                    elif category == "squadBuffs":
+                        generation_ms = player[category][boon_id]["generation"]
+                        if stacking:
+                            uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights), 3)
+                        else:
+                            uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights) * 100, 3)
+                    elif category == "totalBuffs":
+                        generation_ms = 0
+                        if boon_id in player["selfBuffs"]:
+                            generation_ms += player["selfBuffs"][boon_id]["generation"] 
+                        if boon_id in player["squadBuffs"]:
+                            generation_ms += player["squadBuffs"][boon_id]["generation"]
+                        if stacking:
+                            uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported), 3)
+                        else:
+                            uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported) * 100, 3)
+                    else:
+                        raise ValueError(f"Invalid category: {category}")
+                    
+                    # Format uptime percentage
+                    if stacking:
+                        if uptime_percentage:
+                            uptime_percentage = f"{uptime_percentage:.2f}"
+                        else:
+                            uptime_percentage = " - "
+                    else:
+                        if uptime_percentage:
+                            uptime_percentage = f"{uptime_percentage:.2f}%"
+                        else:
+                            uptime_percentage = " - "
+                    
+                    # Determine entry based on toggle
+                    if toggle == "Total":
+                        entry = f"{generation_ms/1000:,.1f}"
+                    else:
+                        entry = uptime_percentage
 
-					if category == "selfBuffs":
-						generation_ms = player[category][boon_id]["generation"]
-						if stacking:
-							uptime_percentage = round((generation_ms / player['fight_time'] / num_fights), 3)
-						else:
-							uptime_percentage = round((generation_ms / player['fight_time'] / num_fights) * 100, 3)
-					elif category == "groupBuffs":
-						generation_ms = player[category][boon_id]["generation"]
-						if stacking:
-							uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights), 3)
-						else:
-							uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights) * 100, 3)
-					elif category == "squadBuffs":
-						generation_ms = player[category][boon_id]["generation"]
-						if stacking:
-							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights), 3)
-						else:
-							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights) * 100, 3)
-					elif category == "totalBuffs":
-						generation_ms = 0
-						if boon_id in player["selfBuffs"]:
-							generation_ms += player["selfBuffs"][boon_id]["generation"] 
-						if boon_id in player["squadBuffs"]:
-							generation_ms += player["squadBuffs"][boon_id]["generation"]
-						if stacking:
-							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported), 3)
-						else:
-							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported) * 100, 3)
-					else:
-						raise ValueError(f"Invalid category: {category}")
-					
-					if stacking:
-						if uptime_percentage:
-							uptime_percentage = f"{uptime_percentage:.2f}"
-						else:
-							uptime_percentage = " - "
-					else:
-						if uptime_percentage:
-							uptime_percentage = f"{uptime_percentage:.2f}%"
-						else:
-							uptime_percentage = " - "
-					if toggle == "Total":
-						entry = f"{generation_ms/1000:,.1f}"
-					else:
-						entry = uptime_percentage
+                # Append entry to the row
+                row += f" {entry}|"
+            
+            # Append the row to the rows list
+            rows.append(row)
+        
+        # Append the footer with radio buttons to toggle views
+        rows.append(f'|<$radio field="radio" value="Total">Total Gen</$radio> - <$radio field="radio" value="Average">Uptime Gen</$radio> - {caption} Table|c')
+        rows.append("\n</$reveal>")
+    
+    rows.append("\n\n</div>")
+    
+    # Join rows into a single text block
+    tid_text = "\n".join(rows)
+    # Create a title for the table
+    temp_title = f"{tid_date_time}-{caption.replace(' ','-')}"
 
-				row += f" {entry}|"
-			rows.append(row)
-		#rows.append(f"|{caption} Table|c")
-		rows.append(f'|<$radio field="radio" value="Total">Total Gen</$radio> - <$radio field="radio" value="Average">Uptime Gen</$radio> - {caption} Table|c')
-		rows.append("\n</$reveal>")
-	rows.append("\n\n</div>")
-	#push table to tid_list for output
-	tid_text = "\n".join(rows)
-	temp_title = f"{tid_date_time}-{caption.replace(' ','-')}"
-
-	append_tid_for_output(
-		create_new_tid_from_template(temp_title, caption, tid_text),
-		tid_list
-		)    
+    # Append the table to the output list
+    append_tid_for_output(
+        create_new_tid_from_template(temp_title, caption, tid_text),
+        tid_list
+    )    
 
 def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
-	"""Print a table of boon uptime stats for all players in the log."""
+	"""Print a table of boon uptime stats for all players in the log.
 
+	The table will contain the following columns:
+
+	- Name
+	- Profession
+	- Account
+	- Fight Time
+	- Average uptime for each boon
+	"""
 	rows = []
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	# Build the player table header
@@ -720,8 +756,24 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 	)
 
 def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
-	"""Print a table of boon uptime stats for all players in the log."""
+	"""Print a table of boon uptime stats for all players in the log.
 
+	The table will contain the following columns:
+
+	- Name
+	- Profession
+	- Account
+	- Fight Time
+	- Average uptime for each boon
+	- Count of applied debuffs
+
+	Args:
+		top_stats (dict): Dictionary containing top statistics for players.
+		boons (dict): Dictionary containing boons and their names.
+		buff_data (dict): Dictionary containing information about each buff.
+		caption (str): The caption for the table.
+		tid_date_time (str): A string to use as the date and time for the table id.
+	"""
 	rows = []
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	# Build the player table header
@@ -788,56 +840,81 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 	)
 
 def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> None:
-	"""Print a table of healing stats for all players in the log running the extension."""
+    """Build and print a table of healing stats for all players in the log.
 
-	healing_stats = {}
+    Args:
+        top_stats (dict): Dictionary containing top statistics for players.
+        caption (str): The caption for the table.
+        tid_date_time (str): A string to use as the date and time for the table id.
+    """
+    # Dictionary to store healing statistics for each player
+    healing_stats = {}
 
-	for player in top_stats['player'].values():
-		if 'extHealingStats' in player or 'extBarrierStats' in player:
-			healing_stats[player['name']] = {
-				'account': player['account'],
-				'profession': player['profession'],
-				'fight_time': player['fight_time']
-			}
+    # Collect healing and barrier stats for players
+    for player in top_stats['player'].values():
+        if 'extHealingStats' in player or 'extBarrierStats' in player:
+            healing_stats[player['name']] = {
+                'account': player['account'],
+                'profession': player['profession'],
+                'fight_time': player['fight_time']
+            }
 
-		if 'extHealingStats' in player:
-			healing_stats[player['name']]['healing'] = player['extHealingStats'].get('outgoing_healing', 0)
-			healing_stats[player['name']]['downed_healing'] = player['extHealingStats'].get('downed_healing', 0)
+        # Get healing stats if available
+        if 'extHealingStats' in player:
+            healing_stats[player['name']]['healing'] = player['extHealingStats'].get('outgoing_healing', 0)
+            healing_stats[player['name']]['downed_healing'] = player['extHealingStats'].get('downed_healing', 0)
 
-		if 'extBarrierStats' in player:
-			healing_stats[player['name']]['barrier'] = player['extBarrierStats'].get('outgoing_barrier', 0)
+        # Get barrier stats if available
+        if 'extBarrierStats' in player:
+            healing_stats[player['name']]['barrier'] = player['extBarrierStats'].get('outgoing_barrier', 0)
 
-	# Sort healing stats by healing amount in descending order
-	sorted_healing_stats = sorted(healing_stats.items(), key=lambda x: x[1]['healing'], reverse=True)
-	rows = []
-	rows.append('<div style="overflow-x:auto;">\n\n')
-	# Build the table header
-	header = "|thead-dark table-caption-top table-hover sortable|k\n"
-	header += "|!Name | !Prof |!Account | !{{FightTime}} | !{{Healing}} | !{{HealingPS}} | !{{Barrier}} | !{{BarrierPS}} | !{{DownedHealing}} | !{{DownedHealingPS}} |h"
+    # Sort healing stats by total healing amount in descending order
+    sorted_healing_stats = sorted(healing_stats.items(), key=lambda x: x[1]['healing'], reverse=True)
+    
+    # Initialize HTML rows for the table
+    rows = []
+    rows.append('<div style="overflow-x:auto;">\n\n')
+    
+    # Build the table header
+    header = "|thead-dark table-caption-top table-hover sortable|k\n"
+    header += "|!Name | !Prof |!Account | !{{FightTime}} | !{{Healing}} | !{{HealingPS}} | !{{Barrier}} | !{{BarrierPS}} | !{{DownedHealing}} | !{{DownedHealingPS}} |h"
+    rows.append(header)
 
-	# Build the table body
-	rows.append(header)
+    # Build the table body
+    for healer in sorted_healing_stats:
+        if (healer[1]['healing'] + healer[1]['downed_healing'] + healer[1]['barrier']):
+            fighttime = healer[1]['fight_time'] / 1000
+            row = f"|{healer[0]} |"+" {{"+f"{healer[1]['profession']}"+"}} "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+            row += f" {healer[1]['healing']:,}| {healer[1]['healing'] / fighttime:,.2f}| {healer[1]['barrier']:,}|"
+            row += f"{healer[1]['barrier'] / fighttime:,.2f}| {healer[1]['downed_healing']:,}| {healer[1]['downed_healing'] / fighttime:,.2f}|"
+            rows.append(row)
 
-	for healer in sorted_healing_stats:
-		if (healer[1]['healing'] + healer[1]['downed_healing'] + healer[1]['barrier']):
-			fighttime = healer[1]['fight_time'] / 1000
-			row = f"|{healer[0]} |"+" {{"+f"{healer[1]['profession']}"+"}} "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
-			row += f" {healer[1]['healing']:,}| {healer[1]['healing'] / fighttime:,.2f}| {healer[1]['barrier']:,}|"
-			row += f"{healer[1]['barrier'] / fighttime:,.2f}| {healer[1]['downed_healing']:,}| {healer[1]['downed_healing'] / fighttime:,.2f}|"
-			rows.append(row)
-	rows.append(f"|{caption} Table|c")
-
-	rows.append("\n\n</div>")
-	# Push table to tid_list for output
-	tid_text = "\n".join(rows)
-
-	append_tid_for_output(
-		create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ','-')}", caption, tid_text),
-		tid_list
-	)
+    # Add caption row and finalize table
+    rows.append(f"|{caption} Table|c")
+    rows.append("\n\n</div>")
+    
+    # Convert rows to text and append to output list
+    tid_text = "\n".join(rows)
+    append_tid_for_output(
+        create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ','-')}", caption, tid_text),
+        tid_list
+    )
 
 def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_data: dict, damage_mod_data: dict, caption: str, tid_date_time: str) -> None:
-	"""Print a table of personal damage modifier stats for all players in the log running the extension."""
+	"""Print a table of personal damage modifier stats for all players in the log running the extension.
+
+	This function iterates over the personal_damage_mod_data dictionary, which contains lists of modifier IDs for each profession.
+	It then builds a table with the following columns:
+		- Name
+		- Prof
+		- Account
+		- Fight Time
+		- Damage Modifier Icons
+
+	The table will have one row for each player running the extension, and the columns will contain the player's name, profession, account name, fight time, and the icons of the modifiers they have active.
+
+	The function will also add the table to the tid_list for output.
+	"""
 	for profession in personal_damage_mod_data:
 		if profession == 'total':
 			continue
@@ -845,40 +922,54 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
 
 		rows = []
 		rows.append('<div style="overflow-x:auto;">\n\n')
+		# Build the table header
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
+		# Add the caption to the header
 		header += f"| {caption} |c\n"
+		# Add the columns to the header
 		header += "|!Name | !Prof |!Account | !{{FightTime}} |"
 		
 		for mod_id in prof_mod_list:
+			# Get the icon and name of the modifier
 			icon = damage_mod_data[mod_id]["icon"]
 			name = damage_mod_data[mod_id]["name"]
+			# Add the icon and name to the header
 			header += f"![img width=24 [{name}|{icon}]]|"
+		# Add the header separator
 		header += "h"
 
 		rows.append(header)
 
+		# Build the table body
 		for player_name, player_data in top_stats['player'].items():
+			# Check if the player is running the extension
 			if player_data['profession'] == profession:
+				# Build the row
 				row = f"|{player_data['name']} | {player_data['profession']} |{player_data['account'][:32]} | {player_data['fight_time'] / 1000:.2f}|"
+				# Iterate over each modifier and add the details to the row
 				for mod in prof_mod_list:
 					if mod in player_data['damageModifiers']:
+						# Get the hit count and total hit count
 						hit_count = player_data['damageModifiers'][mod]['hitCount']
 						total_count = player_data['damageModifiers'][mod]['totalHitCount']
+						# Get the damage gain and total damage
 						damage_gain = player_data['damageModifiers'][mod]['damageGain']
 						total_damage = player_data['damageModifiers'][mod]['totalDamage']
+						# Calculate the damage percentage and hit percentage
 						damage_pct = damage_gain / total_damage * 100
 						hit_pct = hit_count / total_count * 100
+						# Build the tooltip
 						tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain:,}<br>"
+						# Add the tooltip to the row
 						detailEntry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext">'+tooltip+'</span></div>'
 						row += f" {detailEntry}|"
 					else:
+						# If the modifier is not active, add a - to the row
 						row += f" - |"
+				# Add the row to the table
 				rows.append(row)
-		rows.append(f"|{profession} Damage Modifiers Table|c")
-		
-		rows.append("\n\n</div>")
 
-		# Push table to tid_list for output
+		# Add the table to the tid_list for output
 		tid_text = "\n".join(rows)
 
 		append_tid_for_output(
@@ -887,7 +978,22 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
 		)
 
 def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict, caption: str, tid_date_time: str) -> None:
-	"""Print a table of shared damage modifier stats for all players in the log running the extension."""
+	"""Print a table of shared damage modifier stats for all players in the log running the extension.
+
+	This function iterates over the damage_mod_data dictionary, which contains data about each damage modifier.
+	For each modifier, it checks if the modifier is shared and if it is, it adds the modifier to the shared_mod_list.
+	The function then builds a table with the following columns:
+	* Name (player name)
+	* Prof (profession icon)
+	* {{FightTime}} (fight time)
+	* columns for each shared modifier with the following data:
+		+ hits (number of hits with the modifier)
+		+ hits percentage (percentage of total hits with the modifier)
+		+ damage gain (total damage gained from the modifier)
+		+ damage percentage (percentage of total damage gained from the modifier)
+
+	The function then pushes the table to the tid_list for output.
+	"""
 	shared_mod_list = []
 	for modifier in damage_mod_data:
 		if damage_mod_data[modifier]['shared']:
@@ -938,8 +1044,19 @@ def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict,
 def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, caption: str, tid_date_time: str) -> None:
 	"""
 	Print a table of skill cast stats for all players in the log running the extension.
+
+	This function iterates over the skill_casts_by_role dictionary, which contains the total number of casts for each skill and the number of casts per player.
+
+	The function builds a table with the following columns:
+	* Name (player name)
+	* Prof (profession icon)
+	* {{FightTime}} (fight time)
+	* [skill_name] (total number of casts per skill per minute)
+
+	The function appends the table to the tid_list for output.
 	"""
 	for prof_role, cast_data in skill_casts_by_role.items():
+		# Get the total number of casts per skill
 		cast_skills = cast_data['total']
 		sorted_cast_skills = sorted(cast_skills.items(), key=lambda x: x[1], reverse=True)
 		rows = []
@@ -947,6 +1064,7 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += f"| {caption} |c\n"
 		header += "|!Name | !Prof | !{{FightTime}} |"
+		# Add the skill names to the header
 		i = 0
 		for skill, count in sorted_cast_skills:
 			if i < 35:
@@ -958,6 +1076,7 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 
 		rows.append(header)
 
+		# Iterate over each player and add their data to the table
 		for player, player_data in cast_data.items():
 			if player == 'total':
 				continue
@@ -968,6 +1087,7 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 			time_mins = time_secs / 60
 
 			row = f"|{name} |" + " " + f"{profession} " + f"|{time_secs:.2f}|"
+			# Add the skill casts per minute to the row
 			i = 0
 			for skill, count in sorted_cast_skills:
 				if i < 35:
@@ -992,8 +1112,23 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 		)
 
 def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
-	"""Build a table of combat resurrection stats for all players in the log running the extension."""
+	"""Build a table of combat resurrection stats for all players in the log running the extension.
 
+	This function iterates over the top_stats dictionary and builds a dictionary with the following structure:
+	{
+		'res_skills': {skill_name: total_downed_healing},
+		'players': {profession_name | player_name | fight_time: {skill_name: downed_healing}}
+	}
+
+	The function then builds a table with the following columns:
+	* Name (player name)
+	* Prof (profession icon)
+	* {{FightTime}} (fight time)
+	* [skill_name] (total downed healing per skill)
+
+	The function appends the table to the tid_list for output.
+
+	"""
 	combat_resurrect = {
 		'res_skills': {},
 		'players': {}
@@ -1208,7 +1343,19 @@ def build_skill_usage_stats_tid(skill_casts_by_role: dict, caption: str, tid_dat
 		tid_list
 	)
 
-def fmt_firebrand_page_total(page_casts, page_cost, fight_time, page_total):
+def fmt_firebrand_page_total(page_casts: int, page_cost: float, fight_time: float, page_total: int) -> str:
+	"""
+	Format the total page casts and cost for a firebrand player.
+
+	Args:
+		page_casts (int): Number of times the page was cast.
+		page_cost (float): Cost of the page in terms of pages.
+		fight_time (float): Duration of the fight in seconds.
+		page_total (int): Total number of pages available.
+
+	Returns:
+		str: Formatted string of the total page casts and cost.
+	"""
 	output_string = ' <span data-tooltip="'
 
 	if page_cost:
