@@ -1439,6 +1439,19 @@ def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_t
 	)
 
 def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time: str) -> None:
+	"""
+	Build a table of minions for each player in the log.
+
+	This function generates a table displaying the number of fights a player has
+	participated in and the total fight time for each player. It also lists the
+	number of times each minion was used by the player.
+
+	Args:
+		minions (dict): A dictionary with the minion stats for each player.
+		players (dict): A dictionary with the player stats.
+		caption (str): The caption for the table.
+		tid_date_time (str): The date and time for the table.
+	"""
 	minion_stats_tags = f"{tid_date_time}"
 	minion_stats_title = f"{tid_date_time}-Minions"
 	minion_stats_caption = f"{caption}"
@@ -1448,7 +1461,6 @@ def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time:
 	for profession in minions:
 		tab_name = f"{tid_date_time}-{caption.replace(' ','-')}-{profession}"
 		minion_stats_text += f'[[{tab_name}]]'
-
 	minion_stats_text += f"' '{tab_name}' '$:/temp/tab1'>>"
 	append_tid_for_output(
 		create_new_tid_from_template(minion_stats_title, minion_stats_caption, minion_stats_text, minion_stats_tags, creator=minion_stats_creator),
