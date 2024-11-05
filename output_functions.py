@@ -1397,6 +1397,16 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 	)
 
 def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_time: str) -> None:
+/*************  ✨ Codeium Command ⭐  *************/
+	"""
+	Build a table of fight mechanics for all players in the log running the extension.
+	Args:
+		mechanics (dict): A dictionary of fight mechanics with player lists and mechanic data.
+		players (dict): A dictionary of player data.
+		caption (str): A string to use as the caption for the table.
+		tid_date_time (str): A string to use as the date and time for the table id.
+	"""
+/******  a72c6764-c5c9-4966-bfd6-5ac7c0ec0179  *******/
 	rows = []
 	for fight in mechanics:
 		player_list = mechanics[fight]['player_list']
