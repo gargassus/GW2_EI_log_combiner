@@ -1207,6 +1207,11 @@ def parse_file(file_path, fight_num):
 		top_stats['player'][name_prof]['fight_time'] = top_stats['player'][name_prof].get('fight_time', 0) + fight_duration_ms
 		top_stats['fight'][fight_num]['fight_time'] = top_stats['fight'][fight_num].get('fight_time', 0) + fight_duration_ms
 		top_stats['overall']['fight_time'] = top_stats['overall'].get('fight_time', 0) + fight_duration_ms
+		if group not in top_stats['overall']['group_data']:
+			top_stats['overall']['group_data'][group] = {
+				'fight_count': 0,
+			}
+		top_stats['overall']['group_data'][group]['fight_time'] = top_stats['overall']['group_data'][group].get('fight_time', 0) + fight_duration_ms
 
 		#Cumulative active time  for player, fight and overall
 		top_stats['player'][name_prof]['active_time'] = top_stats['player'][name_prof].get('active_time', 0) + active_time

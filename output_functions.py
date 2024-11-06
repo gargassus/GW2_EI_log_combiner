@@ -728,6 +728,23 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 
 	rows.append(header)
 	rows.append(header2)
+	#build party table rows
+	
+	#footer, moved to header 
+	for group in top_stats["overall"]["buffUptimes"]['group']:
+		footer = f"|Party-{group} Average Uptime |<|<|<|"
+		for boon_id in boons:
+			if boon_id not in buff_data:
+				continue
+			if boon_id not in top_stats["overall"]["buffUptimes"]['group'][group]:
+				uptime_percentage = " - "
+			else:
+				uptime_ms = top_stats["overall"]["buffUptimes"]['group'][group][boon_id]["uptime_ms"]
+				uptime_percentage = round((uptime_ms / top_stats['overall']['group_data'][group]['fight_time']) * 100, 3)
+				uptime_percentage = f"{uptime_percentage:.3f}%"
+			footer += f" {uptime_percentage}|"
+		footer += "h"	#footer, moved to header
+		rows.append(footer)
 
 	# Build the table body
 	for player in top_stats["player"].values():
