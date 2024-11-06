@@ -236,3 +236,5 @@ if __name__ == '__main__':
 	write_tid_list_to_json(tid_list, args.output_filename)
 
 	output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, fb_pages, mechanics, minions, args.json_output_filename)
+
+	write_data_to_db(top_stats, top_stats['overall']['last_fight'])

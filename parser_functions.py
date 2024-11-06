@@ -472,7 +472,7 @@ def get_stat_by_skill(fight_num: int, player: dict, stat_category: str, name_pro
 					top_stats['overall'][stat_category][skill_id][stat] = top_stats['overall'][stat_category][skill_id].get(stat, 0) + value
 
 
-def get_buff_uptimes(fight_num: int, player: dict, stat_category: str, name_prof: str, fight_duration: int, active_time: int) -> None:
+def get_buff_uptimes(fight_num: int, player: dict, group: str, stat_category: str, name_prof: str, fight_duration: int, active_time: int) -> None:
 	"""
 	Calculate buff uptime stats for a player
 
@@ -498,6 +498,12 @@ def get_buff_uptimes(fight_num: int, player: dict, stat_category: str, name_prof
 			top_stats['fight'][fight_num][stat_category][buff_id] = {}
 		if buff_id not in top_stats['overall'][stat_category]:
 			top_stats['overall'][stat_category][buff_id] = {}
+		if "group" not in top_stats['overall'][stat_category]:
+			top_stats['overall'][stat_category]["group"] = {}
+		if group not in top_stats['overall'][stat_category]["group"]:
+			top_stats['overall'][stat_category]["group"][group] = {}
+		if buff_id not in top_stats['overall'][stat_category]["group"][group]:
+			top_stats['overall'][stat_category]["group"][group][buff_id] = {}
 
 		if stat_category == 'buffUptimes':
 			stat_value = buff_presence * fight_duration / 100 if buff_presence else buff_uptime_ms
@@ -507,6 +513,7 @@ def get_buff_uptimes(fight_num: int, player: dict, stat_category: str, name_prof
 		top_stats['player'][name_prof][stat_category][buff_id]['uptime_ms'] = top_stats['player'][name_prof][stat_category][buff_id].get('uptime_ms', 0) + stat_value
 		top_stats['fight'][fight_num][stat_category][buff_id]['uptime_ms'] = top_stats['fight'][fight_num][stat_category][buff_id].get('uptime_ms', 0) + stat_value
 		top_stats['overall'][stat_category][buff_id]['uptime_ms'] = top_stats['overall'][stat_category][buff_id].get('uptime_ms', 0) + stat_value
+		top_stats['overall'][stat_category]["group"][group][buff_id]['uptime_ms'] = top_stats['overall'][stat_category]["group"][group][buff_id].get('uptime_ms', 0) + stat_value
 
 
 def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_category: str, name_prof: str) -> None:
@@ -1088,7 +1095,7 @@ def parse_file(file_path, fight_num):
 
 	log_type, fight_name = determine_log_type_and_extract_fight_name(fight_name)
 
-
+	top_stats['overall']['last_fight'] = f"{fight_date}-{fight_end}"
 	#Initialize fight_num stats
 	top_stats['fight'][fight_num] = {
 		'log_type': log_type,
@@ -1231,7 +1238,7 @@ def parse_file(file_path, fight_num):
 
 			# format: player[stat_cat][buff][buffData][0][stat:value]
 			if stat_cat in ['buffUptimes', 'buffUptimesActive']:
-				get_buff_uptimes(fight_num, player, stat_cat, name_prof, fight_duration_ms, active_time)
+				get_buff_uptimes(fight_num, player, group, stat_cat, name_prof, fight_duration_ms, active_time)
 
 			# format: player[stat_category][buff][buffData][0][generation]
 			if stat_cat in ['squadBuffs', 'groupBuffs', 'selfBuffs']:

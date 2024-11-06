@@ -41,7 +41,9 @@ json_stats = [
 
 # Top stats dictionary to store combined log data
 top_stats = {
-    'overall': {},
+    'overall': {
+        'last_fight': ""
+    },
     'fight': {},
     'player': {},
     'parties_by_fight': {},

@@ -14,54 +14,55 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import json
+import sqlite3
 
 #list of tid files to output
 tid_list = []
 
 def create_new_tid_from_template(
-    title: str,
-    caption: str,
-    text: str,
-    tags: list[str] = None,
-    modified: str = None,
-    created: str = None,
-    creator: str = None,
-    field: str = None,
-    value: str = None,
+	title: str,
+	caption: str,
+	text: str,
+	tags: list[str] = None,
+	modified: str = None,
+	created: str = None,
+	creator: str = None,
+	field: str = None,
+	value: str = None,
 ) -> dict:
-    """
-    Create a new TID from the template.
+	"""
+	Create a new TID from the template.
 
-    Args:
-        title (str): The title of the TID.
-        caption (str): The caption of the TID.
-        text (str): The text of the TID.
-        tags (list[str], optional): The tags for the TID. Defaults to None.
-        modified (str, optional): The modified date of the TID. Defaults to None.
-        created (str, optional): The created date of the TID. Defaults to None.
-        creator (str, optional): The creator of the TID. Defaults to None.
-        field (str, optional): The field to add to the TID. Defaults to None.
-        value (str, optional): The value to add to the TID. Defaults to None.
+	Args:
+		title (str): The title of the TID.
+		caption (str): The caption of the TID.
+		text (str): The text of the TID.
+		tags (list[str], optional): The tags for the TID. Defaults to None.
+		modified (str, optional): The modified date of the TID. Defaults to None.
+		created (str, optional): The created date of the TID. Defaults to None.
+		creator (str, optional): The creator of the TID. Defaults to None.
+		field (str, optional): The field to add to the TID. Defaults to None.
+		value (str, optional): The value to add to the TID. Defaults to None.
 
-    Returns:
-        dict: The new TID.
-    """
-    temp_tid = {}
-    temp_tid['title'] = title
-    temp_tid['caption'] = caption
-    temp_tid['text'] = text
-    if tags:
-        temp_tid['tags'] = tags
-    if modified:
-        temp_tid['modified'] = modified
-    if created:
-        temp_tid['created'] = created
-    if creator:
-        temp_tid['creator'] = creator
-    if field and value:        
-        temp_tid[field] = value
+	Returns:
+		dict: The new TID.
+	"""
+	temp_tid = {}
+	temp_tid['title'] = title
+	temp_tid['caption'] = caption
+	temp_tid['text'] = text
+	if tags:
+		temp_tid['tags'] = tags
+	if modified:
+		temp_tid['modified'] = modified
+	if created:
+		temp_tid['created'] = created
+	if creator:
+		temp_tid['creator'] = creator
+	if field and value:        
+		temp_tid[field] = value
 
-    return temp_tid
+	return temp_tid
 
 def append_tid_for_output(input, output):
 	output.append(input)
@@ -566,126 +567,126 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 		)
 
 def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: dict, tid_date_time: str) -> None:
-    """Print a table of boon uptime stats for all players in the log."""
-    
-    # Initialize a list to hold the rows of the table
-    rows = []
-    rows.append('<div style="overflow-x:auto;">\n\n')
-    
-    # Iterate for "Total" and "Average" views
-    for toggle in ["Total", "Average"]:
-        # Add a reveal widget to toggle between Total and Average views
-        rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="radio" type="match" text="{toggle}" animate="yes">\n')
+	"""Print a table of boon uptime stats for all players in the log."""
+	
+	# Initialize a list to hold the rows of the table
+	rows = []
+	rows.append('<div style="overflow-x:auto;">\n\n')
+	
+	# Iterate for "Total" and "Average" views
+	for toggle in ["Total", "Average"]:
+		# Add a reveal widget to toggle between Total and Average views
+		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="radio" type="match" text="{toggle}" animate="yes">\n')
 
-        # Create table header
-        header = "|thead-dark table-caption-top table-hover sortable|k\n"
-        header += "|!Name | !Prof |!Account | !{{FightTime}} |"
-        # Add a column for each boon
-        for boon_id, boon_name in boons.items():
-            header += "!{{"+f"{boon_name}"+"}}|"
-        header += "h"
+		# Create table header
+		header = "|thead-dark table-caption-top table-hover sortable|k\n"
+		header += "|!Name | !Prof |!Account | !{{FightTime}} |"
+		# Add a column for each boon
+		for boon_id, boon_name in boons.items():
+			header += "!{{"+f"{boon_name}"+"}}|"
+		header += "h"
 
-        rows.append(header)
+		rows.append(header)
 
-        # Create a mapping from category to caption
-        category_caption = {
-            'selfBuffs': "Self Generation", 
-            'groupBuffs': "Group Generation", 
-            'squadBuffs': "Squad Generation", 
-            'totalBuffs': "Total Generation"
-        }
-        # Get the caption for the current category
-        caption = category_caption[category] or ""
+		# Create a mapping from category to caption
+		category_caption = {
+			'selfBuffs': "Self Generation", 
+			'groupBuffs': "Group Generation", 
+			'squadBuffs': "Squad Generation", 
+			'totalBuffs': "Total Generation"
+		}
+		# Get the caption for the current category
+		caption = category_caption[category] or ""
 
-        # Build the table body by iterating over each player
-        for player in top_stats["player"].values():
-            # Create a row for the player with basic info
-            row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:30]} | {player['fight_time'] / 1000:.1f}|"
+		# Build the table body by iterating over each player
+		for player in top_stats["player"].values():
+			# Create a row for the player with basic info
+			row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:30]} | {player['fight_time'] / 1000:.1f}|"
 
-            # Iterate over each boon
-            for boon_id in boons:
-                # Check if the boon is not in player's category, set entry to "-"
-                if boon_id not in player[category]:
-                    entry = " - "
-                else:
-                    # Determine if the boon is stacking
-                    stacking = buff_data[boon_id].get('stacking', False)                
-                    num_fights = player["num_fights"]
-                    group_supported = player["group_supported"]
-                    squad_supported = player["squad_supported"]
+			# Iterate over each boon
+			for boon_id in boons:
+				# Check if the boon is not in player's category, set entry to "-"
+				if boon_id not in player[category]:
+					entry = " - "
+				else:
+					# Determine if the boon is stacking
+					stacking = buff_data[boon_id].get('stacking', False)                
+					num_fights = player["num_fights"]
+					group_supported = player["group_supported"]
+					squad_supported = player["squad_supported"]
 
-                    # Calculate generation and uptime percentage based on category
-                    if category == "selfBuffs":
-                        generation_ms = player[category][boon_id]["generation"]
-                        if stacking:
-                            uptime_percentage = round((generation_ms / player['fight_time'] / num_fights), 3)
-                        else:
-                            uptime_percentage = round((generation_ms / player['fight_time'] / num_fights) * 100, 3)
-                    elif category == "groupBuffs":
-                        generation_ms = player[category][boon_id]["generation"]
-                        if stacking:
-                            uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights), 3)
-                        else:
-                            uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights) * 100, 3)
-                    elif category == "squadBuffs":
-                        generation_ms = player[category][boon_id]["generation"]
-                        if stacking:
-                            uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights), 3)
-                        else:
-                            uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights) * 100, 3)
-                    elif category == "totalBuffs":
-                        generation_ms = 0
-                        if boon_id in player["selfBuffs"]:
-                            generation_ms += player["selfBuffs"][boon_id]["generation"] 
-                        if boon_id in player["squadBuffs"]:
-                            generation_ms += player["squadBuffs"][boon_id]["generation"]
-                        if stacking:
-                            uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported), 3)
-                        else:
-                            uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported) * 100, 3)
-                    else:
-                        raise ValueError(f"Invalid category: {category}")
-                    
-                    # Format uptime percentage
-                    if stacking:
-                        if uptime_percentage:
-                            uptime_percentage = f"{uptime_percentage:.2f}"
-                        else:
-                            uptime_percentage = " - "
-                    else:
-                        if uptime_percentage:
-                            uptime_percentage = f"{uptime_percentage:.2f}%"
-                        else:
-                            uptime_percentage = " - "
-                    
-                    # Determine entry based on toggle
-                    if toggle == "Total":
-                        entry = f"{generation_ms/1000:,.1f}"
-                    else:
-                        entry = uptime_percentage
+					# Calculate generation and uptime percentage based on category
+					if category == "selfBuffs":
+						generation_ms = player[category][boon_id]["generation"]
+						if stacking:
+							uptime_percentage = round((generation_ms / player['fight_time'] / num_fights), 3)
+						else:
+							uptime_percentage = round((generation_ms / player['fight_time'] / num_fights) * 100, 3)
+					elif category == "groupBuffs":
+						generation_ms = player[category][boon_id]["generation"]
+						if stacking:
+							uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights), 3)
+						else:
+							uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights) * 100, 3)
+					elif category == "squadBuffs":
+						generation_ms = player[category][boon_id]["generation"]
+						if stacking:
+							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights), 3)
+						else:
+							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights) * 100, 3)
+					elif category == "totalBuffs":
+						generation_ms = 0
+						if boon_id in player["selfBuffs"]:
+							generation_ms += player["selfBuffs"][boon_id]["generation"] 
+						if boon_id in player["squadBuffs"]:
+							generation_ms += player["squadBuffs"][boon_id]["generation"]
+						if stacking:
+							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported), 3)
+						else:
+							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported) * 100, 3)
+					else:
+						raise ValueError(f"Invalid category: {category}")
+					
+					# Format uptime percentage
+					if stacking:
+						if uptime_percentage:
+							uptime_percentage = f"{uptime_percentage:.2f}"
+						else:
+							uptime_percentage = " - "
+					else:
+						if uptime_percentage:
+							uptime_percentage = f"{uptime_percentage:.2f}%"
+						else:
+							uptime_percentage = " - "
+					
+					# Determine entry based on toggle
+					if toggle == "Total":
+						entry = f"{generation_ms/1000:,.1f}"
+					else:
+						entry = uptime_percentage
 
-                # Append entry to the row
-                row += f" {entry}|"
-            
-            # Append the row to the rows list
-            rows.append(row)
-        
-        # Append the footer with radio buttons to toggle views
-        rows.append(f'|<$radio field="radio" value="Total">Total Gen</$radio> - <$radio field="radio" value="Average">Uptime Gen</$radio> - {caption} Table|c')
-        rows.append("\n</$reveal>")
-    
-    rows.append("\n\n</div>")
-    
-    # Join rows into a single text block
-    tid_text = "\n".join(rows)
-    # Create a title for the table
-    temp_title = f"{tid_date_time}-{caption.replace(' ','-')}"
+				# Append entry to the row
+				row += f" {entry}|"
+			
+			# Append the row to the rows list
+			rows.append(row)
+		
+		# Append the footer with radio buttons to toggle views
+		rows.append(f'|<$radio field="radio" value="Total">Total Gen</$radio> - <$radio field="radio" value="Average">Uptime Gen</$radio> - {caption} Table|c')
+		rows.append("\n</$reveal>")
+	
+	rows.append("\n\n</div>")
+	
+	# Join rows into a single text block
+	tid_text = "\n".join(rows)
+	# Create a title for the table
+	temp_title = f"{tid_date_time}-{caption.replace(' ','-')}"
 
-    # Append the table to the output list
-    append_tid_for_output(
-        create_new_tid_from_template(temp_title, caption, tid_text),
-        tid_list
-    )    
+	# Append the table to the output list
+	append_tid_for_output(
+		create_new_tid_from_template(temp_title, caption, tid_text),
+		tid_list
+	)    
 
 def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
 	"""Print a table of boon uptime stats for all players in the log.
@@ -840,65 +841,65 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 	)
 
 def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> None:
-    """Build and print a table of healing stats for all players in the log.
+	"""Build and print a table of healing stats for all players in the log.
 
-    Args:
-        top_stats (dict): Dictionary containing top statistics for players.
-        caption (str): The caption for the table.
-        tid_date_time (str): A string to use as the date and time for the table id.
-    """
-    # Dictionary to store healing statistics for each player
-    healing_stats = {}
+	Args:
+		top_stats (dict): Dictionary containing top statistics for players.
+		caption (str): The caption for the table.
+		tid_date_time (str): A string to use as the date and time for the table id.
+	"""
+	# Dictionary to store healing statistics for each player
+	healing_stats = {}
 
-    # Collect healing and barrier stats for players
-    for player in top_stats['player'].values():
-        if 'extHealingStats' in player or 'extBarrierStats' in player:
-            healing_stats[player['name']] = {
-                'account': player['account'],
-                'profession': player['profession'],
-                'fight_time': player['fight_time']
-            }
+	# Collect healing and barrier stats for players
+	for player in top_stats['player'].values():
+		if 'extHealingStats' in player or 'extBarrierStats' in player:
+			healing_stats[player['name']] = {
+				'account': player['account'],
+				'profession': player['profession'],
+				'fight_time': player['fight_time']
+			}
 
-        # Get healing stats if available
-        if 'extHealingStats' in player:
-            healing_stats[player['name']]['healing'] = player['extHealingStats'].get('outgoing_healing', 0)
-            healing_stats[player['name']]['downed_healing'] = player['extHealingStats'].get('downed_healing', 0)
+		# Get healing stats if available
+		if 'extHealingStats' in player:
+			healing_stats[player['name']]['healing'] = player['extHealingStats'].get('outgoing_healing', 0)
+			healing_stats[player['name']]['downed_healing'] = player['extHealingStats'].get('downed_healing', 0)
 
-        # Get barrier stats if available
-        if 'extBarrierStats' in player:
-            healing_stats[player['name']]['barrier'] = player['extBarrierStats'].get('outgoing_barrier', 0)
+		# Get barrier stats if available
+		if 'extBarrierStats' in player:
+			healing_stats[player['name']]['barrier'] = player['extBarrierStats'].get('outgoing_barrier', 0)
 
-    # Sort healing stats by total healing amount in descending order
-    sorted_healing_stats = sorted(healing_stats.items(), key=lambda x: x[1]['healing'], reverse=True)
-    
-    # Initialize HTML rows for the table
-    rows = []
-    rows.append('<div style="overflow-x:auto;">\n\n')
-    
-    # Build the table header
-    header = "|thead-dark table-caption-top table-hover sortable|k\n"
-    header += "|!Name | !Prof |!Account | !{{FightTime}} | !{{Healing}} | !{{HealingPS}} | !{{Barrier}} | !{{BarrierPS}} | !{{DownedHealing}} | !{{DownedHealingPS}} |h"
-    rows.append(header)
+	# Sort healing stats by total healing amount in descending order
+	sorted_healing_stats = sorted(healing_stats.items(), key=lambda x: x[1]['healing'], reverse=True)
+	
+	# Initialize HTML rows for the table
+	rows = []
+	rows.append('<div style="overflow-x:auto;">\n\n')
+	
+	# Build the table header
+	header = "|thead-dark table-caption-top table-hover sortable|k\n"
+	header += "|!Name | !Prof |!Account | !{{FightTime}} | !{{Healing}} | !{{HealingPS}} | !{{Barrier}} | !{{BarrierPS}} | !{{DownedHealing}} | !{{DownedHealingPS}} |h"
+	rows.append(header)
 
-    # Build the table body
-    for healer in sorted_healing_stats:
-        if (healer[1]['healing'] + healer[1]['downed_healing'] + healer[1]['barrier']):
-            fighttime = healer[1]['fight_time'] / 1000
-            row = f"|{healer[0]} |"+" {{"+f"{healer[1]['profession']}"+"}} "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
-            row += f" {healer[1]['healing']:,}| {healer[1]['healing'] / fighttime:,.2f}| {healer[1]['barrier']:,}|"
-            row += f"{healer[1]['barrier'] / fighttime:,.2f}| {healer[1]['downed_healing']:,}| {healer[1]['downed_healing'] / fighttime:,.2f}|"
-            rows.append(row)
+	# Build the table body
+	for healer in sorted_healing_stats:
+		if (healer[1]['healing'] + healer[1]['downed_healing'] + healer[1]['barrier']):
+			fighttime = healer[1]['fight_time'] / 1000
+			row = f"|{healer[0]} |"+" {{"+f"{healer[1]['profession']}"+"}} "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+			row += f" {healer[1]['healing']:,}| {healer[1]['healing'] / fighttime:,.2f}| {healer[1]['barrier']:,}|"
+			row += f"{healer[1]['barrier'] / fighttime:,.2f}| {healer[1]['downed_healing']:,}| {healer[1]['downed_healing'] / fighttime:,.2f}|"
+			rows.append(row)
 
-    # Add caption row and finalize table
-    rows.append(f"|{caption} Table|c")
-    rows.append("\n\n</div>")
-    
-    # Convert rows to text and append to output list
-    tid_text = "\n".join(rows)
-    append_tid_for_output(
-        create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ','-')}", caption, tid_text),
-        tid_list
-    )
+	# Add caption row and finalize table
+	rows.append(f"|{caption} Table|c")
+	rows.append("\n\n</div>")
+	
+	# Convert rows to text and append to output list
+	tid_text = "\n".join(rows)
+	append_tid_for_output(
+		create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ','-')}", caption, tid_text),
+		tid_list
+	)
 
 def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_data: dict, damage_mod_data: dict, caption: str, tid_date_time: str) -> None:
 	"""Print a table of personal damage modifier stats for all players in the log running the extension.
@@ -1215,30 +1216,30 @@ def build_main_tid(datetime):
 	)
 
 def build_menu_tid(datetime: str) -> None:
-    """
-    Build a TID for the main menu.
+	"""
+	Build a TID for the main menu.
 
-    Args:
-        datetime (str): The datetime string of the log.
+	Args:
+		datetime (str): The datetime string of the log.
 
-    Returns:
-        None
-    """
-    tags = f"{datetime}"
-    title = f"{datetime}-Menu"
-    caption = "Menu"
-    
-    text = (
-        f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] '
-        f'[[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] '
-        f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]]" '
-        f'"{datetime}-Overview" "$:/temp/menutab1">>'
-    )
+	Returns:
+		None
+	"""
+	tags = f"{datetime}"
+	title = f"{datetime}-Menu"
+	caption = "Menu"
+	
+	text = (
+		f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] '
+		f'[[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] '
+		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]]" '
+		f'"{datetime}-Overview" "$:/temp/menutab1">>'
+	)
 
-    append_tid_for_output(
-        create_new_tid_from_template(title, caption, text, tags, field='radio', value='Total'),
-        tid_list
-    )
+	append_tid_for_output(
+		create_new_tid_from_template(title, caption, text, tags, field='radio', value='Total'),
+		tid_list
+	)
 
 
 def build_general_stats_tid(datetime):
@@ -1480,100 +1481,100 @@ def build_fb_pages_tid(fb_pages: dict, caption: str, tid_date_time: str):
 	)
 
 def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
-    """
-    Build a table of high score statistics for each category.
+	"""
+	Build a table of high score statistics for each category.
 
-    Args:
-        high_scores (dict): Dictionary containing high scores for each category.
-        skill_data (dict): Dictionary containing skill data including name and icon.
-        buff_data (dict): Dictionary containing buff data including name and icon.
-        caption (str): The caption for the table.
-        tid_date_time (str): A string to use as the date and time for the table id.
-    """
-    # Define mapping for categories to their titles
-    caption_dict = {
-        "statTarget_max": "Highest Outgoing Skill Damage", 
-        "totalDamageTaken_max": "Highest Incoming Skill Damage",
-        "fight_dps": "Damage per Second", 
-        "statTarget_killed": "Kills per Second", 
-        "statTarget_downed": "Downs per Second", 
-        "statTarget_downContribution": "Down Contrib per Second",
-        "defenses_blockedCount": "Blocks per Second", 
-        "defenses_evadedCount": "Evades per Second", 
-        "defenses_dodgeCount": "Dodges per Second", 
-        "defenses_invulnedCount": "Invulned per Second",
-        "support_condiCleanse": "Cleanses per Second", 
-        "support_boonStrips": "Strips per Second", 
-        "extHealingStats_Healing": "Healing per Second", 
-        "extBarrierStats_Barrier": "Barrier per Second"
-    }
+	Args:
+		high_scores (dict): Dictionary containing high scores for each category.
+		skill_data (dict): Dictionary containing skill data including name and icon.
+		buff_data (dict): Dictionary containing buff data including name and icon.
+		caption (str): The caption for the table.
+		tid_date_time (str): A string to use as the date and time for the table id.
+	"""
+	# Define mapping for categories to their titles
+	caption_dict = {
+		"statTarget_max": "Highest Outgoing Skill Damage", 
+		"totalDamageTaken_max": "Highest Incoming Skill Damage",
+		"fight_dps": "Damage per Second", 
+		"statTarget_killed": "Kills per Second", 
+		"statTarget_downed": "Downs per Second", 
+		"statTarget_downContribution": "Down Contrib per Second",
+		"defenses_blockedCount": "Blocks per Second", 
+		"defenses_evadedCount": "Evades per Second", 
+		"defenses_dodgeCount": "Dodges per Second", 
+		"defenses_invulnedCount": "Invulned per Second",
+		"support_condiCleanse": "Cleanses per Second", 
+		"support_boonStrips": "Strips per Second", 
+		"extHealingStats_Healing": "Healing per Second", 
+		"extBarrierStats_Barrier": "Barrier per Second"
+	}
 
-    # Initialize the HTML components
-    high_scores_tags = f"{tid_date_time}"
-    high_scores_title = f"{tid_date_time}-High-Scores"
-    high_scores_caption = f"{caption}"
-    rows = []
-    rows.append('<div style="overflow-x:auto;">\n\n')
-    rows.append('<div class="flex-row">\n\n')
+	# Initialize the HTML components
+	high_scores_tags = f"{tid_date_time}"
+	high_scores_title = f"{tid_date_time}-High-Scores"
+	high_scores_caption = f"{caption}"
+	rows = []
+	rows.append('<div style="overflow-x:auto;">\n\n')
+	rows.append('<div class="flex-row">\n\n')
 
-    # Iterate over each category to build the table
-    for category in caption_dict:
-        table_title = caption_dict[category]
-        header = '    <div class="flex-col">\n\n'
-        header += "|thead-dark table-caption-top table-hover|k\n"
-        
-        # Determine the header based on category
-        if category in ["statTarget_max", "totalDamageTaken_max"]:
-            header += "|@@display:block;width:200px;Player@@  |@@display:block;width:250px;Skill@@ | @@display:block;width:100px;Score@@|h"
-        else:
-            header += "|@@display:block;width:200px;Player@@ | @@display:block;width:100px;Score@@|h"
-        
-        rows.append(header)
+	# Iterate over each category to build the table
+	for category in caption_dict:
+		table_title = caption_dict[category]
+		header = '    <div class="flex-col">\n\n'
+		header += "|thead-dark table-caption-top table-hover|k\n"
+		
+		# Determine the header based on category
+		if category in ["statTarget_max", "totalDamageTaken_max"]:
+			header += "|@@display:block;width:200px;Player@@  |@@display:block;width:250px;Skill@@ | @@display:block;width:100px;Score@@|h"
+		else:
+			header += "|@@display:block;width:200px;Player@@ | @@display:block;width:100px;Score@@|h"
+		
+		rows.append(header)
 
-        # Sort high scores for the current category
-        sorted_high_scores = sorted(high_scores[category].items(), key=lambda x: x[1], reverse=True)
-        
-        # Build rows for each player
-        for player in sorted_high_scores:
-            player, score = player
-            prof_name = player.split(" |")[0]
-            
-            if category in ["statTarget_max", "totalDamageTaken_max"]:
-                skill_id = player.split("| ")[1]
-                if "s" + str(skill_id) in skill_data:
-                    skill_name = skill_data["s" + str(skill_id)]['name']
-                    skill_icon = skill_data["s" + str(skill_id)]['icon']
-                elif "b" + str(skill_id) in buff_data:
-                    skill_name = buff_data["b" + str(skill_id)]['name']
-                    skill_icon = buff_data["b" + str(skill_id)]['icon']
-                else:
-                    skill_name = skill_id
-                    skill_icon = "unknown.png"
-                
-                detailEntry = f'[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}'
-                row = f"|{prof_name} |{detailEntry} | {score:03,.2f}|"
-            else:
-                row = f"|{prof_name} | {score:03,.2f}|"
-            rows.append(row)
+		# Sort high scores for the current category
+		sorted_high_scores = sorted(high_scores[category].items(), key=lambda x: x[1], reverse=True)
+		
+		# Build rows for each player
+		for player in sorted_high_scores:
+			player, score = player
+			prof_name = player.split(" |")[0]
+			
+			if category in ["statTarget_max", "totalDamageTaken_max"]:
+				skill_id = player.split("| ")[1]
+				if "s" + str(skill_id) in skill_data:
+					skill_name = skill_data["s" + str(skill_id)]['name']
+					skill_icon = skill_data["s" + str(skill_id)]['icon']
+				elif "b" + str(skill_id) in buff_data:
+					skill_name = buff_data["b" + str(skill_id)]['name']
+					skill_icon = buff_data["b" + str(skill_id)]['icon']
+				else:
+					skill_name = skill_id
+					skill_icon = "unknown.png"
+				
+				detailEntry = f'[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}'
+				row = f"|{prof_name} |{detailEntry} | {score:03,.2f}|"
+			else:
+				row = f"|{prof_name} | {score:03,.2f}|"
+			rows.append(row)
 
-        # Add table title and close the div
-        rows.append(f"| ''{table_title}'' |c")
-        rows.append("\n\n    </div>\n\n")
-        
-        # Add a new row for the next category if applicable
-        if category == "totalDamageTaken_max":
-            rows.append('\n<div class="flex-row">\n\n')
+		# Add table title and close the div
+		rows.append(f"| ''{table_title}'' |c")
+		rows.append("\n\n    </div>\n\n")
+		
+		# Add a new row for the next category if applicable
+		if category == "totalDamageTaken_max":
+			rows.append('\n<div class="flex-row">\n\n')
 
-    # Close all divs and join rows
-    rows.append("</div>\n\n")
-    rows.append("</div>\n\n")
-    high_scores_text = "\n".join(rows)
+	# Close all divs and join rows
+	rows.append("</div>\n\n")
+	rows.append("</div>\n\n")
+	high_scores_text = "\n".join(rows)
 
-    # Append the high scores table to the output list
-    append_tid_for_output(
-        create_new_tid_from_template(high_scores_title, high_scores_caption, high_scores_text, high_scores_tags),
-        tid_list
-    )
+	# Append the high scores table to the output list
+	append_tid_for_output(
+		create_new_tid_from_template(high_scores_title, high_scores_caption, high_scores_text, high_scores_tags),
+		tid_list
+	)
 
 def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_time: str) -> None:
 	"""
@@ -1691,81 +1692,81 @@ def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time:
 		)
 
 def build_top_damage_by_skill(total_damage_taken: dict, target_damage_dist: dict, skill_data: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
-    """
-    Builds a table of top damage by skill.
+	"""
+	Builds a table of top damage by skill.
 
-    This function generates a table displaying the top 25 skills by damage output and damage taken.
-    It sorts the skills based on their total damage and formats them into a presentable HTML table.
+	This function generates a table displaying the top 25 skills by damage output and damage taken.
+	It sorts the skills based on their total damage and formats them into a presentable HTML table.
 
-    Args:
-        total_damage_taken (dict): A dictionary with skill IDs as keys and their damage taken stats as values.
-        target_damage_dist (dict): A dictionary with skill IDs as keys and their damage output stats as values.
-        skill_data (dict): A dictionary containing skill metadata, such as name and icon.
-        buff_data (dict): A dictionary containing buff metadata, such as name and icon.
-        caption (str): A string caption for the table.
-        tid_date_time (str): A string representing the timestamp or unique identifier for the TID.
-    """
-    # Sort skills by total damage in descending order
-    sorted_total_damage_taken = dict(sorted(total_damage_taken.items(), key=lambda item: item[1]["totalDamage"], reverse=True))
-    sorted_target_damage_dist = dict(sorted(target_damage_dist.items(), key=lambda item: item[1]["totalDamage"], reverse=True))
+	Args:
+		total_damage_taken (dict): A dictionary with skill IDs as keys and their damage taken stats as values.
+		target_damage_dist (dict): A dictionary with skill IDs as keys and their damage output stats as values.
+		skill_data (dict): A dictionary containing skill metadata, such as name and icon.
+		buff_data (dict): A dictionary containing buff metadata, such as name and icon.
+		caption (str): A string caption for the table.
+		tid_date_time (str): A string representing the timestamp or unique identifier for the TID.
+	"""
+	# Sort skills by total damage in descending order
+	sorted_total_damage_taken = dict(sorted(total_damage_taken.items(), key=lambda item: item[1]["totalDamage"], reverse=True))
+	sorted_target_damage_dist = dict(sorted(target_damage_dist.items(), key=lambda item: item[1]["totalDamage"], reverse=True))
 
-    # Calculate total damage values for percentage calculations
-    total_damage_taken_value = sum(skill["totalDamage"] for skill in sorted_total_damage_taken.values())
-    total_damage_distributed_value = sum(skill["totalDamage"] for skill in sorted_target_damage_dist.values())
+	# Calculate total damage values for percentage calculations
+	total_damage_taken_value = sum(skill["totalDamage"] for skill in sorted_total_damage_taken.values())
+	total_damage_distributed_value = sum(skill["totalDamage"] for skill in sorted_target_damage_dist.values())
 
-    # Prepare HTML rows for the table
-    rows = []
-    rows.append('<div style="overflow-x:auto;">\n\n')
-    rows.append("|thead-dark table-borderless w-75 table-center|k")
-    rows.append("|!Top 25 Skills by Damage Output|")
-    rows.append("\n\n")
-    rows.append('\n<div class="flex-row">\n\n    <div class="flex-col">\n\n')
+	# Prepare HTML rows for the table
+	rows = []
+	rows.append('<div style="overflow-x:auto;">\n\n')
+	rows.append("|thead-dark table-borderless w-75 table-center|k")
+	rows.append("|!Top 25 Skills by Damage Output|")
+	rows.append("\n\n")
+	rows.append('\n<div class="flex-row">\n\n    <div class="flex-col">\n\n')
 
-    # Header for damage output table
-    header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
-    header += "|!Skill Name | Damage Taken | % of Total|h"
-    rows.append(header)
-    
-    # Populate the table with top 25 skills by damage output
-    for i, (skill_id, skill) in enumerate(sorted_target_damage_dist.items()):
-        if i < 25:
-            skill_name = skill_data.get(f"s{skill_id}", {}).get("name", buff_data.get(f"b{skill_id}", {}).get("name", ""))
-            skill_icon = skill_data.get(f"s{skill_id}", {}).get("icon", buff_data.get(f"b{skill_id}", {}).get("icon", ""))
-            entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
-            row = f"|{entry} | {skill['totalDamage']:,.0f} | {skill['totalDamage']/total_damage_distributed_value*100:,.1f}% |"
-            rows.append(row)
+	# Header for damage output table
+	header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
+	header += "|!Skill Name | Damage Taken | % of Total|h"
+	rows.append(header)
+	
+	# Populate the table with top 25 skills by damage output
+	for i, (skill_id, skill) in enumerate(sorted_target_damage_dist.items()):
+		if i < 25:
+			skill_name = skill_data.get(f"s{skill_id}", {}).get("name", buff_data.get(f"b{skill_id}", {}).get("name", ""))
+			skill_icon = skill_data.get(f"s{skill_id}", {}).get("icon", buff_data.get(f"b{skill_id}", {}).get("icon", ""))
+			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+			row = f"|{entry} | {skill['totalDamage']:,.0f} | {skill['totalDamage']/total_damage_distributed_value*100:,.1f}% |"
+			rows.append(row)
 
-    rows.append(f"| Squad Damage Output |c")
-    rows.append('\n\n</div>\n\n    <div class="flex-col">\n\n')
+	rows.append(f"| Squad Damage Output |c")
+	rows.append('\n\n</div>\n\n    <div class="flex-col">\n\n')
 
-    # Header for damage taken table
-    header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
-    header += "|!Skill Name | Damage Taken | % of Total|h"
-    rows.append(header)
+	# Header for damage taken table
+	header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
+	header += "|!Skill Name | Damage Taken | % of Total|h"
+	rows.append(header)
 
-    # Populate the table with top 25 skills by damage taken
-    for i, (skill_id, skill) in enumerate(sorted_total_damage_taken.items()):
-        if i < 25:
-            skill_name = skill_data.get(f"s{skill_id}", {}).get("name", buff_data.get(f"b{skill_id}", {}).get("name", ""))
-            skill_icon = skill_data.get(f"s{skill_id}", {}).get("icon", buff_data.get(f"b{skill_id}", {}).get("icon", ""))
-            entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
-            row = f"|{entry} | {skill['totalDamage']:,.0f} | {skill['totalDamage']/total_damage_taken_value*100:,.1f}% |"
-            rows.append(row)
+	# Populate the table with top 25 skills by damage taken
+	for i, (skill_id, skill) in enumerate(sorted_total_damage_taken.items()):
+		if i < 25:
+			skill_name = skill_data.get(f"s{skill_id}", {}).get("name", buff_data.get(f"b{skill_id}", {}).get("name", ""))
+			skill_icon = skill_data.get(f"s{skill_id}", {}).get("icon", buff_data.get(f"b{skill_id}", {}).get("icon", ""))
+			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+			row = f"|{entry} | {skill['totalDamage']:,.0f} | {skill['totalDamage']/total_damage_taken_value*100:,.1f}% |"
+			rows.append(row)
 
-    rows.append(f"| Enemy Damage Output |c")
-    rows.append("\n\n</div>\n\n</div>")
+	rows.append(f"| Enemy Damage Output |c")
+	rows.append("\n\n</div>\n\n</div>")
 
-    rows.append("\n\n</div>\n\n")
-    text = "\n".join(rows)
+	rows.append("\n\n</div>\n\n")
+	text = "\n".join(rows)
 
-    # Define the title for the TID
-    top_skills_title = f"{tid_date_time}-{caption.replace(' ', '-')}"
+	# Define the title for the TID
+	top_skills_title = f"{tid_date_time}-{caption.replace(' ', '-')}"
 
-    # Append the TID for output
-    append_tid_for_output(
-        create_new_tid_from_template(top_skills_title, caption, text, tid_date_time),
-        tid_list
-    )
+	# Append the TID for output
+	append_tid_for_output(
+		create_new_tid_from_template(top_skills_title, caption, text, tid_date_time),
+		tid_list
+	)
 
 def build_healer_menu_tabs(top_stats: dict, caption: str, tid_date_time: str) -> None:
 	"""Builds a menu tab macro for healers."""
@@ -1952,6 +1953,71 @@ def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict
 
 			rows = []
 			rows.append("\n\n")
+
+
+import sqlite3
+
+def write_data_to_db(top_stats: dict, last_fight: str) -> None:
+	"""Write the top_stats dictionary to the database."""
+	conn = sqlite3.connect('Top_Stats.db')
+	cursor = conn.cursor()
+
+	cursor.execute('''CREATE TABLE IF NOT EXISTS player_stats (
+		date_name_prof TEXT UNIQUE, date TEXT, year TEXT, month TEXT, day TEXT, num_fights REAL, duration REAL, account TEXT, name TEXT, profession TEXT,
+		damage REAL, down_contribution REAL, downs REAL, kills REAL, damage_taken REAL, damage_barrier REAL, downed REAL, deaths REAL, cleanses REAL,
+		boon_strips REAL, resurrects REAL, healing REAL, barrier REAL, downed_healing REAL, stab_gen REAL, migh_gen REAL, fury_gen REAL,
+		quic_gen REAL, alac_gen REAL, prot_gen REAL, rege_gen REAL, vigo_gen REAL, aeg_gen REAL, swif_gen REAL, resi_gen REAL, reso_gen REAL)''')
+
+	fields = '(date_name_prof, date, year, month, day, num_fights, duration, account, name, profession, damage, down_contribution, downs, kills, damage_taken, damage_barrier, downed, deaths, cleanses, boon_strips, resurrects, healing, barrier, downed_healing, stab_gen, migh_gen, fury_gen, quic_gen, alac_gen, prot_gen, rege_gen, vigo_gen, aeg_gen, swif_gen, resi_gen, reso_gen)'
+	placeholders = '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+
+	year, month, day, time = last_fight.split("-")
+
+	for player_name_prof, player_stats in top_stats['player'].items():
+		stats_values = [
+			f"{last_fight}_{player_stats['name']}_{player_stats['profession']}",
+			last_fight,
+			year,
+			month,
+			day,
+			player_stats.get('num_fights', 0),
+			player_stats.get('fight_time', 0) / 1000,
+			player_stats.get('account', ''),
+			player_stats.get('name', ''),
+			player_stats.get('profession', ''),
+			player_stats['dpsTargets'].get('damage', 0),
+			player_stats['statsTargets'].get('downContribution', 0),
+			player_stats['statsTargets'].get('downed', 0),
+			player_stats['statsTargets'].get('killed', 0),
+			player_stats['defenses'].get('damageTaken', 0),
+			player_stats['defenses'].get('damageBarrier', 0),
+			player_stats['defenses'].get('downCount', 0),
+			player_stats['defenses'].get('deadCount', 0),
+			player_stats['support'].get('condiCleanse', 0),
+			player_stats['support'].get('boonStrips', 0),
+			player_stats['support'].get('resurrects', 0),
+			player_stats['extHealingStats'].get('outgoing_healing', 0),
+			player_stats['extBarrierStats'].get('outgoing_barrier', 0),
+			player_stats['extHealingStats'].get('downed_healing', 0),
+			round(player_stats['squadBuffs'].get('b1122', {}).get('generation', 0) / 1000, 2),
+			round(player_stats['squadBuffs'].get('b740', {}).get('generation', 0) / 1000, 2),
+			round(player_stats['squadBuffs'].get('b725', {}).get('generation', 0) / 1000, 2),
+			round(player_stats['squadBuffs'].get('b1187', {}).get('generation', 0) / 1000, 2),
+			round(player_stats['squadBuffs'].get('b30328', {}).get('generation', 0) / 1000, 2),
+			round(player_stats['squadBuffs'].get('b717', {}).get('generation', 0) / 1000, 2),
+			round(player_stats['squadBuffs'].get('b718', {}).get('generation', 0) / 1000, 2),
+			round(player_stats['squadBuffs'].get('b726', {}).get('generation', 0) / 1000, 2),
+			round(player_stats['squadBuffs'].get('b743', {}).get('generation', 0) / 1000, 2),
+			round(player_stats['squadBuffs'].get('b719', {}).get('generation', 0) / 1000, 2),
+			round(player_stats['squadBuffs'].get('b26980', {}).get('generation', 0) / 1000, 2),
+			round(player_stats['squadBuffs'].get('b873', {}).get('generation', 0) / 1000, 2)
+		]
+
+		cursor.execute(f'INSERT OR IGNORE INTO player_stats {fields} VALUES {placeholders}', stats_values)
+		conn.commit()
+
+	conn.close()
+
 
 def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, fb_pages: dict, mechanics: dict, minions: dict, outfile: str) -> None:
 	"""Print the top_stats dictionary as a JSON object to the console."""
