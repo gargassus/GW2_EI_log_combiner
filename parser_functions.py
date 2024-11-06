@@ -39,6 +39,12 @@ personal_buff_data = {}
 
 players_running_healing_addon = []
 
+
+def get_user_config_data():
+	with open('user_config.json', 'r') as f:
+		user_config = json.load(f)
+	return user_config
+
 def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 	"""
 	Determine if the log is a PVE or WVW log and extract the fight name.

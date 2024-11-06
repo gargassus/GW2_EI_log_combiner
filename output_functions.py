@@ -1975,6 +1975,7 @@ def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict
 import sqlite3
 
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
+	print("Writing raid stats to database")
 	"""Write the top_stats dictionary to the database."""
 	conn = sqlite3.connect('Top_Stats.db')
 	cursor = conn.cursor()
@@ -2034,6 +2035,7 @@ def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 		conn.commit()
 
 	conn.close()
+	print("Database updated.")
 
 
 def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, fb_pages: dict, mechanics: dict, minions: dict, outfile: str) -> None:

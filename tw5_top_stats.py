@@ -64,6 +64,40 @@ if __name__ == '__main__':
 	# Change input_directory to match json log location
 	input_directory = args.input_directory
 
+	user_config = get_user_config_data()
+
+	# get the guild name
+	if "guild_name" in user_config:
+		guild_name = user_config["guild_name"]
+	else:
+		guild_name = "My Guild Name"
+
+	# get the database update toggle
+	if "update_database" in user_config:
+		db_update = user_config["update_database"]
+	else:
+		db_update = False
+
+	# get the write all data to json toggle
+	if "write_all_data_to_json" in user_config:
+		write_all_data_to_json = user_config["write_all_data_to_json"]
+	else:
+		write_all_data_to_json = False
+
+	# get the api key and guild key
+	if "api_key" in user_config:
+		api_key = user_config["api_key"]
+	else:
+		api_key = None
+	if "guild_key" in user_config:
+		guild_key = user_config["guild_key"]
+	else:
+		guild_key = None
+
+	# get the log file location
+	if "log_directory" in user_config:
+		log_file = open(args.log_file, 'w')
+
 
 	files = listdir(input_directory)
 	sorted_files = sorted(files)
@@ -235,6 +269,8 @@ if __name__ == '__main__':
 
 	write_tid_list_to_json(tid_list, args.output_filename)
 
-	output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, fb_pages, mechanics, minions, args.json_output_filename)
+	if write_all_data_to_json:
+		output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, fb_pages, mechanics, minions, args.json_output_filename)
 
-	write_data_to_db(top_stats, top_stats['overall']['last_fight'])
+	if db_update:
+		write_data_to_db(top_stats, top_stats['overall']['last_fight'])
