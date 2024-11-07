@@ -1249,7 +1249,7 @@ def build_menu_tid(datetime: str) -> None:
 	text = (
 		f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] '
 		f'[[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] '
-		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]]" '
+		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] [[{datetime}-Player-Damage-By-Skill]]" '
 		f'"{datetime}-Overview" "$:/temp/menutab1">>'
 	)
 
@@ -1936,16 +1936,47 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 			tid_list
 		)
 
-def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict, buff_data: dict, tid_list: list) -> None:
+
+def build_damage_outgoing_by_skill_tid(tid_date_time: str, tid_list: list) -> None:
+	rows = []
+	tid_title = f"{tid_date_time}-Player-Damage-By-Skill"
+	tid_caption = "Player Damage by Skill"
+	tid_tags = tid_date_time
+	rows.append('\n!!!Select players(ctrl+click):')
+	rows.append('<$let state=<<qualify $:/temp/selectedPlayer>>>')
+	rows.append('<$select tiddler=<<state>> multiple>')
+	rows.append(f'   <$list filter="[prefix[{tid_date_time}-Damage-By-Skill-]]">')
+	rows.append('      <option value=<<currentTiddler>>>{{!!caption}}</option>')
+	rows.append('   </$list>')
+	rows.append('</$select>')
+	rows.append('\n<<vspace height:"55px">>\n')
+	rows.append('<div class="flex-row">')
+	rows.append('   <$list filter="[<state>get[text]enlist-input[]]">')
+	rows.append('    <div class="flex-col border">')
+	rows.append('      <$transclude mode="block"/>')
+	rows.append('</div>')	
+	rows.append('   </$list>')
+	rows.append('\n\n</div>')
+
+	text = "\n".join(rows)
+
+	append_tid_for_output(
+		create_new_tid_from_template(tid_title, tid_caption, text, tid_tags),
+		tid_list
+	)
+	
+def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict, buff_data: dict, tid_date_time: str, tid_list: list) -> None:
 	damage_totals = {}
 	for player in top_stats['player']:
+		if top_stats['player'][player]['statsTargets']['criticalRate'] <= 50:
+			continue
 		damage_totals[player] = top_stats['player'][player]['statsTargets']['totalDmg']
 	sorted_damage_totals = sorted(damage_totals.items(), key=lambda x: x[1], reverse=True)
 
 	for player, damage in sorted_damage_totals:
 		player_damage = {}
-		for skill in top_stats['player'][player]['targetDamageDist']['skills']:
-			player_damage[skill] = top_stats['player'][player]['targetDamageDist']['skills'][skill]['totalDamage']
+		for skill in top_stats['player'][player]['targetDamageDist']:
+			player_damage[skill] = top_stats['player'][player]['targetDamageDist'][skill]['totalDamage']
 
 		sorted_player_damage = sorted(player_damage.items(), key=lambda x: x[1], reverse=True)
 
@@ -1953,26 +1984,33 @@ def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict
 
 		name, profession = player.split("|")
 		spacedName = name.ljust(21, '.')
-		rows.append('<div style="overflow-x:auto;">\n\n')
-		rows.append(f'<$reveal type="match" stateTitle="$:/temp/Player_Selected" stateField="{spacedName}{profession}" text="{spacedName}{profession}">')
-		rows.append('\n<div class="flex-col">\n\n')
-		header = "|thead-dark table-borderless w-75 table-center|k\n"
-		header += "|@@display:block;width:50px;Player@@ | Profession | Total Damage|h"
+		header = "|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
+		header += "|{{"+profession +"}} "+f"{name}|c\n"
+		header += "|!Skill Name | Damage| % of Total Damage|h"
 
 		rows.append(header)
-		rows.append("|"+name+" | {{"+profession +"}} | "+f"{damage:,.0f}|")
 
 		for skill in sorted_player_damage:
 			skill_name = skill_data.get(f"s{skill[0]}", {}).get("name", buff_data.get(f"b{skill[0]}", {}).get("name", ""))
 			skill_icon = skill_data.get(f"s{skill[0]}", {}).get("icon", buff_data.get(f"b{skill[0]}", {}).get("icon", ""))
-			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name[:30]}"
 			row = f"|{entry} | {skill[1]:,.0f} | {skill[1]/damage*100:,.1f}%|"
 
-			rows = []
-			rows.append("\n\n")
+			rows.append(row)
+
+		#rows.append("\n\n</div>")
+
+		text = "\n".join(rows)
+
+		player_title = f"{tid_date_time}-Damage-By-Skill-{profession}-{name}"
+		player_caption = "{{"+profession+"}} - "+name
+		
+		append_tid_for_output(
+			create_new_tid_from_template(player_title, player_caption, text, tid_date_time),
+			tid_list
+		)
 
 
-import sqlite3
 
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	print("Writing raid stats to database")

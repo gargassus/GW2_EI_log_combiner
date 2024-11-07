@@ -45,6 +45,7 @@ def get_user_config_data():
 		user_config = json.load(f)
 	return user_config
 
+
 def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 	"""
 	Determine if the log is a PVE or WVW log and extract the fight name.
@@ -93,7 +94,6 @@ def update_high_score(stat_name: str, key: str, value: float) -> None:
         high_scores[stat_name][key] = value
 
 
-
 def determine_player_role(player_data: dict) -> str:
 	"""
 	Determine the role of a player in combat based on their stats.
@@ -129,7 +129,6 @@ def determine_player_role(player_data: dict) -> str:
 		return "DPS"
 
 
-
 def get_player_fight_dps(dpsTargets: dict, name: str, profession: str, fight_time: int) -> None:
 	"""
 	Get the maximum damage hit by skill.
@@ -162,7 +161,6 @@ def get_player_stats_targets(statsTargets: dict, name: str, profession: str, fig
 		fight_stat_value = round(fight_stat_value / fight_time, 3)
 
 		update_high_score(f"statTarget_{stat}", "{{"+profession+"}}"+name+" | "+stat, fight_stat_value)	
-
 
 
 def get_total_shield_damage(fight_data: dict) -> int:
@@ -305,6 +303,7 @@ def get_enemies_by_fight(fight_num: int, targets: dict) -> None:
 
 		top_stats["fight"][fight_num]["enemy_count"] += 1
 		top_stats['overall']['enemy_count'] = top_stats['overall'].get('enemy_count', 0) + 1
+
 
 def get_enemy_downed_and_killed_by_fight(fight_num: int, targets: dict, players: dict, log_type: str) -> None:
 	"""
@@ -792,6 +791,7 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 					top_stats['overall'][stat_category].get('outgoing_barrier', 0) + outgoing_barrier
 				)
 		update_high_score(f"{stat_category}_Barrier", "{{"+player["profession"]+"}}"+player["name"]+" | Barrier", round(fight_barrier/(fight_time/1000), 2))	
+
 
 def get_healing_skill_data(player: dict, stat_category: str, name_prof: str) -> None:
 	"""
