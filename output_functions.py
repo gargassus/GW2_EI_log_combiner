@@ -1848,18 +1848,19 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 		rows.append(header)
 
 		outgoing_healing = top_stats['player'][healer]['extHealingStats'].get('outgoing_healing', 0)
-		for skill in top_stats['player'][healer]['extHealingStats']['skills']:
-			skill_name = skill_data.get(skill, {}).get("name", buff_data.get(skill.replace("s", "b"), {}).get("name", ""))
-			skill_icon = skill_data.get(skill, {}).get("icon", buff_data.get(skill.replace("s", "b"), {}).get("icon", ""))
-			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+		if outgoing_healing:
+			for skill in top_stats['player'][healer]['extHealingStats']['skills']:
+				skill_name = skill_data.get(skill, {}).get("name", buff_data.get(skill.replace("s", "b"), {}).get("name", ""))
+				skill_icon = skill_data.get(skill, {}).get("icon", buff_data.get(skill.replace("s", "b"), {}).get("icon", ""))
+				entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
 
-			hits = top_stats['player'][healer]['extHealingStats']['skills'][skill]['hits']
-			total_healing = top_stats['player'][healer]['extHealingStats']['skills'][skill]['healing']
-			avg_healing = total_healing/hits if hits > 0 else 0
+				hits = top_stats['player'][healer]['extHealingStats']['skills'][skill]['hits']
+				total_healing = top_stats['player'][healer]['extHealingStats']['skills'][skill]['healing']
+				avg_healing = total_healing/hits if hits > 0 else 0
 
-			row = f"|{entry} | {hits:,.0f} | {total_healing:,.0f}| {avg_healing:,.0f}| {total_healing/outgoing_healing*100:,.2f}%|"
+				row = f"|{entry} | {hits:,.0f} | {total_healing:,.0f}| {avg_healing:,.0f}| {total_healing/outgoing_healing*100:,.2f}%|"
 
-			rows.append(row)
+				rows.append(row)
 
 		rows.append(f"| Total Healing |c")
 
