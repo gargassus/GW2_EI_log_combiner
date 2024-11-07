@@ -65,6 +65,7 @@ Currently works with WVW and Detailed WVW logs. Partially working with PVElogs, 
       - [x] Gear Buffs
       - [x] Minion Data
       - [x] Top Dmg Skils      
+      - [x] Player Dmg by Skils            
       - [x] HealStats Data
          - [x] Outgoing Healing
          - [x] Downed Healing
