@@ -1,8 +1,0 @@
-{
-	"guild_name": "My Guild Name",
-	"api_key": "",
-	"guild_key": "",
-	"update_database": true,
-    "write_all_data_to_json": true,
-	"log_directory": "d:/EI/JsonLogs/path"
-}

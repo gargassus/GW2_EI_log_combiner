@@ -17,54 +17,58 @@
 
 # Elite Insights json stat categories
 json_stats = [
-    'defenses',
-    'support',
-    'statsAll',
-    'statsTargets',
-    'targetDamageDist',
-    'dpsTargets',
-    'totalDamageTaken',
-    'buffUptimes',
-    'buffUptimesActive',
-    'squadBuffs',
-    'groupBuffs',
-    'selfBuffs',
-    'squadBuffsActive',
-    'groupBuffsActive',
-    'selfBuffsActive',
-    'rotation',
-    'extHealingStats',
-    'extBarrierStats',
-    'targetBuffs',
-    'damageModifiers'
+    "defenses",
+    "support",
+    "statsAll",
+    "statsTargets",
+    "targetDamageDist",
+    "dpsTargets",
+    "totalDamageTaken",
+    "buffUptimes",
+    "buffUptimesActive",
+    "squadBuffs",
+    "groupBuffs",
+    "selfBuffs",
+    "squadBuffsActive",
+    "groupBuffsActive",
+    "selfBuffsActive",
+    "rotation",
+    "extHealingStats",
+    "extBarrierStats",
+    "targetBuffs",
+    "damageModifiers",
 ]
 
 # Top stats dictionary to store combined log data
 top_stats = {
-    'overall': {
-        'last_fight': "",
-        'group_data': {}
-    },
-    'fight': {},
-    'player': {},
-    'parties_by_fight': {},
-    'skill_casts_by_role': {},
-    'players_running_healing_addon': []
+    "overall": {"last_fight": "", "group_data": {}},
+    "fight": {},
+    "player": {},
+    "parties_by_fight": {},
+    "skill_casts_by_role": {},
+    "players_running_healing_addon": [],
 }
 
 # Team colors - team_id:color
 team_colors = {
-    705: 'Red', 
-    706: 'Red', 
-    882: 'Red', 
-    2520: 'Red', 
-    2739: 'Green', 
-    2741: 'Green', 
-    2752: 'Green', 
-    2763: 'Green', 
-    432: 'Blue', 
-    1277: 'Blue'
-    }
+    705: "Red",
+    706: "Red",
+    882: "Red",
+    2520: "Red",
+    2739: "Green",
+    2741: "Green",
+    2752: "Green",
+    2763: "Green",
+    432: "Blue",
+    1277: "Blue",
+}
 
 # High scores stats
-high_scores = ["dodgeCount", "evadedCount", "blockedCount", "invulnedCount", "boonStrips", "condiCleanse"]
+high_scores = [
+    "dodgeCount",
+    "evadedCount",
+    "blockedCount",
+    "invulnedCount",
+    "boonStrips",
+    "condiCleanse",
+]

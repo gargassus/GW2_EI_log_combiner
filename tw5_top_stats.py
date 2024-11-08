@@ -16,6 +16,7 @@
 
 
 import argparse
+import configparser
 import sys
 import os.path
 from os import listdir
@@ -33,17 +34,29 @@ from output_functions import *
 
 
 if __name__ == '__main__':
+	config_ini = configparser.ConfigParser()
+	config_ini.read('top_stats_config.ini')
+
 	parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
-	parser.add_argument('input_directory', help='Directory containing .json files from Elite Insights')
+	parser.add_argument('-i', '--input', dest='input_directory', help='Directory containing .json files from Elite Insights')
 	parser.add_argument('-o', '--output', dest="output_filename", help="Not required. Override json file name to write the computed summary")
 	parser.add_argument('-x', '--xls_output', dest="xls_output_filename", help="Not required. Override .xls file to write the computed summary")    
 	parser.add_argument('-j', '--json_output', dest="json_output_filename", help="Not required. Override .json file to write the computed stats data")    
-	parser.add_argument('-l', '--log_file', dest="log_file", help="Not required. Override Logging file with program log entries")
+	#parser.add_argument('-l', '--log_file', dest="log_file", help="Not required. Override Logging file with program log entries")
 	args = parser.parse_args()
+
+	input_directory = config_ini.get('TopStatsCfg', 'input_directory', fallback='./')
+	guild_name = config_ini.get('TopStatsCfg', 'guild_name', fallback=None)
+	guild_id = config_ini.get('TopStatsCfg', 'guild_id', fallback=None)
+	api_key = config_ini.get('TopStatsCfg', 'api_key', fallback=None)
+	db_update = config_ini.getboolean('TopStatsCfg', 'db_update', fallback=False)
+	write_all_data_to_json = config_ini.getboolean('TopStatsCfg', 'write_all_data_to_json', fallback=False)
 
 	parse_date = datetime.datetime.now()
 	tid_date_time = parse_date.strftime("%Y%m%d%H%M")
 
+	if args.input_directory is None:
+		args.input_directory = input_directory
 	if not os.path.isdir(args.input_directory):
 		print("Directory ",args.input_directory," is not a directory or does not exist!")
 		sys.exit()
@@ -55,49 +68,13 @@ if __name__ == '__main__':
 		args.xls_output_filename = args.input_directory+"/TW5_top_stats_"+tid_date_time+".xls"
 	if args.json_output_filename is None:
 		args.json_output_filename = args.input_directory+"/TW5_top_stats_"+tid_date_time+".json"                
-	if args.log_file is None:
-		args.log_file = args.input_directory+"/log_detailed_"+tid_date_time+".txt"
-
-	print_string = "Using input directory "+args.input_directory+", writing output to "+args.output_filename+" and log to "+args.log_file
-	print(print_string)
+	#if args.log_file is None:
+	#	args.log_file = args.input_directory+"/log_detailed_"+tid_date_time+".txt"
 
 	# Change input_directory to match json log location
 	input_directory = args.input_directory
 
-	user_config = get_user_config_data()
-
-	# get the guild name
-	if "guild_name" in user_config:
-		guild_name = user_config["guild_name"]
-	else:
-		guild_name = "My Guild Name"
-
-	# get the database update toggle
-	if "update_database" in user_config:
-		db_update = user_config["update_database"]
-	else:
-		db_update = False
-
-	# get the write all data to json toggle
-	if "write_all_data_to_json" in user_config:
-		write_all_data_to_json = user_config["write_all_data_to_json"]
-	else:
-		write_all_data_to_json = False
-
-	# get the api key and guild key
-	if "api_key" in user_config:
-		api_key = user_config["api_key"]
-	else:
-		api_key = None
-	if "guild_key" in user_config:
-		guild_key = user_config["guild_key"]
-	else:
-		guild_key = None
-
-	# get the log file location
-	if "log_directory" in user_config:
-		log_file = open(args.log_file, 'w')
-
+	#log_file = open(args.log_file, 'w')
 
 	files = listdir(input_directory)
 	sorted_files = sorted(files)
@@ -106,6 +83,8 @@ if __name__ == '__main__':
 
 	fight_num = 0
 
+	print_string = "Using input directory "+args.input_directory+", writing output to "+args.output_filename
+	print(print_string)
 
 	for filename in sorted_files:
 		
