@@ -86,6 +86,7 @@ if __name__ == '__main__':
 	print_string = "Using input directory "+args.input_directory+", writing output to "+args.output_filename
 	print(print_string)
 
+
 	for filename in sorted_files:
 		
 		# skip files of incorrect filetype

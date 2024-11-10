@@ -82,7 +82,7 @@ Currently works with WVW and Detailed WVW logs. Partially working with PVElogs, 
          - [X] Profession  
    - [ ] target data
       - [X] teamID
-   - [ ] Highlights / High Scores
+   - [x] Highlights / High Scores
       - [x] damage
       - [x] defense
       - [x] support

@@ -53,14 +53,17 @@ def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 	Returns:
 		tuple: A tuple containing the log type and the extracted fight name.
 	"""
-	if "Detailed" in fight_name:
+	if "Detailed WvW" in fight_name:
 		# WVW log
-		log_type = "Detailed WVW"
+		log_type = "WVW"
 		fight_name = fight_name.split(" - ")[1]
 	elif "World vs World" in fight_name:
 		# WVW log
 		log_type = "WvW"
 		fight_name = fight_name.split(" - ")[1]
+	elif "Detailed" in fight_name:
+		log_type = "WVW"
+		fight_name = fight_name.replace("Detailed ", "")
 	else:
 		# PVE log
 		log_type = "PVE"
