@@ -1332,14 +1332,8 @@ def build_profession_damage_modifier_stats_tid(personal_damage_mod_data: dict, c
 	prof_mod_stats_title = f"{tid_date_time}-Profession_Damage_Mods"
 	prof_mod_stats_caption = f"Profession Damage Modifiers"
 	prof_mod_stats_creator = f"Drevarr@github.com"
-	prof_mod_stats_text ="<<tabs '"
-	tab_name = ""
-	for profession in personal_damage_mod_data:
-		if  'total' in profession:
-			continue
-		tab_name = f"{tid_date_time}-{caption.replace(' ','-')}-{profession}"
-		prof_mod_stats_text += f'[[{tab_name}]]'
-	prof_mod_stats_text += f"' '{tab_name}' '$:/temp/tab1'>>"
+	prof_mod_stats_text = f'<$macrocall $name="tabs" tabsList="[prefix[{tid_date_time}-Damage-Modifiers-]]" '+'default={{{'+f'[prefix[{tid_date_time}-Damage-Modifiers-]first[]]'+'}}} state="$:/temp/sel_dmgMod"/>'
+
 	append_tid_for_output(
 		create_new_tid_from_template(prof_mod_stats_title, prof_mod_stats_caption, prof_mod_stats_text, prof_mod_stats_tags, creator=prof_mod_stats_creator),
 		tid_list
@@ -1350,12 +1344,8 @@ def build_skill_usage_stats_tid(skill_casts_by_role: dict, caption: str, tid_dat
 	skill_stats_title = f"{tid_date_time}-Skill-Usage"
 	skill_stats_caption = f"{caption}"
 	skill_stats_creator = f"Drevarr@github.com"
-	skill_stats_text ="<<tabs '"
+	skill_stats_text = f'<$macrocall $name="tabs" tabsList="[prefix[{tid_date_time}-Skill-Usage-]]" '+'default={{{'+f'[prefix[{tid_date_time}-Skill-Usage-]first[]]'+'}}} state="$:/temp/sel_skillUsage"/>'
 
-	for prof_role in skill_casts_by_role:
-		tab_name = f"{tid_date_time}-{caption.replace(' ','-')}-{prof_role}"
-		skill_stats_text += f'[[{tab_name}]]'
-	skill_stats_text += f"' '{tab_name}' '$:/temp/tab1'>>"
 	append_tid_for_output(
 		create_new_tid_from_template(skill_stats_title, skill_stats_caption, skill_stats_text, skill_stats_tags, creator=skill_stats_creator),
 		tid_list
@@ -1788,27 +1778,12 @@ def build_top_damage_by_skill(total_damage_taken: dict, target_damage_dist: dict
 def build_healer_menu_tabs(top_stats: dict, caption: str, tid_date_time: str) -> None:
 	"""Builds a menu tab macro for healers."""
 
-	# Get the list of healers
-	healers = {}
-	for name_prof in top_stats['players_running_healing_addon']:
-		name = name_prof.split('|')[0]
-		prof = name_prof.split('|')[1]
-		healers[name] = prof
-
-	# Sort healers by profession
-	sorted_healers = dict(sorted(healers.items(), key=lambda item: item[1]))
-
 	# Build the menu tab macro
 	menu_tags = f"{tid_date_time}"
 	menu_title = f"{tid_date_time}-Healers"
 	menu_caption = f"Healer - Outgoing"
 	menu_creator = f"Drevarr@github.com"
-	menu_text = "<<tabs '"
-	tab_name = ""
-	for healer_name, healer_profession in sorted_healers.items():
-		tab_name = f"{tid_date_time}-{caption.replace(' ', '-')}-{healer_profession}-{healer_name}"
-		menu_text += f"[[{tab_name}]]"
-	menu_text += f"' '{tab_name}' '$:/temp/tab1'>>"
+	menu_text = f'<$macrocall $name="tabs" tabsList="[prefix[{tid_date_time}-Healers-]]" '+'default={{{'+f'[prefix[{tid_date_time}-Healers-]first[]]'+'}}} state="$:/temp/sel_healer"/>'
 
 	# Push the menu tab to the output list
 	append_tid_for_output(
