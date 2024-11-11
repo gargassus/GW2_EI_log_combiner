@@ -205,6 +205,9 @@ if __name__ == '__main__':
 				debuff_list[buff] = debuffs_buffs[buff]
 	build_uptime_summary(top_stats, debuff_list, buff_data, "Debuffs-In", tid_date_time)
 
+	#get squad comp and output table
+	build_squad_composition(top_stats, tid_date_time, tid_list)
+
 
 	#get heal stats found and output table
 	build_healing_summary(top_stats, "Heal Stats", tid_date_time)

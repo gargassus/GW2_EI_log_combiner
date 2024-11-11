@@ -45,6 +45,7 @@ top_stats = {
     "fight": {},
     "player": {},
     "parties_by_fight": {},
+    "enemies_by_fight": {},
     "skill_casts_by_role": {},
     "players_running_healing_addon": [],
 }

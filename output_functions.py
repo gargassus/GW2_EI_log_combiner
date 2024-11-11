@@ -969,10 +969,10 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
 					if mod in player_data['damageModifiers']:
 						# Get the hit count and total hit count
 						hit_count = player_data['damageModifiers'][mod]['hitCount']
-						total_count = player_data['damageModifiers'][mod]['totalHitCount']
+						total_count = player_data['damageModifiers'][mod].get('totalHitCount',1)
 						# Get the damage gain and total damage
 						damage_gain = player_data['damageModifiers'][mod]['damageGain']
-						total_damage = player_data['damageModifiers'][mod]['totalDamage']
+						total_damage = player_data['damageModifiers'][mod].get('totalDamage',1)
 						# Calculate the damage percentage and hit percentage
 						damage_pct = damage_gain / total_damage * 100
 						hit_pct = hit_count / total_count * 100
@@ -2012,6 +2012,36 @@ def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict
 		)
 
 
+def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list) -> None:
+	rows = []
+
+	for fight in top_stats['parties_by_fight']:
+		header = "\n\n|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
+		header += f"|Fight - {fight} |c"
+		rows.append(header)			
+		for group in top_stats['parties_by_fight'][fight]:
+
+			row = f"|{group:02} |"
+			for player in top_stats['parties_by_fight'][fight][group]:
+				profession, name = player.split("|")
+				profession = "{{"+profession+"}}"
+				tooltip = f" {name} "
+				detailEntry = f'<div class="xtooltip"> {profession} <span class="xtooltiptext">'+name+'</span></div>'
+				row += f" {detailEntry} |"
+			rows.append(row)
+
+	text = "\n".join(rows)
+
+	tid_title = f"{tid_date_time}-Squad-Composition"
+	tid_caption = "Squad Composition"
+	tid_tags = tid_date_time
+
+	append_tid_for_output(
+		create_new_tid_from_template(tid_title, tid_caption, text, tid_tags),
+		tid_list
+	)
+
+
 
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	print("Writing raid stats to database")
@@ -2084,6 +2114,7 @@ def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, da
 	json_dict["overall_raid_stats"] = {key: value for key, value in top_stats['overall'].items()}
 	json_dict["fights"] = {key: value for key, value in top_stats['fight'].items()}
 	json_dict["parties_by_fight"] = {key: value for key, value in top_stats["parties_by_fight"].items()}
+	json_dict["enemies_by_fight"] = {key: value for key, value in top_stats["enemies_by_fight"].items()}
 	json_dict["players"] = {key: value for key, value in top_stats['player'].items()}
 	json_dict["buff_data"] = {key: value for key, value in buff_data.items()}
 	json_dict["skill_data"] = {key: value for key, value in skill_data.items()}

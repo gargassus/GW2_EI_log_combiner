@@ -280,21 +280,29 @@ def get_enemies_by_fight(fight_num: int, targets: dict) -> None:
 	if fight_num not in top_stats["fight"]:
 		top_stats["fight"][fight_num] = {}
 
+	if fight_num not in top_stats["enemies_by_fight"]:
+		top_stats["enemies_by_fight"][fight_num] = {}
+
 	for target in targets:
 		if target["isFake"]:
 			continue
 
 		if target['enemyPlayer']:
 			team = target["teamID"]
+			enemy_prof = target['name'].split(" ")[0]
 
 			if team in team_colors:
 				team = "enemy_" + team_colors[team]
 			else:
 				team = "enemy_Unk"
-
+			
 			if team not in top_stats["fight"][fight_num]:
 				# Create a new team if it doesn't exist
 				top_stats["fight"][fight_num][team] = 0
+
+			if enemy_prof not in top_stats["enemies_by_fight"][fight_num]:
+				top_stats["enemies_by_fight"][fight_num][enemy_prof] = 0
+			top_stats["enemies_by_fight"][fight_num][enemy_prof] += 1
 
 			top_stats["fight"][fight_num][team] += 1
 
@@ -355,12 +363,14 @@ def get_parties_by_fight(fight_num: int, players: list) -> None:
 		top_stats["fight"][fight_num]["squad_count"] += 1
 		group = player["group"]
 		name = player["name"]
+		profession = player["profession"]
+		prof_name = profession+"|"+name
 		if group not in top_stats["parties_by_fight"][fight_num]:
 			# Create a new group if it doesn't exist
 			top_stats["parties_by_fight"][fight_num][group] = []
-		if name not in top_stats["parties_by_fight"][fight_num][group]:
+		if prof_name not in top_stats["parties_by_fight"][fight_num][group]:
 			# Add the player to the group
-			top_stats["parties_by_fight"][fight_num][group].append(name)
+			top_stats["parties_by_fight"][fight_num][group].append(prof_name)
 
 
 def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof: str) -> None:
@@ -1119,7 +1129,6 @@ def parse_file(file_path, fight_num):
 		'enemy_Green': 0,
 		'enemy_Blue': 0,
 		'enemy_Unk': 0,
-		'parties_by_fight': {},
 	}
 	
 	#collect player counts and parties
