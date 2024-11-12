@@ -866,22 +866,27 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
 	healing_stats = {}
 
 	# Collect healing and barrier stats for players
-	for player in top_stats['player'].values():
-		if 'extHealingStats' in player or 'extBarrierStats' in player:
-			healing_stats[player['name']] = {
-				'account': player['account'],
-				'profession': player['profession'],
-				'fight_time': player['fight_time']
-			}
+	for healer in top_stats['players_running_healing_addon']:
+		name = healer.split('|')[0]
+		profession = healer.split('|')[1]
+		account = top_stats['player'][healer]['account']
+		fight_time = top_stats['player'][healer]['fight_time']
+
+		healing_stats[healer] = {
+			'name': name,
+			'profession': profession,
+			'account': account,
+			'fight_time': fight_time
+		}
 
 		# Get healing stats if available
-		if 'extHealingStats' in player:
-			healing_stats[player['name']]['healing'] = player['extHealingStats'].get('outgoing_healing', 0)
-			healing_stats[player['name']]['downed_healing'] = player['extHealingStats'].get('downed_healing', 0)
+		if 'extHealingStats' in top_stats['player'][healer]:
+			healing_stats[healer]['healing'] = top_stats['player'][healer]['extHealingStats'].get('outgoing_healing', 0)
+			healing_stats[healer]['downed_healing'] = top_stats['player'][healer]['extHealingStats'].get('downed_healing', 0)
 
 		# Get barrier stats if available
-		if 'extBarrierStats' in player:
-			healing_stats[player['name']]['barrier'] = player['extBarrierStats'].get('outgoing_barrier', 0)
+		if 'extBarrierStats' in top_stats['player'][healer]:
+			healing_stats[healer]['barrier'] = top_stats['player'][healer]['extBarrierStats'].get('outgoing_barrier', 0)
 
 	# Sort healing stats by total healing amount in descending order
 	sorted_healing_stats = sorted(healing_stats.items(), key=lambda x: x[1]['healing'], reverse=True)
