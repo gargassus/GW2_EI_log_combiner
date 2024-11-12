@@ -487,9 +487,6 @@ def build_damage_summary_table(top_stats: dict, caption: str, tid_date_time: str
 
 		rows.append(row)
 
-	# Print the table
-	#print(header)
-	#print("\n".join(rows))
 	rows.append("\n\n</div>")
 	#push table to tid_list for output
 	tid_text = "\n".join(rows)
@@ -2038,7 +2035,7 @@ def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list)
 
 		count = 0
 		row = ""
-		print(sorted_profs)
+
 		#for key, value in top_stats['enemies_by_fight'][fight].items():
 		for key, value in sorted_profs.items():
 			row += "|{{"+key+"}} : "+str(value)
@@ -2062,7 +2059,6 @@ def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list)
 	)
 
 
-
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	print("Writing raid stats to database")
 	"""Write the top_stats dictionary to the database."""
@@ -2070,13 +2066,13 @@ def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	cursor = conn.cursor()
 
 	cursor.execute('''CREATE TABLE IF NOT EXISTS player_stats (
-		date_name_prof TEXT UNIQUE, date TEXT, year TEXT, month TEXT, day TEXT, num_fights REAL, duration REAL, account TEXT, name TEXT, profession TEXT,
+		date_name_prof TEXT UNIQUE, date TEXT, year TEXT, month TEXT, day TEXT, num_fights REAL, duration REAL, account TEXT, guild_status TEXT, name TEXT, profession TEXT,
 		damage REAL, down_contribution REAL, downs REAL, kills REAL, damage_taken REAL, damage_barrier REAL, downed REAL, deaths REAL, cleanses REAL,
 		boon_strips REAL, resurrects REAL, healing REAL, barrier REAL, downed_healing REAL, stab_gen REAL, migh_gen REAL, fury_gen REAL,
 		quic_gen REAL, alac_gen REAL, prot_gen REAL, rege_gen REAL, vigo_gen REAL, aeg_gen REAL, swif_gen REAL, resi_gen REAL, reso_gen REAL)''')
 
-	fields = '(date_name_prof, date, year, month, day, num_fights, duration, account, name, profession, damage, down_contribution, downs, kills, damage_taken, damage_barrier, downed, deaths, cleanses, boon_strips, resurrects, healing, barrier, downed_healing, stab_gen, migh_gen, fury_gen, quic_gen, alac_gen, prot_gen, rege_gen, vigo_gen, aeg_gen, swif_gen, resi_gen, reso_gen)'
-	placeholders = '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+	fields = '(date_name_prof, date, year, month, day, num_fights, duration, account, guild_status, name, profession, damage, down_contribution, downs, kills, damage_taken, damage_barrier, downed, deaths, cleanses, boon_strips, resurrects, healing, barrier, downed_healing, stab_gen, migh_gen, fury_gen, quic_gen, alac_gen, prot_gen, rege_gen, vigo_gen, aeg_gen, swif_gen, resi_gen, reso_gen)'
+	placeholders = '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 
 	year, month, day, time = last_fight.split("-")
 
@@ -2090,6 +2086,7 @@ def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 			player_stats.get('num_fights', 0),
 			player_stats.get('fight_time', 0) / 1000,
 			player_stats.get('account', ''),
+			player_stats.get('guild_status', ''),
 			player_stats.get('name', ''),
 			player_stats.get('profession', ''),
 			player_stats['dpsTargets'].get('damage', 0),
@@ -2144,7 +2141,8 @@ def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, da
 	json_dict["personal_damage_mod_data"] = {key: value for key, value in personal_damage_mod_data.items()}
 	json_dict["fb_pages"] = {key: value for key, value in fb_pages.items()}
 	json_dict["mechanics"] = {key: value for key, value in mechanics.items()}
-	json_dict["minions"] = {key: value for key, value in minions.items()}    	
+	json_dict["minions"] = {key: value for key, value in minions.items()}
+	json_dict['players_running_healing_addon'] = top_stats['players_running_healing_addon']
 	with open(outfile, 'w') as json_file:
 		json.dump(json_dict, json_file, indent=4)
 

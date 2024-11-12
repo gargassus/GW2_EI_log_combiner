@@ -18,6 +18,7 @@
 import config
 import gzip
 import json
+import requests
 
 # Top stats dictionary to store combined log data
 top_stats = config.top_stats
@@ -1065,7 +1066,33 @@ def get_minions_by_player(player_data: dict, player_name: str, profession: str) 
                 minions[profession]["player"][player_name][minion_name] += minion_count
 
 
-def parse_file(file_path, fight_num):
+def fetch_guild_data(guild_id: str, api_key: str) -> dict:
+	"""
+	Fetches the guild data from the Guild Wars 2 API.
+
+	Args:
+		guild_id: The ID of the guild to fetch data for.
+		api_key: The API key to use for the request.
+
+	Returns:
+		A dictionary containing the guild data if the request is successful, otherwise None.
+	"""
+	url = f"https://api.guildwars2.com/v2/guild/{guild_id}/members?access_token={api_key}"
+	try:
+		response = requests.get(url, timeout=5)
+		response.raise_for_status()
+		return json.loads(response.text)
+	except requests.exceptions.RequestException:
+		return None
+
+def find_member(guild_data: list, member_account: str) -> str:
+	for guild_member in guild_data:
+		if guild_member["name"] == member_account:
+			return guild_member["rank"]
+	return "--==Non Member==--"
+
+
+def parse_file(file_path, fight_num, guild_data):
 	json_stats = config.json_stats
 
 	if file_path.endswith('.gz'):
@@ -1082,7 +1109,7 @@ def parse_file(file_path, fight_num):
 		for extension in extensions:
 			if extension['name'] == "Healing Stats":
 				players_running_healing_addon = extension['runningExtension']
-
+	
 	players = json_data['players']
 	targets = json_data['targets']
 	skill_map = json_data['skillMap']
@@ -1185,12 +1212,18 @@ def parse_file(file_path, fight_num):
 		if tag:
 			top_stats['fight'][fight_num]['commander'] = name_prof
 
+		if guild_data:
+			guild_status = find_member(guild_data, account)
+		else:
+			guild_status = ""
+
 		if name_prof not in top_stats['player']:
 			print('Found new player: '+name_prof)
 			top_stats['player'][name_prof] = {
 				'name': name,
 				'profession': profession,
 				'account': account,
+				"guild_status": guild_status,
 				'team': team,
 				'guild': guild_id,
 				'num_fights': 0,

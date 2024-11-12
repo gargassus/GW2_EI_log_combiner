@@ -86,7 +86,12 @@ if __name__ == '__main__':
 	print_string = "Using input directory "+args.input_directory+", writing output to "+args.output_filename
 	print(print_string)
 
-
+	guild_data = None
+	if guild_id and api_key:
+		guild_data = fetch_guild_data(guild_id, api_key)
+	
+	print("guild_id: ", guild_id)
+	print("API_KEY: ", api_key)
 	for filename in sorted_files:
 		
 		# skip files of incorrect filetype
@@ -101,7 +106,7 @@ if __name__ == '__main__':
 
 		fight_num += 1
 		
-		parse_file(file_path, fight_num)
+		parse_file(file_path, fight_num, guild_data)
 
 	print("Parsing Complete")
 
