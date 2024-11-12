@@ -16,7 +16,7 @@ Testing alpha releases with frequent changes.
 
 **Steps for successful testing**
 
- - Parse your [ArcDps](https://www.deltaconnected.com/arcdps/x64/) WvW logs with [Elite Insight](https://github.com/baaron4/GW2-Elite-Insights-Parser/releases) 
+ - Parse your [ArcDps](https://www.deltaconnected.com/arcdps/x64/) WvW logs with [GW2 Elite Insight Parser](https://github.com/baaron4/GW2-Elite-Insights-Parser/releases) 
      - Ensure all options are checked under `Encounter` on the general tab 
      - Ensure you have `Output as JSON` checked on the Raw output tab
      - There is a provided example EI settings config file you can load via the `load settings` button in the `/EliteInsightConfig` folder
