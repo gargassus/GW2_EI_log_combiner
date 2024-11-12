@@ -1255,7 +1255,7 @@ def build_menu_tid(datetime: str) -> None:
 	text = (
 		f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] '
 		f'[[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] '
-		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] [[{datetime}-Player-Damage-By-Skill]]" '
+		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] [[{datetime}-Player-Damage-By-Skill]] [[{datetime}-Squad-Composition]]" '
 		f'"{datetime}-Overview" "$:/temp/menutab1">>'
 	)
 
@@ -1995,8 +1995,20 @@ def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict
 
 def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list) -> None:
 	rows = []
-	rows.append("\nSquad Composition\n")
+
+	rows.append('<div class="flex-row">')
+	rows.append('<div class="flex-col border">')
+	rows.append("\n\n|thead-dark table-caption-top table-hover w-75 table-center|k")
+	rows.append("| Squad Composition |h")
+	rows.append('</div>')
+	rows.append('<div class="flex-col border">')
+	rows.append("\n\n|thead-dark table-caption-top table-hover w-75 table-center|k")
+	rows.append("| Enemy Composition |h")
+	rows.append('</div>\n\n</div>\n')
+
 	for fight in top_stats['parties_by_fight']:
+		rows.append('<div class="flex-row">\n\n')
+		rows.append('<div class="flex-col border">\n\n')
 		header = "\n\n|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
 		header += f"|Fight - {fight} |c"
 		rows.append(header)			
@@ -2009,29 +2021,35 @@ def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list)
 				tooltip = f" {name} "
 				detailEntry = f'<div class="xtooltip"> {profession} <span class="xtooltiptext">'+name+'</span></div>'
 				row += f" {detailEntry} |"
-			rows.append(row)
+			rows.append(row)			
+		rows.append("</div>\n\n")
+		
 
-	rows.append("\nEnemy Composition\n")
-	for fight in top_stats['enemies_by_fight']:
+	
+	#for fight in top_stats['enemies_by_fight']:
+		rows.append('<div class="flex-col border">\n\n')
 		header = "\n\n|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
 		header += f"|Fight - {fight} |c"
 		rows.append(header)
-		#sorted_profs = sorted(top_stats['enemies_by_fight'][fight].items(), key=lambda x: x[1], reverse=True)
+		sorted_profs = dict(sorted(top_stats['enemies_by_fight'][fight].items(), key=lambda x: x[1], reverse=True))
 		len_profs = len(top_stats['enemies_by_fight'][fight])
 		table_size = len(top_stats['parties_by_fight'][fight])
-		row_length = 6
+		row_length = 4
 
 		count = 0
 		row = ""
-		for key, value in top_stats['enemies_by_fight'][fight].items():
+		print(sorted_profs)
+		#for key, value in top_stats['enemies_by_fight'][fight].items():
+		for key, value in sorted_profs.items():
 			row += "|{{"+key+"}} : "+str(value)
 			count += 1
 			if count % row_length == 0:
 				row +="|\n"
 		row +="|\n"
 		rows.append(row)
+		rows.append("</div>\n\n")
 
-
+		rows.append("</div>\n\n")
 	text = "\n".join(rows)
 
 	tid_title = f"{tid_date_time}-Squad-Composition"
