@@ -12,19 +12,25 @@ This is a continuation of my efforts previously focused on a fork of @Freyavf /[
 Currently works with WVW and Detailed WVW logs. Partially working with PVElogs, still needs adjustments to handle the PVE formats.
 
 
-- Parse [ArcDps](https://www.deltaconnected.com/arcdps/x64/) logs with [Elite Insight](https://github.com/baaron4/GW2-Elite-Insights-Parser/releases) utilizing the included `Example Elite Insight Config file for log parsing.conf` to load EI settings.
+Testing alpha releases with frequent changes.
 
+**Steps for successful testing**
 
-- Run compiled exe from the command line:
-
-  -  `topstats.exe d:\path\to\logs`
-
-- or run from source:
-
-   -  `python tw5_top_stats.py d:\path\to\logs`
-
-
--  Drag and drop the `Drag_and_Drop_Log_Summary_for_datetime.json` file onto the `/Example_Output/Top_Stats_Index.html`
+ - Parse your [ArcDps](https://www.deltaconnected.com/arcdps/x64/) WvW logs with [Elite Insight](https://github.com/baaron4/GW2-Elite-Insights-Parser/releases) 
+     - Ensure all options are checked under `Encounter` on the general tab 
+     - Ensure you have `Output as JSON` checked on the Raw output tab
+     - There is a provided example EI settings config file you can load via the `load settings` button in the `/EliteInsightConfig` folder
+ - Decompress the [latest release](https://github.com/Drevarr/GW2_EI_log_combiner/releases) file to your preferred location
+ - Edit the `top_stats_config.ini` file to set the `input_directory` so it points to the location of your saved JSON logs
+ - Double click the `TopStats.exe` to run
+ - Open the file `/Example_Output/Top_Stats_Index.html` in your browser of choice.
+ - Drag and Drop the file `Drag_and_Drop_Log_Summary_for_2024yourdatatime.json` onto the opened `Top_Stats_Index.html` in your browser and click `import`
+ - Open the 1. imported file link to view the summary
+ - DM me with errors, suggestions and ideas. 
+ - Send example arcdps logs generating issues would be appreciated 
+ 
+**Optional**
+ - You can run from source after installing required packages via cmd line: `python tw5_top_stats.py -i d:\path\to\logs`
 
 
 ### Example Output of current state:[Log Summary](https://wvwlogs.com/#202411051122-Log-Summary)
