@@ -969,13 +969,19 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
 					if mod in player_data['damageModifiers']:
 						# Get the hit count and total hit count
 						hit_count = player_data['damageModifiers'][mod]['hitCount']
-						total_count = player_data['damageModifiers'][mod].get('totalHitCount',1)
+						total_count = player_data['damageModifiers'][mod]['totalHitCount']
 						# Get the damage gain and total damage
 						damage_gain = player_data['damageModifiers'][mod]['damageGain']
-						total_damage = player_data['damageModifiers'][mod].get('totalDamage',1)
+						total_damage = player_data['damageModifiers'][mod]['totalDamage']
 						# Calculate the damage percentage and hit percentage
-						damage_pct = damage_gain / total_damage * 100
-						hit_pct = hit_count / total_count * 100
+						if damage_gain == 0:
+							damage_pct =  0
+						else:
+							damage_pct = damage_gain / total_damage * 100
+						if total_count == 0:
+							hit_pct = 0
+						else:								
+							hit_pct = hit_count / total_count * 100
 						# Build the tooltip
 						tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain:,}<br>"
 						# Add the tooltip to the row
@@ -1989,7 +1995,7 @@ def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict
 
 def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list) -> None:
 	rows = []
-
+	rows.append("\nSquad Composition\n")
 	for fight in top_stats['parties_by_fight']:
 		header = "\n\n|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
 		header += f"|Fight - {fight} |c"
@@ -2004,6 +2010,27 @@ def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list)
 				detailEntry = f'<div class="xtooltip"> {profession} <span class="xtooltiptext">'+name+'</span></div>'
 				row += f" {detailEntry} |"
 			rows.append(row)
+
+	rows.append("\nEnemy Composition\n")
+	for fight in top_stats['enemies_by_fight']:
+		header = "\n\n|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
+		header += f"|Fight - {fight} |c"
+		rows.append(header)
+		#sorted_profs = sorted(top_stats['enemies_by_fight'][fight].items(), key=lambda x: x[1], reverse=True)
+		len_profs = len(top_stats['enemies_by_fight'][fight])
+		table_size = len(top_stats['parties_by_fight'][fight])
+		row_length = 6
+
+		count = 0
+		row = ""
+		for key, value in top_stats['enemies_by_fight'][fight].items():
+			row += "|{{"+key+"}} : "+str(value)
+			count += 1
+			if count % row_length == 0:
+				row +="|\n"
+		row +="|\n"
+		rows.append(row)
+
 
 	text = "\n".join(rows)
 
