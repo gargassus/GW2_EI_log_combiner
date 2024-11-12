@@ -4,7 +4,9 @@ GW2 - Elite Insight Multiple Log Summary
 
 
 
-Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json output.
+Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json output into summarized drag and drop package for use with a [TW5](https://github.com/TiddlyWiki/TiddlyWiki5) static html file or [TW5](https://github.com/TiddlyWiki/TiddlyWiki5) nodejs server.  
+This is a continuation of my efforts previously focused on a fork of @Freyavf /[arcdps_top_stats_parser](https://github.com/Drevarr/arcdps_top_stats_parser).
+Influenced heavily by all the participants in the WvW Data Analysis discord 
 
 
 Currently works with WVW and Detailed WVW logs. Partially working with PVElogs, still needs adjustments to handle the PVE formats.
