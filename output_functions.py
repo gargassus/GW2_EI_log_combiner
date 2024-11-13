@@ -904,7 +904,7 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
 	for healer in sorted_healing_stats:
 		if (healer[1]['healing'] + healer[1]['downed_healing'] + healer[1]['barrier']):
 			fighttime = healer[1]['fight_time'] / 1000
-			row = f"|{healer[0]} |"+" {{"+f"{healer[1]['profession']}"+"}} "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+			row = f"|{healer[0].split('|')[0]} |"+" {{"+f"{healer[1]['profession']}"+"}} "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
 			row += f" {healer[1]['healing']:,}| {healer[1]['healing'] / fighttime:,.2f}| {healer[1]['barrier']:,}|"
 			row += f"{healer[1]['barrier'] / fighttime:,.2f}| {healer[1]['downed_healing']:,}| {healer[1]['downed_healing'] / fighttime:,.2f}|"
 			rows.append(row)
