@@ -1130,7 +1130,7 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 		# Push table to tid_list for output
 		tid_text = "\n".join(rows)
 		tid_title = f"{tid_date_time}-{caption.replace(' ','-')}-{prof_role}"
-		tid_caption = profession + f" {prof_role.split('-')[1]}"
+		tid_caption = profession + f"-{prof_role}"
 
 		append_tid_for_output(
 			create_new_tid_from_template(tid_title, tid_caption, tid_text),

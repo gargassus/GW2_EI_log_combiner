@@ -678,30 +678,30 @@ def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: s
 	if 'skill_casts_by_role' not in top_stats:
 		top_stats['skill_casts_by_role'] = {}
 
-	if prof_role not in top_stats['skill_casts_by_role']:
-		top_stats['skill_casts_by_role'][prof_role] = {
+	if profession not in top_stats['skill_casts_by_role']:
+		top_stats['skill_casts_by_role'][profession] = {
 			'total': {}
 		}
 
-	if name_prof not in top_stats['skill_casts_by_role'][prof_role]:
-		top_stats['skill_casts_by_role'][prof_role][name_prof] = {
+	if name_prof not in top_stats['skill_casts_by_role'][profession]:
+		top_stats['skill_casts_by_role'][profession][name_prof] = {
 			'ActiveTime': 0,
 			'Skills': {}
 		}
 
-	top_stats['skill_casts_by_role'][prof_role][name_prof]['ActiveTime'] += active_time
+	top_stats['skill_casts_by_role'][profession][name_prof]['ActiveTime'] += active_time
 
 	for skill in player[stat_category]:
 		skill_id = 's'+str(skill['id'])
 		cast_count = len(skill['skills'])
 
-		if skill_id not in top_stats['skill_casts_by_role'][prof_role][name_prof]['Skills']:
-			top_stats['skill_casts_by_role'][prof_role][name_prof]['Skills'][skill_id] = 0
-		if skill_id not in top_stats['skill_casts_by_role'][prof_role]['total']:
-			top_stats['skill_casts_by_role'][prof_role]['total'][skill_id] = 0
+		if skill_id not in top_stats['skill_casts_by_role'][profession][name_prof]['Skills']:
+			top_stats['skill_casts_by_role'][profession][name_prof]['Skills'][skill_id] = 0
+		if skill_id not in top_stats['skill_casts_by_role'][profession]['total']:
+			top_stats['skill_casts_by_role'][profession]['total'][skill_id] = 0
 
-		top_stats['skill_casts_by_role'][prof_role]['total'][skill_id] += cast_count
-		top_stats['skill_casts_by_role'][prof_role][name_prof]['Skills'][skill_id] = top_stats['skill_casts_by_role'][prof_role][name_prof]['Skills'].get(skill_id, 0) + cast_count
+		top_stats['skill_casts_by_role'][profession]['total'][skill_id] += cast_count
+		top_stats['skill_casts_by_role'][profession][name_prof]['Skills'][skill_id] = top_stats['skill_casts_by_role'][profession][name_prof]['Skills'].get(skill_id, 0) + cast_count
 
 
 def get_healStats_data(fight_num: int, player: dict, players: dict, stat_category: str, name_prof: str, fight_time: int) -> None:
