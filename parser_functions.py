@@ -1014,26 +1014,26 @@ def get_mechanics_by_fight(fight_number, mechanics_map, players, log_type):
 				'enemy_data': {}
 			}
 
-			for data_item in mechanic_data['mechanicsData']:
-				actor = data_item['actor']
-				prof_name = None
-				for player in players:
-					if player['name'] == actor:
-						prof_name = "{{" + player['profession'] + "}} " + player['name']
-				if prof_name:
-					if prof_name not in mechanics[fight_number]['player_list']:
-						mechanics[fight_number]['player_list'].append(prof_name)
-					if prof_name not in mechanics[fight_number][mechanic_name]['data']:
-						mechanics[fight_number][mechanic_name]['data'][prof_name] = 1
-					else:
-						mechanics[fight_number][mechanic_name]['data'][prof_name] += 1
+		for data_item in mechanic_data['mechanicsData']:
+			actor = data_item['actor']
+			prof_name = None
+			for player in players:
+				if player['name'] == actor:
+					prof_name = "{{" + player['profession'] + "}} " + player['name']
+			if prof_name:
+				if prof_name not in mechanics[fight_number]['player_list']:
+					mechanics[fight_number]['player_list'].append(prof_name)
+				if prof_name not in mechanics[fight_number][mechanic_name]['data']:
+					mechanics[fight_number][mechanic_name]['data'][prof_name] = 1
 				else:
-					if actor not in mechanics[fight_number]['enemy_list']:
-						mechanics[fight_number]['enemy_list'].append(actor)
-					if actor not in mechanics[fight_number][mechanic_name]['enemy_data']:
-						mechanics[fight_number][mechanic_name]['enemy_data'][actor] = 1
-					else:
-						mechanics[fight_number][mechanic_name]['enemy_data'][actor] += 1
+					mechanics[fight_number][mechanic_name]['data'][prof_name] += 1
+			else:
+				if actor not in mechanics[fight_number]['enemy_list']:
+					mechanics[fight_number]['enemy_list'].append(actor)
+				if actor not in mechanics[fight_number][mechanic_name]['enemy_data']:
+					mechanics[fight_number][mechanic_name]['enemy_data'][actor] = 1
+				else:
+					mechanics[fight_number][mechanic_name]['enemy_data'][actor] += 1
 
 
 def get_minions_by_player(player_data: dict, player_name: str, profession: str) -> None:
