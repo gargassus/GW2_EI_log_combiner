@@ -1393,6 +1393,14 @@ def fmt_firebrand_page_total(page_casts: int, page_cost: float, fight_time: floa
 	return output_string
 
 def build_fb_pages_tid(fb_pages: dict, caption: str, tid_date_time: str):
+	"""
+	Build a table of high score statistics for each category.
+
+	Args:
+		fb_pages (dict): Dictionary containing firebrand page usage data for each player.
+		caption (str): The caption for the table.
+		tid_date_time (str): The timestamp for the table id.
+	"""
 	# Firebrand pages
 	tome1_skill_ids = ["41258", "40635", "42449", "40015", "42898"]
 	tome2_skill_ids = ["45022", "40679", "45128", "42008", "42925"]
@@ -1922,10 +1930,23 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 
 
 def build_damage_outgoing_by_skill_tid(tid_date_time: str, tid_list: list) -> None:
+	"""
+	Build a table of damage outgoing by player and skill.
+
+	This function will build a table of damage outgoing by player and skill. It will
+	also add the table to the tid_list for output.
+
+	Args:
+		tid_date_time (str): A string to use as the date and time for the table id.
+		tid_list (list): A list of tiddlers to which the new tid will be added.
+	"""
 	rows = []
+	# Set the title, caption and tags for the table
 	tid_title = f"{tid_date_time}-Player-Damage-By-Skill"
 	tid_caption = "Player Damage by Skill"
 	tid_tags = tid_date_time
+
+	# Add the select component to the table
 	rows.append('\n!!!Select players(ctrl+click):')
 	rows.append('<$let state=<<qualify $:/temp/selectedPlayer>>>')
 	rows.append('<$select tiddler=<<state>> multiple>')
@@ -1933,6 +1954,8 @@ def build_damage_outgoing_by_skill_tid(tid_date_time: str, tid_list: list) -> No
 	rows.append('      <option value=<<currentTiddler>>>{{!!caption}}</option>')
 	rows.append('   </$list>')
 	rows.append('</$select>')
+
+	# Add the table to the output
 	rows.append('\n<<vspace height:"55px">>\n')
 	rows.append('<div class="flex-row">')
 	rows.append('   <$list filter="[<state>get[text]enlist-input[]]">')
@@ -1942,6 +1965,7 @@ def build_damage_outgoing_by_skill_tid(tid_date_time: str, tid_list: list) -> No
 	rows.append('   </$list>')
 	rows.append('\n\n</div>')
 
+	# Create the new tid from the template and add it to the tid_list
 	text = "\n".join(rows)
 
 	append_tid_for_output(
@@ -1950,54 +1974,77 @@ def build_damage_outgoing_by_skill_tid(tid_date_time: str, tid_list: list) -> No
 	)
 	
 def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict, buff_data: dict, tid_date_time: str, tid_list: list) -> None:
-	damage_totals = {}
-	for player in top_stats['player']:
-		if top_stats['player'][player]['statsTargets']['criticalRate'] <= 50:
-			continue
-		damage_totals[player] = top_stats['player'][player]['statsTargets']['totalDmg']
-	sorted_damage_totals = sorted(damage_totals.items(), key=lambda x: x[1], reverse=True)
+    """
+    Build a table of damage outgoing by player and skill.
 
-	for player, damage in sorted_damage_totals:
-		player_damage = {}
-		for skill in top_stats['player'][player]['targetDamageDist']:
-			player_damage[skill] = top_stats['player'][player]['targetDamageDist'][skill]['totalDamage']
+    Args:
+        top_stats (dict): A dictionary containing top stats for each player.
+        skill_data (dict): A dictionary containing skill metadata, such as name and icon.
+        buff_data (dict): A dictionary containing buff metadata, such as name and icon.
+        tid_date_time (str): A string representing the timestamp or unique identifier for the TID.
+        tid_list (list): A list of TIDs to which the generated TID should be appended.
+    """
+    # Sort players by total damage output in descending order
+    damage_totals = {
+        player: data['statsTargets']['totalDmg']
+        for player, data in top_stats['player'].items()
+        if data['statsTargets']['criticalRate'] > 50
+    }
+    sorted_damage_totals = sorted(damage_totals.items(), key=lambda x: x[1], reverse=True)
 
-		sorted_player_damage = sorted(player_damage.items(), key=lambda x: x[1], reverse=True)
+    # Iterate over each player and build a table of their damage output by skill
+    for player, total_damage in sorted_damage_totals:
+        player_damage = {
+            skill_id: skill_data['totalDamage']
+            for skill_id, skill_data in top_stats['player'][player]['targetDamageDist'].items()
+        }
+        sorted_player_damage = sorted(player_damage.items(), key=lambda x: x[1], reverse=True)
 
-		rows = []
+        # Initialize the HTML components
+        rows = []
+        name, profession = player.split("|")
 
-		name, profession = player.split("|")
-		spacedName = name.ljust(21, '.')
-		header = "|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
-		header += "|{{"+profession +"}} "+f"{name}|c\n"
-		header += "|!Skill Name | Damage| % of Total Damage|h"
+        # Build the table header
+        header = "|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
+        header += f"|{{{profession}}} {name}|c\n"
+        header += "|!Skill Name | Damage | % of Total Damage|h"
+        rows.append(header)
 
-		rows.append(header)
+        # Populate the table with the player's damage output by skill
+        for skill_id, damage in sorted_player_damage:
+            skill_name = skill_data.get(f"s{skill_id}", {}).get("name", buff_data.get(f"b{skill_id}", {}).get("name", ""))
+            skill_icon = skill_data.get(f"s{skill_id}", {}).get("icon", buff_data.get(f"b{skill_id}", {}).get("icon", ""))
+            entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name[:30]}"
+            row = f"|{entry} | {damage:,.0f} | {damage / total_damage * 100:,.1f}%|"
+            rows.append(row)
 
-		for skill in sorted_player_damage:
-			skill_name = skill_data.get(f"s{skill[0]}", {}).get("name", buff_data.get(f"b{skill[0]}", {}).get("name", ""))
-			skill_icon = skill_data.get(f"s{skill[0]}", {}).get("icon", buff_data.get(f"b{skill[0]}", {}).get("icon", ""))
-			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name[:30]}"
-			row = f"|{entry} | {skill[1]:,.0f} | {skill[1]/damage*100:,.1f}%|"
+        # Create the TID
+        text = "\n".join(rows)
+        player_title = f"{tid_date_time}-Damage-By-Skill-{profession}-{name}"
+        player_caption = f"{{{profession}}} - {name}"
 
-			rows.append(row)
-
-		#rows.append("\n\n</div>")
-
-		text = "\n".join(rows)
-
-		player_title = f"{tid_date_time}-Damage-By-Skill-{profession}-{name}"
-		player_caption = "{{"+profession+"}} - "+name
-		
-		append_tid_for_output(
-			create_new_tid_from_template(player_title, player_caption, text, tid_date_time),
-			tid_list
-		)
+        append_tid_for_output(
+            create_new_tid_from_template(player_title, player_caption, text, tid_date_time),
+            tid_list
+        )
 
 
 def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list) -> None:
+	"""
+	Build a table of the squad composition for each fight.
+
+	This function will build a table of the squad composition for each fight. It
+	will also add the table to the tid_list for output.
+
+	Args:
+		top_stats (dict): The top_stats dictionary containing the overall stats.
+		tid_date_time (str): A string representing the timestamp or unique identifier
+			for the TID.
+		tid_list (list): A list of TIDs to which the generated TID should be appended.
+	"""
 	rows = []
 
+	# Add the select component to the table
 	rows.append('<div class="flex-row">')
 	rows.append('<div class="flex-col border">')
 	rows.append("\n\n|thead-dark table-caption-top table-hover w-75 table-center|k")
@@ -2009,13 +2056,14 @@ def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list)
 	rows.append('</div>\n\n</div>\n')
 
 	for fight in top_stats['parties_by_fight']:
+		# Add the table header for the fight
 		rows.append('<div class="flex-row">\n\n')
 		rows.append('<div class="flex-col border">\n\n')
 		header = "\n\n|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
 		header += f"|Fight - {fight} |c"
 		rows.append(header)			
 		for group in top_stats['parties_by_fight'][fight]:
-
+			# Add the table rows for the group
 			row = f"|{group:02} |"
 			for player in top_stats['parties_by_fight'][fight][group]:
 				profession, name = player.split("|")
@@ -2025,9 +2073,7 @@ def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list)
 				row += f" {detailEntry} |"
 			rows.append(row)			
 		rows.append("</div>\n\n")
-		
 
-	
 	#for fight in top_stats['enemies_by_fight']:
 		rows.append('<div class="flex-col border">\n\n')
 		header = "\n\n|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
@@ -2047,7 +2093,9 @@ def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list)
 			count += 1
 			if count % row_length == 0:
 				row +="|\n"
-		row +="|\n"
+			else:
+				row += " |"
+		row +="\n"
 		rows.append(row)
 		rows.append("</div>\n\n")
 
