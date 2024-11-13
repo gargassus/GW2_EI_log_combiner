@@ -1548,9 +1548,9 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 		
 		# Determine the header based on category
 		if category in ["statTarget_max", "totalDamageTaken_max"]:
-			header += "|@@display:block;width:200px;Player@@  |@@display:block;width:250px;Skill@@ | @@display:block;width:100px;Score@@|h"
+			header += "|@@display:block;width:200px;Player-Fight@@  |@@display:block;width:250px;Skill@@ | @@display:block;width:100px;Score@@|h"
 		else:
-			header += "|@@display:block;width:200px;Player@@ | @@display:block;width:100px;Score@@|h"
+			header += "|@@display:block;width:200px;Player-Fight@@ | @@display:block;width:100px;Score@@|h"
 		
 		rows.append(header)
 
