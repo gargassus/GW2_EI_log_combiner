@@ -60,7 +60,7 @@ def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 		fight_name = fight_name.split(" - ")[1]
 	elif "World vs World" in fight_name:
 		# WVW log
-		log_type = "WVW"
+		log_type = "WVW-Not-Detailed"
 		fight_name = fight_name.split(" - ")[1]
 	elif "Detailed" in fight_name:
 		log_type = "WVW"
@@ -72,24 +72,24 @@ def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 
 
 def update_high_score(stat_name: str, key: str, value: float) -> None:
-    """
-    Update the high scores dictionary with a new value if it is higher than the current lowest value.
+	"""
+	Update the high scores dictionary with a new value if it is higher than the current lowest value.
 
-    Args:
-        stat_name (str): The name of the stat to update.
-        key (str): The key to store the value under.
-        value (float): The value to store.
+	Args:
+		stat_name (str): The name of the stat to update.
+		key (str): The key to store the value under.
+		value (float): The value to store.
 
-    Returns:
-        None
-    """
-    if stat_name not in high_scores:
-        high_scores[stat_name] = {}
-    if len(high_scores[stat_name]) < 5 or value > min(high_scores[stat_name].values()):
-        if len(high_scores[stat_name]) == 5:
-            lowest_key = min(high_scores[stat_name], key=high_scores[stat_name].get)
-            del high_scores[stat_name][lowest_key]
-        high_scores[stat_name][key] = value
+	Returns:
+		None
+	"""
+	if stat_name not in high_scores:
+		high_scores[stat_name] = {}
+	if len(high_scores[stat_name]) < 5 or value > min(high_scores[stat_name].values()):
+		if len(high_scores[stat_name]) == 5:
+			lowest_key = min(high_scores[stat_name], key=high_scores[stat_name].get)
+			del high_scores[stat_name][lowest_key]
+		high_scores[stat_name][key] = value
 
 
 def determine_player_role(player_data: dict) -> str:
@@ -254,20 +254,20 @@ def get_damage_mods_data(damage_mod_map: dict, personal_damage_mod_data: dict) -
 
 
 def get_personal_mod_data(personal_damage_mods: dict) -> None:
-    """
-    Populate the personal_damage_mod_data dictionary with modifiers from personal_damage_mods.
+	"""
+	Populate the personal_damage_mod_data dictionary with modifiers from personal_damage_mods.
 
-    Args:
-        personal_damage_mods (dict): A dictionary where keys are professions and values are lists of modifier IDs.
-    """
-    for profession, mods in personal_damage_mods.items():
-        if profession not in personal_damage_mod_data:
-            personal_damage_mod_data[profession] = []
-        for mod_id in mods:
-            mod_id = "d" + str(mod_id)
-            if mod_id not in personal_damage_mod_data[profession]:
-                personal_damage_mod_data[profession].append(mod_id)
-                personal_damage_mod_data['total'].append(mod_id)
+	Args:
+		personal_damage_mods (dict): A dictionary where keys are professions and values are lists of modifier IDs.
+	"""
+	for profession, mods in personal_damage_mods.items():
+		if profession not in personal_damage_mod_data:
+			personal_damage_mod_data[profession] = []
+		for mod_id in mods:
+			mod_id = "d" + str(mod_id)
+			if mod_id not in personal_damage_mod_data[profession]:
+				personal_damage_mod_data[profession].append(mod_id)
+				personal_damage_mod_data['total'].append(mod_id)
 
 
 def get_enemies_by_fight(fight_num: int, targets: dict) -> None:
@@ -1037,33 +1037,35 @@ def get_mechanics_by_fight(fight_number, mechanics_map, players, log_type):
 
 
 def get_minions_by_player(player_data: dict, player_name: str, profession: str) -> None:
-    """
-    Collects minions created by a player and stores them in a global dictionary.
+	"""
+	Collects minions created by a player and stores them in a global dictionary.
 
-    Args:
-        player_data (dict): The player data containing minions information.
-        player_name (str): The name of the player.
-        profession (str): The profession of the player.
+	Args:
+		player_data (dict): The player data containing minions information.
+		player_name (str): The name of the player.
+		profession (str): The profession of the player.
 
-    Returns:
-        None
-    """
-    if "minions" in player_data:
-        if profession not in minions:
-            minions[profession] = {"player": {}, "pets_list": []}
+	Returns:
+		None
+	"""
+	if "minions" in player_data:
+		if profession not in minions:
+			minions[profession] = {"player": {}, "pets_list": []}
 
-        for minion in player_data["minions"]:
-            minion_name = minion["name"].replace("Juvenile ", "").replace("UNKNOWN", "Unknown")
-            minion_count = len(minion["combatReplayData"])
-
-            if minion_name not in minions[profession]["pets_list"]:
-                minions[profession]["pets_list"].append(minion_name)
-            if player_name not in minions[profession]["player"]:
-                minions[profession]["player"][player_name] = {}
-            if minion_name not in minions[profession]["player"][player_name]:
-                minions[profession]["player"][player_name][minion_name] = minion_count
-            else:
-                minions[profession]["player"][player_name][minion_name] += minion_count
+		for minion in player_data["minions"]:
+			minion_name = minion["name"].replace("Juvenile ", "").replace("UNKNOWN", "Unknown")
+			if 'combatReplayData' in minion:
+				minion_count = len(minion["combatReplayData"])
+			else:
+				minion_count = 1
+			if minion_name not in minions[profession]["pets_list"]:
+				minions[profession]["pets_list"].append(minion_name)
+			if player_name not in minions[profession]["player"]:
+				minions[profession]["player"][player_name] = {}
+			if minion_name not in minions[profession]["player"][player_name]:
+				minions[profession]["player"][player_name][minion_name] = minion_count
+			else:
+				minions[profession]["player"][player_name][minion_name] += minion_count
 
 
 def fetch_guild_data(guild_id: str, api_key: str) -> dict:
@@ -1122,8 +1124,9 @@ def parse_file(file_path, fight_num, guild_data):
 	personal_buffs = json_data.get('personalBuffs', {})
 	personal_damage_mods = json_data.get('personalDamageMods', {})
 	fight_date, fight_end, fight_utc = json_data['timeEnd'].split(' ')
-	inches_to_pixel = json_data['combatReplayMetaData']['inchToPixel']
-	polling_rate = json_data['combatReplayMetaData']['pollingRate']
+	if 'combatReplayMetaData' in json_data:
+		inches_to_pixel = json_data['combatReplayMetaData']['inchToPixel']
+		polling_rate = json_data['combatReplayMetaData']['pollingRate']
 	upload_link = json_data['uploadLinks'][0]
 	fight_duration = json_data['duration']
 	fight_duration_ms = json_data['durationMS']
