@@ -60,7 +60,7 @@ def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 		fight_name = fight_name.split(" - ")[1]
 	elif "World vs World" in fight_name:
 		# WVW log
-		log_type = "WvW"
+		log_type = "WVW"
 		fight_name = fight_name.split(" - ")[1]
 	elif "Detailed" in fight_name:
 		log_type = "WVW"
@@ -325,7 +325,7 @@ def get_enemy_downed_and_killed_by_fight(fight_num: int, targets: dict, players:
 	if fight_num not in top_stats["fight"]:
 		top_stats["fight"][fight_num] = {}
 
-	if log_type != "WVW":  # WVW doesn't have target[defense] data, must be "Detailed WvW" or "PVE"
+	if log_type == "WVW":  # WVW doesn't have target[defense] data, must be "Detailed WvW" or "PVE"
 		for target in targets:
 			if target["isFake"]:
 				continue
