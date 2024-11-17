@@ -270,7 +270,7 @@ def build_tag_summary(top_stats):
 
 	"""
 	tag_summary = {}
-
+	tag_list = []
 	for fight, fight_data in top_stats["fight"].items():
 		commander = fight_data["commander"]
 		if commander not in tag_summary:
@@ -282,6 +282,8 @@ def build_tag_summary(top_stats):
 				"squad_downed": 0,
 				"squad_deaths": 0,
 			}
+		if commander.split("|")[0] not in tag_list:
+			tag_list.append(commander.split("|")[0])
 
 		tag_summary[commander]["num_fights"] += 1
 		tag_summary[commander]["fight_time"] += fight_data["fight_durationMS"]
@@ -290,7 +292,7 @@ def build_tag_summary(top_stats):
 		tag_summary[commander]["squad_downed"] += fight_data["defenses"]["downCount"]
 		tag_summary[commander]["squad_deaths"] += fight_data["defenses"]["deadCount"]
 
-	return tag_summary
+	return tag_summary, tag_list
 
 def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
 	"""Output a summary of the tag data in a human-readable format."""
@@ -1227,12 +1229,22 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 		tid_list
 	)
 
-def build_main_tid(datetime):
+def build_main_tid(datetime, tag_list, guild_name):
+	tag_str = ""
+	for tag in tag_list:
+		if tag == tag_list[-1] and len(tag_list) > 1:
+			tag_str += f"and {tag}"
+		if tag != tag_list[-1] and len(tag_list) > 1:
+			tag_str += f"{tag}, "
+		if len(tag_list) == 1:
+			tag_str += f"{tag} "
+		
+		
 	main_created = f"{datetime}"
 	main_modified = f"{datetime}"
 	main_tags = f"{datetime} Logs"
 	main_title = f"{datetime}-Log-Summary"
-	main_caption = f"{datetime} - Log Summary"
+	main_caption = f"{datetime} - {guild_name} - Log Summary with {tag_str}"
 	main_creator = f"Drevarr@github.com"
 
 	main_text = "{{"+datetime+"-Tag_Stats}}\n\n{{"+datetime+"-Menu}}"

@@ -110,8 +110,12 @@ if __name__ == '__main__':
 
 	print("Parsing Complete")
 
+	tag_data, tag_list = build_tag_summary(top_stats)
+
 	#create the main tiddler and append to tid_list
-	build_main_tid(tid_date_time)
+	build_main_tid(tid_date_time, tag_list, guild_name)
+
+	output_tag_summary(tag_data, tid_date_time)
 
 	#create the menu tiddler and append to tid_list
 	build_menu_tid(tid_date_time)
@@ -253,10 +257,6 @@ if __name__ == '__main__':
 	gear_buff_ids, gear_skill_ids = extract_gear_buffs_and_skills(buff_data, skill_data)
 	build_gear_buff_summary(top_stats, gear_buff_ids, buff_data, tid_date_time)
 	build_gear_skill_summary(top_stats, gear_skill_ids, skill_data, tid_date_time)
-
-	tag_data = build_tag_summary(top_stats)
-	output_tag_summary(tag_data, tid_date_time)
-
 
 	build_damage_summary_table(top_stats, "Damage", tid_date_time)
 

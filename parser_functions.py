@@ -386,7 +386,8 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 	"""
 	for stat, value in player[stat_category][0].items():
 		if stat in config.high_scores:
-			high_score_value = round(value/(player['activeTimes'][0]/1000),3)
+			active_time_seconds = player['activeTimes'][0] / 1000
+			high_score_value = round(value / active_time_seconds, 3) if active_time_seconds > 0 else 0
 			update_high_score(f"{stat_category}_{stat}", "{{"+player["profession"]+"}}"+player["name"]+"-"+str(fight_num)+" | "+stat, high_score_value)
 		top_stats['player'][name_prof][stat_category][stat] = top_stats['player'][name_prof][stat_category].get(stat, 0) + value
 		top_stats['fight'][fight_num][stat_category][stat] = top_stats['fight'][fight_num][stat_category].get(stat, 0) + value
