@@ -533,6 +533,8 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 			fight_time = player["fight_time"] / 1000
 			for stat, category in category_stats.items():
 				stat_value = player[category].get(stat, 0)
+				if stat in ["receivedCrowdControlDuration","appliedCrowdControlDuration"]:
+					stat_value = stat_value / 1000
 
 				if stat in pct_stats:
 					divisor_value = player[category].get(pct_stats[stat], 0)
@@ -573,9 +575,9 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	
 	# Iterate for "Total" and "Average" views
-	for toggle in ["Total", "Average"]:
+	for toggle in ["Total", "Per_Sec","Average"]:
 		# Add a reveal widget to toggle between Total and Average views
-		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="radio" type="match" text="{toggle}" animate="yes">\n')
+		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="boon_radio" type="match" text="{toggle}" animate="yes">\n')
 
 		# Create table header
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
@@ -661,6 +663,8 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 					# Determine entry based on toggle
 					if toggle == "Total":
 						entry = f"{generation_ms/1000:,.1f}"
+					elif toggle == "Per_Sec":
+						entry = f"{generation_ms/player['fight_time']:,.1f}"
 					else:
 						entry = uptime_percentage
 
@@ -671,7 +675,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 			rows.append(row)
 		
 		# Append the footer with radio buttons to toggle views
-		rows.append(f'|<$radio field="radio" value="Total">Total Gen</$radio> - <$radio field="radio" value="Average">Uptime Gen</$radio> - {caption} Table|c')
+		rows.append(f'|<$radio field="boon_radio" value="Total">Total Gen</$radio> - <$radio field="boon_radio" value="Per_Sec">Gen/Sec</$radio> - <$radio field="boon_radio" value="Average">Uptime Gen</$radio> - {caption} Table|c')
 		rows.append("\n</$reveal>")
 	
 	rows.append("\n\n</div>")
