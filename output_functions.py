@@ -1973,7 +1973,7 @@ def build_damage_outgoing_by_skill_tid(tid_date_time: str, tid_list: list) -> No
 	rows.append('\n<<vspace height:"55px">>\n')
 	rows.append('<div class="flex-row">')
 	rows.append('   <$list filter="[<state>get[text]enlist-input[]]">')
-	rows.append('    <div class="flex-col border">')
+	rows.append('    <div class="flex-col">')
 	rows.append('      <$transclude mode="block"/>')
 	rows.append('</div>')	
 	rows.append('   </$list>')
@@ -2060,20 +2060,20 @@ def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list)
 
 	# Add the select component to the table
 	rows.append('<div class="flex-row">')
-	rows.append('<div class="flex-col border">')
-	rows.append("\n\n|thead-dark table-caption-top table-hover w-75 table-center|k")
+	rows.append('<div class="flex-col">')
+	rows.append("\n\n|thead-dark table-caption-top table-hover table-center|k")
 	rows.append("| Squad Composition |h")
 	rows.append('</div>')
-	rows.append('<div class="flex-col border">')
-	rows.append("\n\n|thead-dark table-caption-top table-hover w-75 table-center|k")
+	rows.append('<div class="flex-col">')
+	rows.append("\n\n|thead-dark table-caption-top table-hover table-center|k")
 	rows.append("| Enemy Composition |h")
 	rows.append('</div>\n\n</div>\n')
 
 	for fight in top_stats['parties_by_fight']:
 		# Add the table header for the fight
 		rows.append('<div class="flex-row">\n\n')
-		rows.append('<div class="flex-col border">\n\n')
-		header = "\n\n|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
+		rows.append('<div class="flex-col">\n\n')
+		header = "\n\n|thead-dark table-caption-top table-hover sortable table-center|k\n"
 		header += f"|Fight - {fight} |c"
 		rows.append(header)			
 		for group in top_stats['parties_by_fight'][fight]:
@@ -2089,8 +2089,8 @@ def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list)
 		rows.append("</div>\n\n")
 
 	#for fight in top_stats['enemies_by_fight']:
-		rows.append('<div class="flex-col border">\n\n')
-		header = "\n\n|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
+		rows.append('<div class="flex-col">\n\n')
+		header = "\n\n|thead-dark table-caption-top table-hover sortable table-center|k\n"
 		header += f"|Fight - {fight} |c"
 		rows.append(header)
 		sorted_profs = dict(sorted(top_stats['enemies_by_fight'][fight].items(), key=lambda x: x[1], reverse=True))
