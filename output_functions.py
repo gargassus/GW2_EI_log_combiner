@@ -516,8 +516,8 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 
 	rows = []
 	rows.append('<div style="overflow-x:auto;">\n\n')
-	for toggle in ["Total", "Average"]:
-		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="radio" type="match" text="{toggle}" animate="yes">\n')
+	for toggle in ["Total", "Stat/1s", "Stat/60s"]:
+		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="category_radio" type="match" text="{toggle}" animate="yes">\n')
 		# Build the table header
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += "|!Party |!Name | !Prof |!Account | !{{FightTime}} |"
@@ -543,19 +543,23 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 					stat_value_percentage = round((stat_value / divisor_value) * 100, 1)
 					stat_value = f"{stat_value_percentage:.2f}%"
 				elif stat in time_stats:
-					if toggle == "Average":
+					if toggle == "Stat/1s":
 						stat_value = f"{stat_value/fight_time:.2f}"
+					elif toggle == "Stat/60s":
+						stat_value = f"{stat_value/(fight_time/60):.2f}"
 					else:
 						stat_value = f"{stat_value:,.1f}"
 				else:
-					if toggle == "Average":
+					if toggle == "Stat/1s":
 						stat_value = f"{stat_value/fight_time:,.2f}"
+					elif toggle == "Stat/60s":
+						stat_value = f"{stat_value/(fight_time/60):,.2f}"
 					else:
 						stat_value = f"{stat_value:,}"
 				row += f" {stat_value}|"
 
 			rows.append(row)
-		rows.append(f'|<$radio field="radio" value="Total">Total</$radio> - <$radio field="radio" value="Average">Average</$radio> - {caption} Table|c')
+		rows.append(f'|<$radio field="category_radio" value="Total"> Total  </$radio> - <$radio field="category_radio" value="Stat/1s"> Stat/1s  </$radio> - <$radio field="category_radio" value="Stat/60s"> Stat/60s  </$radio> - {caption} Table|c')
 		rows.append("\n</$reveal>")
 
 	rows.append("\n\n</div>")
@@ -1280,7 +1284,7 @@ def build_menu_tid(datetime: str) -> None:
 	)
 
 	append_tid_for_output(
-		create_new_tid_from_template(title, caption, text, tags, fields={'radio': 'Total', 'boon_radio': 'Total'}),
+		create_new_tid_from_template(title, caption, text, tags, fields={'radio': 'Total', 'boon_radio': 'Total', "category_radio": "Total"}),
 		tid_list
 	)
 
