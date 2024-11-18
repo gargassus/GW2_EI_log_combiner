@@ -4,7 +4,7 @@ GW2 - Elite Insight Multiple Log Summary
 
 
 
-Combines multiple ArcDps logs processed by GW2-Elite-Insights-Parser to json output into summarized drag and drop package for use with a [TW5](https://github.com/TiddlyWiki/TiddlyWiki5) static html file or [TW5](https://github.com/TiddlyWiki/TiddlyWiki5) nodejs server.  
+Combines multiple [ArcDps](https://www.deltaconnected.com/arcdps/x64/) logs processed by [GW2 Elite Insight Parser](https://github.com/baaron4/GW2-Elite-Insights-Parser/releases) to json output into summarized drag and drop package for use with a [TW5](https://github.com/TiddlyWiki/TiddlyWiki5) static html file or [TW5](https://github.com/TiddlyWiki/TiddlyWiki5) nodejs server.  
 
 This is a continuation of my efforts previously focused on a fork of @Freyavf /[arcdps_top_stats_parser](https://github.com/Drevarr/arcdps_top_stats_parser).  Influenced heavily by all the participants in the WvW Data Analysis discord 
 
@@ -51,8 +51,8 @@ Testing alpha releases with frequent changes.
       - [x] buffMap
       - [x] damage_mod_map
       - [X] personal_buff_map
-      - [ ] Squad Comp (Friendly/Enemies)
-      - [ ] Party Comp by Fight
+      - [X] Squad Comp (Friendly/Enemies)
+      - [X] Party Comp by Fight
    - [ ] player data
       - [x] defenses
       - [x] support
@@ -88,7 +88,7 @@ Testing alpha releases with frequent changes.
       - [X] Damage Mod Data         
          - [X] Shared
          - [X] Profession  
-   - [ ] target data
+   - [X] target data
       - [X] teamID
    - [x] Highlights / High Scores
       - [x] damage
@@ -96,7 +96,4 @@ Testing alpha releases with frequent changes.
       - [x] support
       - [x] Highest single damage hit
       - [x] format output
-- [ ] Output summary
-   - [ ] Mirror EI html output via TW5
-   - [ ] Chart Dashboard?
-   - [ ] hypertable?
+
