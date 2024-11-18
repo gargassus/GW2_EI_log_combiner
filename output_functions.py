@@ -27,8 +27,7 @@ def create_new_tid_from_template(
 	modified: str = None,
 	created: str = None,
 	creator: str = None,
-	field: str = None,
-	value: str = None,
+	fields: dict = None,
 ) -> dict:
 	"""
 	Create a new TID from the template.
@@ -41,8 +40,7 @@ def create_new_tid_from_template(
 		modified (str, optional): The modified date of the TID. Defaults to None.
 		created (str, optional): The created date of the TID. Defaults to None.
 		creator (str, optional): The creator of the TID. Defaults to None.
-		field (str, optional): The field to add to the TID. Defaults to None.
-		value (str, optional): The value to add to the TID. Defaults to None.
+		field (dict, optional): The field to add to the TID. Defaults to None.
 
 	Returns:
 		dict: The new TID.
@@ -59,8 +57,10 @@ def create_new_tid_from_template(
 		temp_tid['created'] = created
 	if creator:
 		temp_tid['creator'] = creator
-	if field and value:        
-		temp_tid[field] = value
+	if fields:
+		for field, value in fields.items():
+			print("Creating field: " + field+" with value: " + value)
+			temp_tid[field] = value
 
 	return temp_tid
 
@@ -563,7 +563,7 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 	tid_text = "\n".join(rows)
 
 	append_tid_for_output(
-		create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ', '-')}", caption, tid_text, field="radio", value="Total"),
+		create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ', '-')}", caption, tid_text, fields={"radio": "Total"}),
 		tid_list
 		)
 
@@ -575,9 +575,9 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	
 	# Iterate for "Total" and "Average" views
-	for toggle in ["Total", "Average"]:
+	for toggle in ["Total", "Average", "Uptime"]:
 		# Add a reveal widget to toggle between Total and Average views
-		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="radio" type="match" text="{toggle}" animate="yes">\n')
+		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="boon_radio" type="match" text="{toggle}" animate="yes">\n')
 
 		# Create table header
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
@@ -675,7 +675,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 			rows.append(row)
 		
 		# Append the footer with radio buttons to toggle views
-		rows.append(f'|<$radio field="radio" value="Total">Total Gen</$radio> - <$radio field="radio" value="Average">Gen/Sec</$radio> - {caption} Table|c')
+		rows.append(f'|<$radio field="boon_radio" value="Total"> Total Gen  </$radio> - <$radio field="boon_radio" value="Average"> Gen/Sec  </$radio> - <$radio field="boon_radio" value="Uptime"> Uptime Gen  </$radio> - {caption} Table|c')
 		rows.append("\n</$reveal>")
 	
 	rows.append("\n\n</div>")
@@ -687,7 +687,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 
 	# Append the table to the output list
 	append_tid_for_output(
-		create_new_tid_from_template(temp_title, caption, tid_text, field="boon_radio", value="Total"),
+		create_new_tid_from_template(temp_title, caption, tid_text, fields={"radio": "Total"}),
 		tid_list
 	)    
 
@@ -1280,7 +1280,7 @@ def build_menu_tid(datetime: str) -> None:
 	)
 
 	append_tid_for_output(
-		create_new_tid_from_template(title, caption, text, tags, field='radio', value='Total'),
+		create_new_tid_from_template(title, caption, text, tags, fields={'radio': 'Total', 'boon_radio': 'Total'}),
 		tid_list
 	)
 
@@ -1298,7 +1298,7 @@ def build_general_stats_tid(datetime):
 			f"'{datetime}-Offensive' '$:/temp/tab1'>>")
 
 	append_tid_for_output(
-		create_new_tid_from_template(title, caption, text, tags, creator=creator, field='radio', value='Total'),
+		create_new_tid_from_template(title, caption, text, tags, creator=creator, fields={'radio': 'Total'}),
 		tid_list
 	)
 
