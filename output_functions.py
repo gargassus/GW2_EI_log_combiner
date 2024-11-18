@@ -575,9 +575,9 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	
 	# Iterate for "Total" and "Average" views
-	for toggle in ["Total", "Per_Sec","Average"]:
+	for toggle in ["Total", "Average"]:
 		# Add a reveal widget to toggle between Total and Average views
-		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="boon_radio" type="match" text="{toggle}" animate="yes">\n')
+		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="radio" type="match" text="{toggle}" animate="yes">\n')
 
 		# Create table header
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
@@ -663,7 +663,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 					# Determine entry based on toggle
 					if toggle == "Total":
 						entry = f"{generation_ms/1000:,.1f}"
-					elif toggle == "Per_Sec":
+					elif toggle == "Average":
 						entry = f"{generation_ms/player['fight_time']:,.1f}"
 					else:
 						entry = uptime_percentage
@@ -675,7 +675,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 			rows.append(row)
 		
 		# Append the footer with radio buttons to toggle views
-		rows.append(f'|<$radio field="boon_radio" value="Total">Total Gen</$radio> - <$radio field="boon_radio" value="Per_Sec">Gen/Sec</$radio> - <$radio field="boon_radio" value="Average">Uptime Gen</$radio> - {caption} Table|c')
+		rows.append(f'|<$radio field="radio" value="Total">Total Gen</$radio> - <$radio field="radio" value="Average">Gen/Sec</$radio> - {caption} Table|c')
 		rows.append("\n</$reveal>")
 	
 	rows.append("\n\n</div>")
@@ -687,7 +687,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 
 	# Append the table to the output list
 	append_tid_for_output(
-		create_new_tid_from_template(temp_title, caption, tid_text),
+		create_new_tid_from_template(temp_title, caption, tid_text, field="boon_radio", value="Total"),
 		tid_list
 	)    
 
