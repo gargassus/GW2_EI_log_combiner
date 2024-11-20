@@ -85,7 +85,7 @@ support_table = {
 
 offensive_table = {
     #"totalDamageCount": 'statsTargets',
-    "totalDmg": 'statsTargets',
+    "damage": 'dpsTargets',
     #"directDamageCount": 'statsTargets',
     "directDmg": 'statsTargets',
     #"connectedDirectDamageCount": 'statsTargets',

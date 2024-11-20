@@ -393,7 +393,7 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 	enemy_killed = top_stats['overall']['enemy_killed']
 	squad_down = top_stats['overall']['defenses']['downCount']
 	squad_dead = top_stats['overall']['defenses']['deadCount']
-	total_damage_out = top_stats['overall']['statsTargets']['totalDmg']
+	total_damage_out = top_stats['overall']['dpsTargets']['damage']
 	total_damage_in = top_stats['overall']['defenses']['damageTaken']
 	total_barrier_damage = top_stats['overall']['defenses']['damageBarrier']
 	total_shield_damage = get_total_shield_damage(top_stats['overall'])
@@ -420,11 +420,11 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 		damage_taken = fight_data['defenses']['damageTaken'] or 1
 		row += f"|{fight_num} |{fight_link} | {fight_data['fight_duration']}| {fight_data['squad_count']} | {fight_data['non_squad_count']} | {fight_data['enemy_count']} "
 		row += f"| {fight_data['enemy_Red']}/{fight_data['enemy_Green']}/{fight_data['enemy_Blue']} | {fight_data['statsTargets']['downed']} | {fight_data['statsTargets']['killed']} "
-		row += f"| {fight_data['defenses']['downCount']} | {fight_data['defenses']['deadCount']} | {fight_data['statsTargets']['totalDmg']:,}| {fight_data['defenses']['damageTaken']:,}"
+		row += f"| {fight_data['defenses']['downCount']} | {fight_data['defenses']['deadCount']} | {fight_data['dpsTargets']['damage']:,}| {fight_data['defenses']['damageTaken']:,}"
 		row += f"| {fight_data['defenses']['damageBarrier']:,}| {(fight_data['defenses']['damageBarrier'] / damage_taken * 100):.2f}%| {fight_shield_damage:,}"
 		# Calculate the shield damage percentage
-		if fight_data['statsTargets']['totalDmg']:
-			shield_damage_pct = (fight_shield_damage / fight_data['statsTargets']['totalDmg'] * 100)
+		if fight_data['dpsTargets']['damage']:
+			shield_damage_pct = (fight_shield_damage / fight_data['dpsTargets']['damage'] * 100)
 		else:
 			shield_damage_pct = 0
 		row += f"| {shield_damage_pct:.2f}%|"
@@ -522,7 +522,10 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += "|!Party |!Name | !Prof |!Account | !{{FightTime}} |"
 		for stat in category_stats:
-			header += " !{{"+f"{stat}"+"}} |"
+			if stat =="damage":
+				header += " !{{totalDmg}} |"
+			else:
+				header += " !{{"+f"{stat}"+"}} |"
 		header += "h"
 
 		rows.append(header)
@@ -2008,7 +2011,7 @@ def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict
     """
     # Sort players by total damage output in descending order
     damage_totals = {
-        player: data['statsTargets']['totalDmg']
+        player: data['dpsTargets']['damage']
         for player, data in top_stats['player'].items()
         if data['statsTargets']['criticalRate'] > 50
     }
