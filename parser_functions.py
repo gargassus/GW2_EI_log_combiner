@@ -18,6 +18,7 @@
 import config
 import gzip
 import json
+import math
 import requests
 
 # Top stats dictionary to store combined log data
@@ -146,6 +147,63 @@ def get_player_fight_dps(dpsTargets: dict, name: str, profession: str, fight_num
 		"{{"+profession+"}}"+name+"-"+str(fight_num)+" | DPS",
 		target_damage
 		)
+
+def get_combat_start_from_player_json(initial_time, player_json):
+	start_combat = -1
+	# TODO check healthPercents exists
+	last_health_percent = 100
+	for change in player_json['healthPercents']:
+		if change[0] < initial_time:
+			last_health_percent = change[1]
+			continue
+		if change[1] - last_health_percent < 0:
+			# got dmg
+			start_combat = change[0]
+			break
+		last_health_percent = change[1]
+	for i in range(math.ceil(initial_time/1000), len(player_json['damage1S'][0])):
+		if i == 0:
+			continue
+		if player_json['powerDamage1S'][0][i] != player_json['powerDamage1S'][0][i-1]:
+			if start_combat == -1:
+				start_combat = i*1000
+			else:
+				start_combat = min(start_combat, i*1000)
+			break
+	return start_combat
+
+
+def get_combat_time_breakpoints(player_json):
+	start_combat = get_combat_start_from_player_json(0, player_json)
+	if 'combatReplayData' not in player_json:
+		print("WARNING: combatReplayData not in json, using activeTimes as time in combat")
+		return [start_combat, player_json.get('activeTimes', 0)]
+	replay = player_json['combatReplayData']
+	if 'dead' not in replay:
+		return [start_combat, player_json.get('activeTimes', 0)]
+
+	breakpoints = []
+	playerDeaths = dict(replay['dead'])
+	playerDowns = dict(replay['down'])
+	for deathKey, deathValue in playerDeaths.items():
+		for downKey, downValue in playerDowns.items():
+			if deathKey == downValue:
+				if start_combat != -1:
+					breakpoints.append([start_combat, deathKey])
+				start_combat = get_combat_start_from_player_json(deathValue + 1000, player_json)
+				break
+	end_combat = (len(player_json['damage1S'][0]))*1000
+	if start_combat != -1:
+		breakpoints.append([start_combat, end_combat])
+
+	return breakpoints
+
+
+def sum_breakpoints(breakpoints):
+	combat_time = 0
+	for [start, end] in breakpoints:
+		combat_time += end - start
+	return combat_time
 
 
 def get_player_stats_targets(statsTargets: dict, name: str, profession: str, fight_num: int, fight_time: int) -> None:
@@ -1189,6 +1247,9 @@ def parse_file(file_path, fight_num, guild_data):
 		if player['notInSquad']:
 			continue
 
+		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
+		if not combat_time:
+			continue
 
 		name = player['name']
 		profession = player['profession']
