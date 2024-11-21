@@ -1282,7 +1282,7 @@ def build_menu_tid(datetime: str) -> None:
 	text = (
 		f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] '
 		f'[[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] '
-		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] [[{datetime}-Player-Damage-By-Skill]] [[{datetime}-Squad-Composition]]" '
+		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] [[{datetime}-Player-Damage-By-Skill]] [[{datetime}-Squad-Composition]] [[{datetime}-On-Tag-Review]]" '
 		f'"{datetime}-Overview" "$:/temp/menutab1">>'
 	)
 
@@ -2137,7 +2137,41 @@ def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list)
 	)
 
 
+def build_on_tag_review(death_on_tag, tid_date_time):
+	rows = []
+	# Set the title, caption and tags for the table
+	tid_title = f"{tid_date_time}-On-Tag-Review"
+	tid_caption = "Player On Tag Review"
+	tid_tags = tid_date_time
+
+	# Add the select component to the table
+	rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
+	rows.append("| On Tag Review |c")
+	header = "|!Player |!Profession | !Avg Dist| !On-Tag<br>{{deadCount}} | !Off-Tag<br>{{deadCount}} | !After-Tag<br>{{deadCount}} | !Run-Back<br>{{deadCount}} | !Total<br>{{deadCount}} |!OffTag Ranges|h"
+	rows.append(header)
+	for name_prof in death_on_tag:
+		player = death_on_tag[name_prof]['name']
+		profession = death_on_tag[name_prof]['profession']
+		avg_dist = round(sum(death_on_tag[name_prof]['distToTag']) / len(death_on_tag[name_prof]['distToTag']))
+		on_tag = death_on_tag[name_prof]['On_Tag']
+		off_tag = death_on_tag[name_prof]['Off_Tag']
+		after_tag = death_on_tag[name_prof]['After_Tag_Death']
+		run_back = death_on_tag[name_prof]['Run_Back']
+		total = death_on_tag[name_prof]['Total']
+		off_tag_ranges = death_on_tag[name_prof]['Ranges']
+		row = f"|{player} | {{{{{profession}}}}} | {avg_dist} | {on_tag} | {off_tag} | {after_tag} | {run_back} | {total} |{off_tag_ranges} |"
+		rows.append(row)	
+
+	text = "\n".join(rows)
+
+	append_tid_for_output(
+		create_new_tid_from_template(tid_title, tid_caption, text, tid_tags),
+		tid_list
+	)
+
+
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
+	
 	print("Writing raid stats to database")
 	"""Write the top_stats dictionary to the database."""
 	conn = sqlite3.connect('Top_Stats.db')

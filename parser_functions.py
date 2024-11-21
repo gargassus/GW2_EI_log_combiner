@@ -169,12 +169,13 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 			"After_Tag_Death": 0,
 			"Total": 0,
 			"Ranges": [],
-		}
+			}
+			
+		player_dist_to_tag = round(player['statsAll'][0]['distToCom'])
 
 		if player['combatReplayData']['dead'] and player['combatReplayData']['down']:
 			player_deaths = dict(player['combatReplayData']['dead'])
 			player_downs = dict(player['combatReplayData']['down'])
-			player_dist_to_tag = player['statsAll'][0]['distToCom']
 
 			for death_key, death_value in player_deaths.items():
 				if death_key < 0:  # Handle death on the field before main squad combat log starts
@@ -191,8 +192,7 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 						x2, y2 = commander_tag_positions[position_mark]
 						#y2 = commander_tag_positions[position_mark][1]
 						death_distance = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-						death_range = death_distance / inch_to_pixel
-
+						death_range = round(death_distance / inch_to_pixel)
 						death_on_tag[name_prof]["Total"] += 1
 
 						if int(down_key) > int(dead_tag_mark) and dead_tag:
@@ -206,7 +206,7 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 								delta_y = position[1] - tag_position[1]
 								player_distances.append(math.sqrt(delta_x * delta_x + delta_y * delta_y))
 
-							player_dist_to_tag = (sum(player_distances) / len(player_distances)) / inch_to_pixel
+							player_dist_to_tag = round((sum(player_distances) / len(player_distances)) / inch_to_pixel)
 						else:
 							player_dead_poll = position_mark
 							player_positions = player['combatReplayData']['positions']
@@ -216,7 +216,7 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 								delta_y = position[1] - tag_position[1]
 								player_distances.append(math.sqrt(delta_x * delta_x + delta_y * delta_y))
 
-							player_dist_to_tag = (sum(player_distances) / len(player_distances)) / inch_to_pixel
+							player_dist_to_tag = round((sum(player_distances) / len(player_distances)) / inch_to_pixel)
 
 						if death_range <= On_Tag:
 							death_on_tag[name_prof]["On_Tag"] += 1
@@ -228,8 +228,8 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 						if death_range > Run_Back:
 							death_on_tag[name_prof]["Run_Back"] += 1
 
-			if player_dist_to_tag <= Run_Back:
-				death_on_tag[name_prof]["distToTag"].append(player_dist_to_tag)
+		if player_dist_to_tag <= Run_Back:
+			death_on_tag[name_prof]["distToTag"].append(player_dist_to_tag)
 
 
 

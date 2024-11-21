@@ -260,6 +260,8 @@ if __name__ == '__main__':
 
 	build_damage_summary_table(top_stats, "Damage", tid_date_time)
 
+	build_on_tag_review(death_on_tag, tid_date_time)
+
 	write_tid_list_to_json(tid_list, args.output_filename)
 
 	if write_all_data_to_json:
