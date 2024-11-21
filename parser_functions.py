@@ -41,6 +41,11 @@ personal_buff_data = {}
 
 players_running_healing_addon = []
 
+On_Tag = 600
+Run_Back = 5000
+death_on_tag = {}
+commander_tag_positions = {}
+
 
 def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 	"""
@@ -126,6 +131,106 @@ def determine_player_role(player_data: dict) -> str:
 		return "Support"
 	else:
 		return "DPS"
+
+
+def get_commander_tag_data(fight_json):
+	"""Get commander tag data from the fight json."""
+
+	commander_tag_data = {}
+	dead_tag_mark = 999999999
+	dead_tag = 0
+
+	for player in fight_json["players"]:
+		if player["hasCommanderTag"] and not player["notInSquad"]:
+			commander_tag_data = player["combatReplayData"]
+			commander_tag_positions = commander_tag_data["positions"]
+
+			if commander_tag_data["dead"]:
+				for death in commander_tag_data["dead"]:
+					if death[0] <= 0:
+						continue
+					dead_tag_mark = min(death[0], dead_tag_mark)
+					dead_tag = 1
+			break
+
+	return commander_tag_positions, dead_tag_mark, dead_tag
+
+
+def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead_tag, inch_to_pixel, polling_rate):
+		name_prof = player['name'] + "|" + player['profession'] 
+		if name_prof not in death_on_tag:
+			death_on_tag[name_prof] = {
+			"name": player['name'],
+			"profession": player['profession'],
+			"distToTag": [],
+			"On_Tag": 0,
+			"Off_Tag": 0,
+			"Run_Back": 0,
+			"After_Tag_Death": 0,
+			"Total": 0,
+			"Ranges": [],
+		}
+
+		if player['combatReplayData']['dead'] and player['combatReplayData']['down']:
+			player_deaths = dict(player['combatReplayData']['dead'])
+			player_downs = dict(player['combatReplayData']['down'])
+			player_dist_to_tag = player['statsAll'][0]['distToCom']
+
+			for death_key, death_value in player_deaths.items():
+				if death_key < 0:  # Handle death on the field before main squad combat log starts
+					continue
+
+				position_mark = math.ceil(death_key / polling_rate)
+				player_positions = player['combatReplayData']['positions']
+				
+				for down_key, down_value in player_downs.items():
+					if death_key == down_value:
+						# process data for downKey
+						x1, y1 = player_positions[position_mark]
+						#y1 = player_positions[position_mark][1]
+						x2, y2 = commander_tag_positions[position_mark]
+						#y2 = commander_tag_positions[position_mark][1]
+						death_distance = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+						death_range = death_distance / inch_to_pixel
+
+						death_on_tag[name_prof]["Total"] += 1
+
+						if int(down_key) > int(dead_tag_mark) and dead_tag:
+							death_on_tag[name_prof]["After_Tag_Death"] += 1
+
+							# Calc Avg distance through dead tag final mark
+							player_dead_poll = int(dead_tag_mark / polling_rate)
+							player_distances = []
+							for position, tag_position in zip(player_positions[:player_dead_poll], commander_tag_positions[:player_dead_poll]):
+								delta_x = position[0] - tag_position[0]
+								delta_y = position[1] - tag_position[1]
+								player_distances.append(math.sqrt(delta_x * delta_x + delta_y * delta_y))
+
+							player_dist_to_tag = (sum(player_distances) / len(player_distances)) / inch_to_pixel
+						else:
+							player_dead_poll = position_mark
+							player_positions = player['combatReplayData']['positions']
+							player_distances = []
+							for position, tag_position in zip(player_positions[:player_dead_poll], commander_tag_positions[:player_dead_poll]):
+								delta_x = position[0] - tag_position[0]
+								delta_y = position[1] - tag_position[1]
+								player_distances.append(math.sqrt(delta_x * delta_x + delta_y * delta_y))
+
+							player_dist_to_tag = (sum(player_distances) / len(player_distances)) / inch_to_pixel
+
+						if death_range <= On_Tag:
+							death_on_tag[name_prof]["On_Tag"] += 1
+
+						if death_range > On_Tag and death_range <= Run_Back:
+							death_on_tag[name_prof]["Off_Tag"] += 1
+							death_on_tag[name_prof]["Ranges"].append(death_range)
+
+						if death_range > Run_Back:
+							death_on_tag[name_prof]["Run_Back"] += 1
+
+			if player_dist_to_tag <= Run_Back:
+				death_on_tag[name_prof]["distToTag"].append(player_dist_to_tag)
+
 
 
 def get_player_fight_dps(dpsTargets: dict, name: str, profession: str, fight_num: int, fight_time: int) -> None:
@@ -1219,7 +1324,10 @@ def parse_file(file_path, fight_num, guild_data):
 		'enemy_Blue': 0,
 		'enemy_Unk': 0,
 	}
-	
+
+	#get commander data
+	commander_tag_positions, dead_tag_mark, dead_tag = get_commander_tag_data(json_data)
+
 	#collect player counts and parties
 	get_parties_by_fight(fight_num, players)
 
@@ -1274,7 +1382,7 @@ def parse_file(file_path, fight_num, guild_data):
 		else:
 			guild_id = None
 
-		if tag:
+		if tag:	#Commander Tracking
 			top_stats['fight'][fight_num]['commander'] = name_prof
 
 		if guild_data:
@@ -1306,6 +1414,8 @@ def parse_file(file_path, fight_num, guild_data):
 		get_player_stats_targets(player["statsTargets"], name, profession, fight_num, (fight_duration_ms/1000))
 
 		get_minions_by_player(player, name, profession)
+
+		get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead_tag, inches_to_pixel, polling_rate)
 
 		# Cumulative group and squad supported counts
 		top_stats['player'][name_prof]['num_fights'] = top_stats['player'][name_prof].get('num_fights', 0) + 1
