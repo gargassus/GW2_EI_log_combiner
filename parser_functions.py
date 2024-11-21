@@ -313,7 +313,7 @@ def sum_breakpoints(breakpoints):
 
 def get_player_stats_targets(statsTargets: dict, name: str, profession: str, fight_num: int, fight_time: int) -> None:
 	fight_stat_value= 0
-	fight_stats = ["killed", "downed", "downContribution"]
+	fight_stats = ["killed", "downed", "downContribution", "appliedCrowdControl"]
 	for stat in fight_stats:
 		for target in statsTargets:
 			if target[0]:

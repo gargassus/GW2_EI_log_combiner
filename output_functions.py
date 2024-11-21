@@ -1554,7 +1554,9 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 		"support_condiCleanse": "Cleanses per Second", 
 		"support_boonStrips": "Strips per Second", 
 		"extHealingStats_Healing": "Healing per Second", 
-		"extBarrierStats_Barrier": "Barrier per Second"
+		"extBarrierStats_Barrier": "Barrier per Second",
+		"statTarget_appliedCrowdControl": "Crowd Control-Out per Second", 
+		"defenses_receivedCrowdControl": "Crowd Control-In per Second",
 	}
 
 	# Initialize the HTML components

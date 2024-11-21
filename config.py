@@ -72,4 +72,5 @@ high_scores = [
     "invulnedCount",
     "boonStrips",
     "condiCleanse",
+    "receivedCrowdControl",
 ]
