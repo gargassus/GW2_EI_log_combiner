@@ -2156,9 +2156,13 @@ def build_on_tag_review(death_on_tag, tid_date_time):
 	header = "|!Player |!Profession | !Avg Dist| !On-Tag<br>{{deadCount}} | !Off-Tag<br>{{deadCount}} | !After-Tag<br>{{deadCount}} | !Run-Back<br>{{deadCount}} | !Total<br>{{deadCount}} |!OffTag Ranges|h"
 	rows.append(header)
 	for name_prof in death_on_tag:
+		print(name_prof, "on tag review")
 		player = death_on_tag[name_prof]['name']
 		profession = death_on_tag[name_prof]['profession']
-		avg_dist = round(sum(death_on_tag[name_prof]['distToTag']) / len(death_on_tag[name_prof]['distToTag']))
+		if len(death_on_tag[name_prof]['distToTag']):
+			avg_dist = round(sum(death_on_tag[name_prof]['distToTag']) / len(death_on_tag[name_prof]['distToTag']))
+		else:
+			avg_dist = "n/a"
 		on_tag = death_on_tag[name_prof]['On_Tag']
 		off_tag = death_on_tag[name_prof]['Off_Tag']
 		after_tag = death_on_tag[name_prof]['After_Tag_Death']
