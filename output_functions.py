@@ -1037,7 +1037,7 @@ def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict,
 	"""
 	shared_mod_list = []
 	for modifier in damage_mod_data:
-		if damage_mod_data[modifier]['shared']:
+		if damage_mod_data[modifier]['shared'] and modifier not in shared_mod_list:
 			shared_mod_list.append(modifier)
 
 	rows = []
@@ -1062,8 +1062,12 @@ def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict,
 				total_count = modifier_data['totalHitCount']
 				damage_gain = modifier_data['damageGain']
 				total_damage = modifier_data['totalDamage']
-				damage_pct = damage_gain / total_damage * 100
-				hit_pct = hit_count / total_count * 100
+				damage_pct = 0
+				if total_damage > 0:
+					damage_pct = (damage_gain / total_damage) * 100
+				hit_pct = 0
+				if total_count > 0:
+					hit_pct = hit_count / total_count * 100
 				tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain:,}<br>"
 				detail_entry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext">{tooltip}</span></div>'
 				row += f" {detail_entry}|"
