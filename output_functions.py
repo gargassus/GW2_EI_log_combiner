@@ -59,7 +59,6 @@ def create_new_tid_from_template(
 		temp_tid['creator'] = creator
 	if fields:
 		for field, value in fields.items():
-			print("Creating field: " + field+" with value: " + value)
 			temp_tid[field] = value
 
 	return temp_tid
@@ -2156,7 +2155,6 @@ def build_on_tag_review(death_on_tag, tid_date_time):
 	header = "|!Player |!Profession | !Avg Dist| !On-Tag<br>{{deadCount}} | !Off-Tag<br>{{deadCount}} | !After-Tag<br>{{deadCount}} | !Run-Back<br>{{deadCount}} | !Total<br>{{deadCount}} |!OffTag Ranges|h"
 	rows.append(header)
 	for name_prof in death_on_tag:
-		print(name_prof, "on tag review")
 		player = death_on_tag[name_prof]['name']
 		profession = death_on_tag[name_prof]['profession']
 		if len(death_on_tag[name_prof]['distToTag']):

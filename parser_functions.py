@@ -181,7 +181,7 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 				if death_key < 0:  # Handle death on the field before main squad combat log starts
 					continue
 
-				position_mark = math.ceil(death_key / polling_rate)
+				position_mark = math.floor(death_key / polling_rate)
 				player_positions = player['combatReplayData']['positions']
 				
 				for down_key, down_value in player_downs.items():
