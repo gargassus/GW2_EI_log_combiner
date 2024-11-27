@@ -318,8 +318,6 @@ def get_player_stats_targets(statsTargets: dict, name: str, profession: str, fig
 		for target in statsTargets:
 			if target[0]:
 				fight_stat_value += target[0][stat]
-				if stat == "appliedCrowdControl":
-					fight_stat_value /= 1000
 
 		fight_stat_value = round(fight_stat_value / fight_time, 3)
 
