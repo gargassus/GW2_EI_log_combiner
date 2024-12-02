@@ -177,6 +177,16 @@ other_skills = [14601, 14600, 23284, 23285, -2, 58083, 20285, 9284, 23275, 54877
                54941, 54953, 21615, 23267, 18792, 18793, 25533, 27927, 30765, 34797
               ]
 
+siege_skill_ids = [
+	*arrow_cart_skill_ids,
+	*trebuchet_skill_ids,
+	*catapult_skill_ids,
+	*cannon_skill_ids,
+	*burning_oil_skill_ids,
+	*dragon_banner_skill_ids,
+    *golem_skills,    
+]
+
 exclude_skill_ids = [
 	*arrow_cart_skill_ids,
 	*trebuchet_skill_ids,

@@ -1297,6 +1297,7 @@ def parse_file(file_path, fight_num, guild_data):
 	fight_name = json_data['fightName']
 	fight_link = json_data['uploadLinks'][0]
 	dist_to_com = []
+	player_in_combat = 0
 
 	enemy_engaged_count = sum(1 for enemy in targets if not enemy['isFake'])
 
@@ -1324,6 +1325,10 @@ def parse_file(file_path, fight_num, guild_data):
 		'enemy_Blue': 0,
 		'enemy_Unk': 0,
 	}
+
+	for stat_cat in json_stats:
+		top_stats['fight'][fight_num].setdefault(stat_cat, {})
+		top_stats['overall'].setdefault(stat_cat, {})	
 
 	#get commander data
 	commander_tag_positions, dead_tag_mark, dead_tag = get_commander_tag_data(json_data)
@@ -1442,8 +1447,8 @@ def parse_file(file_path, fight_num, guild_data):
 
 			# Initialize dictionaries for player, fight, and overall stats if they don't exist
 			top_stats['player'].setdefault(name_prof, {}).setdefault(stat_cat, {})
-			top_stats['fight'][fight_num].setdefault(stat_cat, {})
-			top_stats['overall'].setdefault(stat_cat, {})
+			#top_stats['fight'][fight_num].setdefault(stat_cat, {})
+			#top_stats['overall'].setdefault(stat_cat, {})
 
 			# format: player[stat_category][0][stat]
 			if stat_cat in ['defenses', 'support', 'statsAll']:

@@ -288,8 +288,8 @@ def build_tag_summary(top_stats):
 		tag_summary[commander]["fight_time"] += fight_data["fight_durationMS"]
 		tag_summary[commander]["enemy_killed"] += fight_data["enemy_killed"]
 		tag_summary[commander]["enemy_downed"] += fight_data["enemy_downed"]
-		tag_summary[commander]["squad_downed"] += fight_data["defenses"]["downCount"]
-		tag_summary[commander]["squad_deaths"] += fight_data["defenses"]["deadCount"]
+		tag_summary[commander]["squad_downed"] += fight_data.get("defenses", {}).get("downCount", 0)
+		tag_summary[commander]["squad_deaths"] += fight_data.get("defenses", {}).get("deadCount", 0)
 
 	return tag_summary, tag_list
 
@@ -416,14 +416,20 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 			fight_link = f"[[{fight_data['fight_date']} - {fight_data['fight_end']} - {abbrv}|{fight_data['fight_link']}]]"
 		
 		# Build the row
-		damage_taken = fight_data['defenses']['damageTaken'] or 1
+		damage_taken = fight_data['defenses'].get('damageTaken', 1)
+		downed = fight_data['statsTargets'].get('downed', 0)
+		killed = fight_data['statsTargets'].get('killed', 0)
+		def_down = fight_data['defenses'].get('downCount', 0)
+		def_dead = fight_data['defenses'].get('deadCount', 0)
+		dmg_out = fight_data['dpsTargets'].get('damage', 0)
+		def_barrier = fight_data['defenses'].get('damageBarrier', 0)
 		row += f"|{fight_num} |{fight_link} | {fight_data['fight_duration']}| {fight_data['squad_count']} | {fight_data['non_squad_count']} | {fight_data['enemy_count']} "
-		row += f"| {fight_data['enemy_Red']}/{fight_data['enemy_Green']}/{fight_data['enemy_Blue']} | {fight_data['statsTargets']['downed']} | {fight_data['statsTargets']['killed']} "
-		row += f"| {fight_data['defenses']['downCount']} | {fight_data['defenses']['deadCount']} | {fight_data['dpsTargets']['damage']:,}| {fight_data['defenses']['damageTaken']:,}"
-		row += f"| {fight_data['defenses']['damageBarrier']:,}| {(fight_data['defenses']['damageBarrier'] / damage_taken * 100):.2f}%| {fight_shield_damage:,}"
+		row += f"| {fight_data['enemy_Red']}/{fight_data['enemy_Green']}/{fight_data['enemy_Blue']} | {downed} | {killed} "
+		row += f"| {def_down} | {def_dead} | {dmg_out:,}| {damage_taken:,}"
+		row += f"| {def_barrier:,}| {(def_barrier / damage_taken * 100):.2f}%| {fight_shield_damage:,}"
 		# Calculate the shield damage percentage
-		if fight_data['dpsTargets']['damage']:
-			shield_damage_pct = (fight_shield_damage / fight_data['dpsTargets']['damage'] * 100)
+		if dmg_out:
+			shield_damage_pct = (fight_shield_damage / dmg_out * 100)
 		else:
 			shield_damage_pct = 0
 		row += f"| {shield_damage_pct:.2f}%|"
@@ -724,6 +730,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 	# Build the Squad table rows
 	header2 = f"|Squad Average Uptime |<|<|<|<|"
 	for boon_id in boons:
+		print(f"{boon_id=}")
 		if boon_id not in buff_data:
 			continue
 		if boon_id not in top_stats["overall"]["buffUptimes"]:

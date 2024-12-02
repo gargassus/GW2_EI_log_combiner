@@ -1,6 +1,6 @@
 import math
 DPSStats = {}
-
+stacking_uptime_Table = {}
 
 def moving_average(data, window_size):
 	num_elements = len(data)
@@ -68,9 +68,8 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 		if skip_fight[player_prof_name]:
 			continue
 
-		DPSStats_prof_name = player_prof_name + " " + player_role	
-		if DPSStats_prof_name not in DPSStats:
-			DPSStats[DPSStats_prof_name] = {
+		if player_prof_name not in DPSStats:
+			DPSStats[player_prof_name] = {
 				"account": player["account"],
 				"name": player["name"],
 				"profession": player["profession"],
@@ -95,23 +94,23 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 			
 		player_damage = damagePS[player_prof_name]
 		
-		DPSStats[DPSStats_prof_name]["duration"] += fight_time
-		DPSStats[DPSStats_prof_name]["combatTime"] += combat_time
-		DPSStats[DPSStats_prof_name]["Damage_Total"] += player_damage[fight_ticks - 1]
-		DPSStats[DPSStats_prof_name]["Squad_Damage_Total"] += squad_damage_total
+		DPSStats[player_prof_name]["duration"] += fight_time
+		DPSStats[player_prof_name]["combatTime"] += combat_time
+		DPSStats[player_prof_name]["Damage_Total"] += player_damage[fight_ticks - 1]
+		DPSStats[player_prof_name]["Squad_Damage_Total"] += squad_damage_total
 
 		for statsTarget in player["statsTargets"]:
-			DPSStats[DPSStats_prof_name]["Downs"] += statsTarget[0]['downed']
-			DPSStats[DPSStats_prof_name]["Kills"] += statsTarget[0]['killed']
+			DPSStats[player_prof_name]["Downs"] += statsTarget[0]['downed']
+			DPSStats[player_prof_name]["Kills"] += statsTarget[0]['killed']
 
 		for damage_dist in player['totalDamageDist'][0]:
-			if damage_dist['id'] in siege_skill_ids:
+			if damage_dist['id'] in config.siege_skill_ids:
 				UsedOffensiveSiege[player_prof_name] = True
 
 		if "minions" in player:	
 			for minion in player["minions"]:
 				for minion_damage_dist in minion["totalDamageDist"][0]:
-					if minion_damage_dist['id'] in siege_skill_ids:
+					if minion_damage_dist['id'] in config.siege_skill_ids:
 						UsedOffensiveSiege[player_prof_name] = True
 
 		# Coordination_Damage: Damage weighted by coordination with squad
@@ -132,7 +131,7 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 
 			squad_damage_percent = squad_damage_on_tick / squad_damage_ma_total
 
-			DPSStats[DPSStats_prof_name]["Coordination_Damage"] += player_damage_on_tick * squad_damage_percent * fight.duration
+			DPSStats[player_prof_name]["Coordination_Damage"] += player_damage_on_tick * squad_damage_percent * fight.duration
 
 	# Chunk damage: Damage done within X seconds of target down
 	for index, target in enumerate(fight_json['targets']):
@@ -155,13 +154,11 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 						player_prof_name = "{{"+player['profession']+"}} "+player['name']	
 						if skip_fight[player_prof_name]:
 							continue
-						
-						DPSStats_prof_name = player_prof_name
 
 						damage_on_target = player["targetDamage1S"][index][0]
 						player_damage = damage_on_target[downIndex] - damage_on_target[startIndex]
 
-						DPSStats[DPSStats_prof_name]["Chunk_Damage"][chunk_damage_seconds] += player_damage
+						DPSStats[player_prof_name]["Chunk_Damage"][chunk_damage_seconds] += player_damage
 						squad_damage_on_target += player_damage
 
 						if chunk_damage_seconds == 5:
@@ -171,9 +168,7 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 					for player in fight_json['players']:
 						player_prof_name = "{{"+player['profession']+"}} "+player['name']
 
-						DPSStats_prof_name = player_prof_name
-
-						DPSStats[DPSStats_prof_name]["Chunk_Damage_Total"][chunk_damage_seconds] += squad_damage_on_target
+						DPSStats[player_prof_name]["Chunk_Damage_Total"][chunk_damage_seconds] += squad_damage_on_target
 
 	# Carrion damage: damage to downs that die 
 	for index, target in enumerate(fight_json['targets']):
@@ -192,11 +187,10 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 							if skip_fight[player_prof_name]:
 								continue
 							
-							DPSStats_prof_name = player_prof_name
 							damage_on_target = player["targetDamage1S"][index][0]
 							carrion_damage = damage_on_target[dmgEnd] - damage_on_target[dmgStart]
 
-							DPSStats[DPSStats_prof_name]["Carrion_Damage"] += carrion_damage
+							DPSStats[player_prof_name]["Carrion_Damage"] += carrion_damage
 							total_carrion_damage += carrion_damage
 
 							for i in range(dmgStart, dmgEnd):
@@ -206,10 +200,8 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 							player_prof_name = "{{"+player['profession']+"}} "+player['name']
 							if skip_fight[player_prof_name]:
 								continue
-							
-							player_role = player_roles[player_prof_name]
-							DPSStats_prof_name = player_prof_name + " " + player_role
-							DPSStats[DPSStats_prof_name]["Carrion_Damage_Total"] += total_carrion_damage
+
+							DPSStats[player_prof_name]["Carrion_Damage_Total"] += total_carrion_damage
 
 	# Burst damage: max damage done in n seconds
 	for player in fight_json['players']:
@@ -218,12 +210,11 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 			# Exclude Dragon Banner from Burst stats
 			continue
 
-		DPSStats_prof_name = player_prof_name
 		player_damage = damagePS[player_prof_name]
 		for i in range(1, CHUNK_DAMAGE_SECONDS):
 			for fight_tick in range(i, fight_ticks):
 				dmg = player_damage[fight_tick] - player_damage[fight_tick - i]
-				DPSStats[DPSStats_prof_name]["Burst_Damage"][i] = max(dmg, DPSStats[DPSStats_prof_name]["Burst_Damage"][i])
+				DPSStats[player_prof_name]["Burst_Damage"][i] = max(dmg, DPSStats[player_prof_name]["Burst_Damage"][i])
 
 	# Ch5Ca Burst damage: max damage done in n seconds
 	for player in fight_json['players']:
@@ -232,7 +223,6 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 			# Exclude Dragon Banner from Burst stats
 			continue
 
-		DPSStats_prof_name = player_prof_name
 		player_damage_ps = Ch5CaDamage1S[player_prof_name]
 		player_damage = [0] * len(player_damage_ps)
 		player_damage[0] = player_damage_ps[0]
@@ -241,8 +231,11 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 		for i in range(1, CHUNK_DAMAGE_SECONDS):
 			for fight_tick in range(i, fight_ticks):
 				dmg = player_damage[fight_tick] - player_damage[fight_tick - i]
-				DPSStats[DPSStats_prof_name]["Ch5Ca_Burst_Damage"][i] = max(dmg, DPSStats[DPSStats_prof_name]["Ch5Ca_Burst_Damage"][i])
+				DPSStats[player_prof_name]["Ch5Ca_Burst_Damage"][i] = max(dmg, DPSStats[player_prof_name]["Ch5Ca_Burst_Damage"][i])
 	
+	return DPSStats
+
+def calculate_stacking_uptimes(fight_json, fight, players_running_healing_addon, config, combat_time, fight_time):
 	# Track Stacking Buff Uptimes
 	damage_with_buff_buffs = ['stability', 'protection', 'aegis', 'might', 'fury', 'resistance', 'resolution', 'quickness', 'swiftness', 'alacrity', 'vigor', 'regeneration']
 	for player in fight_json['players']:
@@ -250,21 +243,18 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 		if skip_fight[player_prof_name]:
 			continue
 
-		player_role = player_roles[player_prof_name]
-		DPSStats_prof_name = player_prof_name + " " + player_role
-		if DPSStats_prof_name not in stacking_uptime_Table:
-			stacking_uptime_Table[DPSStats_prof_name] = {}
-			stacking_uptime_Table[DPSStats_prof_name]["account"] = player['account']
-			stacking_uptime_Table[DPSStats_prof_name]["name"] = player['name']
-			stacking_uptime_Table[DPSStats_prof_name]["profession"] = player['profession']
-			stacking_uptime_Table[DPSStats_prof_name]["role"] = player_role
-			stacking_uptime_Table[DPSStats_prof_name]["duration_might"] = 0
-			stacking_uptime_Table[DPSStats_prof_name]["duration_stability"] = 0
-			stacking_uptime_Table[DPSStats_prof_name]["might"] = [0] * 26
-			stacking_uptime_Table[DPSStats_prof_name]["stability"] = [0] * 26
-			stacking_uptime_Table[DPSStats_prof_name]["firebrand_pages"] = {}
+		if player_prof_name not in stacking_uptime_Table:
+			stacking_uptime_Table[player_prof_name] = {}
+			stacking_uptime_Table[player_prof_name]["account"] = player['account']
+			stacking_uptime_Table[player_prof_name]["name"] = player['name']
+			stacking_uptime_Table[player_prof_name]["profession"] = player['profession']
+			stacking_uptime_Table[player_prof_name]["duration_might"] = 0
+			stacking_uptime_Table[player_prof_name]["duration_stability"] = 0
+			stacking_uptime_Table[player_prof_name]["might"] = [0] * 26
+			stacking_uptime_Table[player_prof_name]["stability"] = [0] * 26
+			stacking_uptime_Table[player_prof_name]["firebrand_pages"] = {}
 			for buff_name in damage_with_buff_buffs:
-				stacking_uptime_Table[DPSStats_prof_name]["damage_with_"+buff_name] = [0] * 26 if buff_name == 'might' else [0] * 2
+				stacking_uptime_Table[player_prof_name]["damage_with_"+buff_name] = [0] * 26 if buff_name == 'might' else [0] * 2
 		  
 		player_damage = damagePS[player_prof_name]
 		player_damage_per_tick = [player_damage[0]]
@@ -287,7 +277,7 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 					if buff_name in ['stability', 'might']:
 						uptime = state_end - state_start
 						total_time += uptime
-						stacking_uptime_Table[DPSStats_prof_name][buff_name][min(stacks, 25)] += uptime
+						stacking_uptime_Table[player_prof_name][buff_name][min(stacks, 25)] += uptime
 
 					if buff_name in damage_with_buff_buffs:
 						start_sec = state_start / 1000
@@ -328,36 +318,10 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 							damage_with_stacks += player_damage_per_tick[next_start_sec_int] * (next_start_sec_rem)
 
 						if buff_name == 'might':
-							stacking_uptime_Table[DPSStats_prof_name]["damage_with_"+buff_name][min(stacks, 25)] += damage_with_stacks
+							stacking_uptime_Table[player_prof_name]["damage_with_"+buff_name][min(stacks, 25)] += damage_with_stacks
 						else:
-							stacking_uptime_Table[DPSStats_prof_name]["damage_with_"+buff_name][min(stacks, 1)] += damage_with_stacks
+							stacking_uptime_Table[player_prof_name]["damage_with_"+buff_name][min(stacks, 1)] += damage_with_stacks
 
 				if buff_name in ['stability', 'might']:
-					stacking_uptime_Table[DPSStats_prof_name]["duration_"+buff_name] += total_time
-					
-		if player_prof_name not in FB_Pages:
-			FB_Pages[player_prof_name] = {}
-			FB_Pages[player_prof_name]["account"] = player['account']
-			FB_Pages[player_prof_name]["name"] = player['name']
-			FB_Pages[player_prof_name]["fightTime"] = 0
-			FB_Pages[player_prof_name]["firebrand_pages"] = {}
-					
-		# Track Firebrand Buffs
-		tome1_skill_ids = ["41258", "40635", "42449", "40015", "42898"]
-		tome2_skill_ids = ["45022", "40679", "45128", "42008", "42925"]
-		tome3_skill_ids = ["42986", "41968", "41836", "40988", "44455"]
-		tome_skill_ids = [
-			*tome1_skill_ids,
-			*tome2_skill_ids,
-			*tome3_skill_ids,
-		]
-
-		if player['profession'] == "Firebrand" and "rotation" in player:
-			FB_Pages[player_prof_name]["fightTime"] += player['activeTimes'][0]/1000
-			for rotation_skill in player['rotation']:
-				skill_id = str(rotation_skill['id'])
-				if skill_id in tome_skill_ids:
-					pages_data = FB_Pages[player_prof_name]["firebrand_pages"]
-					pages_data[skill_id] = pages_data.get(skill_id, 0) + len(rotation_skill['skills'])
- 
-	return DPSStats
+					stacking_uptime_Table[player_prof_name]["duration_"+buff_name] += total_time
+					 
