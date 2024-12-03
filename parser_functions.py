@@ -231,8 +231,6 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 		if player_dist_to_tag <= Run_Back:
 			death_on_tag[name_prof]["distToTag"].append(player_dist_to_tag)
 
-
-
 def get_player_fight_dps(dpsTargets: dict, name: str, profession: str, fight_num: int, fight_time: int) -> None:
 	"""
 	Get the maximum damage hit by skill.
@@ -431,6 +429,10 @@ def get_personal_mod_data(personal_damage_mods: dict) -> None:
 			if mod_id not in personal_damage_mod_data[profession]:
 				personal_damage_mod_data[profession].append(mod_id)
 				personal_damage_mod_data['total'].append(mod_id)
+
+
+def get_personal_buff_data(personal_buffs: dict) -> None:
+	pass
 
 
 def get_enemies_by_fight(fight_num: int, targets: dict) -> None:

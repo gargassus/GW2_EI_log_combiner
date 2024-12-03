@@ -416,23 +416,22 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 			fight_link = f"[[{fight_data['fight_date']} - {fight_data['fight_end']} - {abbrv}|{fight_data['fight_link']}]]"
 		
 		# Build the row
-		damage_taken = fight_data['defenses'].get('damageTaken', 1)
+		damage_taken = fight_data['defenses'].get('damageTaken', 0)
 		downed = fight_data['statsTargets'].get('downed', 0)
 		killed = fight_data['statsTargets'].get('killed', 0)
 		def_down = fight_data['defenses'].get('downCount', 0)
 		def_dead = fight_data['defenses'].get('deadCount', 0)
 		dmg_out = fight_data['dpsTargets'].get('damage', 0)
 		def_barrier = fight_data['defenses'].get('damageBarrier', 0)
+		def_barrier_pct = (def_barrier / damage_taken) * 100 if damage_taken > 0 else 0
 		row += f"|{fight_num} |{fight_link} | {fight_data['fight_duration']}| {fight_data['squad_count']} | {fight_data['non_squad_count']} | {fight_data['enemy_count']} "
 		row += f"| {fight_data['enemy_Red']}/{fight_data['enemy_Green']}/{fight_data['enemy_Blue']} | {downed} | {killed} "
 		row += f"| {def_down} | {def_dead} | {dmg_out:,}| {damage_taken:,}"
-		row += f"| {def_barrier:,}| {(def_barrier / damage_taken * 100):.2f}%| {fight_shield_damage:,}"
+		row += f"| {def_barrier:,}| {def_barrier_pct:.2f}%| {fight_shield_damage:,}"
 		# Calculate the shield damage percentage
-		if dmg_out:
-			shield_damage_pct = (fight_shield_damage / dmg_out * 100)
-		else:
-			shield_damage_pct = 0
+		shield_damage_pct = (fight_shield_damage / dmg_out) * 100 if dmg_out else 0
 		row += f"| {shield_damage_pct:.2f}%|"
+
 		# Keep track of the last fight number, end time, and total duration
 		last_fight = fight_num
 		total_durationMS += fight_data['fight_durationMS']
