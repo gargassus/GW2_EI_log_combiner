@@ -729,7 +729,6 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 	# Build the Squad table rows
 	header2 = f"|Squad Average Uptime |<|<|<|<|"
 	for boon_id in boons:
-		print(f"{boon_id=}")
 		if boon_id not in buff_data:
 			continue
 		if boon_id not in top_stats["overall"]["buffUptimes"]:
@@ -1345,7 +1344,7 @@ def build_buffs_stats_tid(datetime):
 	caption = "Buffs"
 	creator = "Drevarr@github.com"
 
-	text = (f"<<tabs '[[{datetime}-Boons]] [[{datetime}-Offensive-Buffs]] [[{datetime}-Support-Buffs]] [[{datetime}-Defensive-Buffs]]"
+	text = (f"<<tabs '[[{datetime}-Boons]] [[{datetime}-Personal-Buffs]] [[{datetime}-Offensive-Buffs]] [[{datetime}-Support-Buffs]] [[{datetime}-Defensive-Buffs]]"
 			f" [[{datetime}-Gear-Buff-Uptimes]] [[{datetime}-Gear-Skill-Damage]]"
 			f"[[{datetime}-Conditions-In]] [[{datetime}-Debuffs-In]] [[{datetime}-Conditions-Out]] [[{datetime}-Debuffs-Out]]' "
 			f"'{datetime}-Boons' '$:/temp/tab1'>>")
@@ -1684,6 +1683,84 @@ def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_t
 		create_new_tid_from_template(f"{mechanics_title}", caption, text, tid_date_time),
 		tid_list
 	)
+
+def build_personal_buff_summary(top_stats: dict, buff_data: dict, personal_buff_data: dict, caption: str, tid_date_time: str) -> None:
+	"""Print a table of personal buff stats for all players in the log running the extension.
+
+	Args:
+		top_stats (dict): Dictionary containing top statistics for players.
+		buff_data (dict): Dictionary containing buff stats for each player.
+		caption (str): The caption for the table.
+		tid_date_time (str): A string to use as the date and time for the table id.
+	"""
+	personal_buffs_tags = f"{tid_date_time}"
+	personal_buff_title = f"{tid_date_time}-Personal-Buffs"
+	personal_buff_caption = f"{caption}"
+	personal_buff_creator = f"Drevarr@github.com"
+	personal_buff_text ="<<tabs '"
+	tab_name = ""
+	for profession in personal_buff_data:
+		if profession == 'total':
+			continue
+		tab_name = f"{tid_date_time}-{caption.replace(' ','-')}-{profession}"
+		personal_buff_text += f'[[{tab_name}]]'
+	personal_buff_text += f"' '{tab_name}' '$:/temp/tab1'>>"
+	append_tid_for_output(
+		create_new_tid_from_template(personal_buff_title, personal_buff_caption, personal_buff_text, personal_buffs_tags, creator=personal_buff_creator),
+		tid_list
+	)
+
+	for profession in personal_buff_data:
+		if profession == 'total':
+			continue
+		prof_buff_list = personal_buff_data[profession]
+
+		rows = []
+		rows.append('<div style="overflow-x:auto;">\n\n')
+		# Build the table header
+		header = "|thead-dark table-caption-top table-hover sortable|k\n"
+		header += "|!Party |!Name | !Prof |!Account | !{{FightTime}} |"
+		for buff_id in prof_buff_list:
+			if buff_id not in buff_data:
+				continue
+			skillIcon = buff_data[buff_id]["icon"]
+			header += f"! [img width=24 [{buff_data[buff_id]['name']}|{skillIcon}]] |"
+		header += "h"
+		rows.append(header)
+
+		# Build the table body	
+		for player, player_data in top_stats['player'].items():
+			if player_data['profession'] == profession:
+
+				# Build the row
+				row = f"| {player_data['last_party']} |{player_data['name']} | {{{{{player_data['profession']}}}}} |{player_data['account'][:32]} | {player_data['fight_time'] / 1000:.2f}|"
+
+				for buff_id in prof_buff_list:
+					if buff_id in player_data['buffUptimes']:
+						buff_id_uptime = round((player_data['buffUptimes'][buff_id]['uptime_ms'] / player_data['fight_time']) * 100, 2)
+						state_changes = player_data['buffUptimes'][buff_id]['state_changes']
+						tooltip = f"{state_changes} state changes"
+						detail_entry = f'<div class="xtooltip"> {buff_id_uptime:.2f}% <span class="xtooltiptext">{tooltip}</span></div>'
+
+						row += f" {detail_entry} |"
+					else:
+						row += f" - |"
+				rows.append(row)
+
+		# Add caption row and finalize table
+		rows.append(f"|{caption} Table|c")
+		rows.append("\n\n</div>")
+
+		# Convert rows to text and append to output list
+		tid_text = "\n".join(rows)
+		personal_buff_title = f"{tid_date_time}-{caption.replace(' ','-')}-{profession}"
+		profession = "{{"+f"{profession}"+"}}"
+		prof_caption = f"{profession}-Personal-Buffs"	
+		append_tid_for_output(
+			create_new_tid_from_template(f"{personal_buff_title}", prof_caption, tid_text),
+			tid_list
+		)
+
 
 def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time: str) -> None:
 	"""
@@ -2250,7 +2327,7 @@ def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	print("Database updated.")
 
 
-def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, fb_pages: dict, mechanics: dict, minions: dict, death_on_tag: dict, outfile: str) -> None:
+def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, personal_buff_data: dict, fb_pages: dict, mechanics: dict, minions: dict, death_on_tag: dict, outfile: str) -> None:
 	"""Print the top_stats dictionary as a JSON object to the console."""
 
 	json_dict = {}
@@ -2265,6 +2342,7 @@ def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, da
 	json_dict["skill_casts_by_role"] = {key: value for key, value in top_stats["skill_casts_by_role"].items()}
 	json_dict["high_scores"] = {key: value for key, value in high_scores.items()}    
 	json_dict["personal_damage_mod_data"] = {key: value for key, value in personal_damage_mod_data.items()}
+	json_dict['personal_buff_data'] = {key: value for key, value in personal_buff_data.items()}
 	json_dict["fb_pages"] = {key: value for key, value in fb_pages.items()}
 	json_dict["mechanics"] = {key: value for key, value in mechanics.items()}
 	json_dict["minions"] = {key: value for key, value in minions.items()}

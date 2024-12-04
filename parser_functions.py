@@ -37,7 +37,9 @@ minions = {}
 personal_damage_mod_data = {
 	"total": [],
 }
-personal_buff_data = {}
+personal_buff_data = {
+	"total": [],
+}
 
 players_running_healing_addon = []
 
@@ -432,7 +434,22 @@ def get_personal_mod_data(personal_damage_mods: dict) -> None:
 
 
 def get_personal_buff_data(personal_buffs: dict) -> None:
-	pass
+	"""
+	Populate the personal_buff_data dictionary with buffs from personal_buffs.
+
+	Args:
+		personal_buffs (dict): A dictionary where keys are professions and values are lists of buff IDs.
+	"""
+	for profession, buffs in personal_buffs.items():
+		if profession not in personal_buff_data:
+			personal_buff_data[profession] = []
+		for buff_id in buffs:
+			# Convert the buff ID to the format used in buff_data
+			buff_id = "b" + str(buff_id)
+			if buff_id not in personal_buff_data[profession]:
+				personal_buff_data[profession].append(buff_id)
+				# Add the buff to the total list
+				personal_buff_data['total'].append(buff_id)
 
 
 def get_enemies_by_fight(fight_num: int, targets: dict) -> None:
@@ -670,6 +687,7 @@ def get_buff_uptimes(fight_num: int, player: dict, group: str, stat_category: st
 		buff_id = 'b'+str(buff['id'])
 		buff_uptime_ms = buff['buffData'][0]['uptime'] * fight_duration / 100
 		buff_presence = buff['buffData'][0]['presence']
+		state_changes = len(buff['states'])//2
 
 		if buff_id not in top_stats['player'][name_prof][stat_category]:
 			top_stats['player'][name_prof][stat_category][buff_id] = {}
@@ -690,6 +708,7 @@ def get_buff_uptimes(fight_num: int, player: dict, group: str, stat_category: st
 			stat_value = buff_presence * active_time / 100 if buff_presence else buff_uptime_ms
 
 		top_stats['player'][name_prof][stat_category][buff_id]['uptime_ms'] = top_stats['player'][name_prof][stat_category][buff_id].get('uptime_ms', 0) + stat_value
+		top_stats['player'][name_prof][stat_category][buff_id]['state_changes'] = top_stats['player'][name_prof][stat_category][buff_id].get('state_changes', 0) + state_changes
 		top_stats['fight'][fight_num][stat_category][buff_id]['uptime_ms'] = top_stats['fight'][fight_num][stat_category][buff_id].get('uptime_ms', 0) + stat_value
 		top_stats['overall'][stat_category][buff_id]['uptime_ms'] = top_stats['overall'][stat_category][buff_id].get('uptime_ms', 0) + stat_value
 		top_stats['overall'][stat_category]["group"][group][buff_id]['uptime_ms'] = top_stats['overall'][stat_category]["group"][group][buff_id].get('uptime_ms', 0) + stat_value
@@ -1352,6 +1371,9 @@ def parse_file(file_path, fight_num, guild_data):
 	#collect damage mods data
 	get_personal_mod_data(personal_damage_mods)
 	get_damage_mods_data(damage_mod_map, personal_damage_mod_data)
+
+	#collect personal buff data
+	get_personal_buff_data(personal_buffs)
 
 	#collect mechanics data
 	get_mechanics_by_fight(fight_num, mechanics_map, players, log_type)
