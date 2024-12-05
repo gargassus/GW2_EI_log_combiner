@@ -78,6 +78,25 @@ def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 		log_type = "PVE"
 	return log_type, fight_name
 
+def calculate_moving_average(data: list, window_size: int) -> list:
+	"""
+	Calculate the moving average of a list of numbers with a specified window size.
+
+	Args:
+		data (list): The list of numbers to calculate the moving average for.
+		window_size (int): The number of elements to include in the moving average calculation.
+
+	Returns:
+		list: A list of the moving averages for each element in the input list.
+	"""
+	ma = []
+	for i in range(len(data)):
+		start_index = max(0, i - window_size)
+		end_index = min(len(data), i + window_size)
+		sub_data = data[start_index:end_index + 1]
+		ma.append(sum(sub_data) / len(sub_data))
+	return ma
+
 
 def update_high_score(stat_name: str, key: str, value: float) -> None:
 	"""
@@ -1384,23 +1403,27 @@ def parse_file(file_path, fight_num, guild_data):
 		if player['notInSquad']:
 			continue
 
-		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
-		if not combat_time:
-			continue
-
 		name = player['name']
 		profession = player['profession']
 		account = player['account']
 		group = player['group']
 		group_count = len(top_stats['parties_by_fight'][fight_num][group])
 		squad_count = top_stats['fight'][fight_num]['squad_count']
+
+		name_prof = name + "|" + profession
 		tag = player['hasCommanderTag']
+		if tag:	#Commander Tracking
+			top_stats['fight'][fight_num]['commander'] = name_prof
+
+		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
+		if not combat_time:
+			continue
+
 		if 'teamID' in player:
 			team = player['teamID']
 		else:
 			team = None
 		active_time = player['activeTimes'][0]
-		name_prof = name + "|" + profession
 
 		if name in players_running_healing_addon:
 			if name_prof not in top_stats['players_running_healing_addon']:
@@ -1410,9 +1433,6 @@ def parse_file(file_path, fight_num, guild_data):
 			guild_id = player['guildID']
 		else:
 			guild_id = None
-
-		if tag:	#Commander Tracking
-			top_stats['fight'][fight_num]['commander'] = name_prof
 
 		if guild_data:
 			guild_status = find_member(guild_data, account)
