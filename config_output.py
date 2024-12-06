@@ -119,7 +119,7 @@ offensive_table = {
 boons = {
 	'b740': "Might", 'b725': "Fury", 'b1187': "Quickness", 'b30328': "Alacrity", 'b717': "Protection",
 	'b718': "Regeneration", 'b726': "Vigor", 'b743': "Aegis", 'b1122': "Stability",
-	'b719': "Swiftness", 'b26980': "Resistance", 'b873': "Resolution"
+	'b719': "Swiftness", 'b26980': "Resistance", 'b873': "Resolution", 'b5974': "Superspeed"
 }
 
 buffs_conditions = {
