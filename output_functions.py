@@ -476,7 +476,7 @@ def build_damage_summary_table(top_stats: dict, caption: str, tid_date_time: str
 	# Build the table body
 	for player, player_data in top_stats["player"].items():
 		fighttime = player_data["fight_time"] / 1000
-		row = f"| {player_data['last_party']} |{player_data['name']} |"+" {{"+f"{player_data['profession']}"+"}} "+f"|{player_data['account'][:30]} | {player_data['fight_time'] / 1000:.1f}|"
+		row = f"| {player_data['last_party']} |{player_data['name']} |"+" {{"+f"{player_data['profession']}"+"}}"+f" {player_data['profession'][:3]} "+f"|{player_data['account'][:30]} | {player_data['fight_time'] / 1000:.1f}|"
 		row += " {:,}| {:,.0f}| {:,}| {:,.0f}| {:,}| {:,.0f}| {:,}| {:,}| {:,}| {:,}| {:,}|".format(
 			player_data["dpsTargets"]["damage"],
 			player_data["dpsTargets"]["damage"]/fighttime,
@@ -536,7 +536,7 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 
 		# Build the table body
 		for player in top_stats["player"].values():
-			row = f"| { player['last_party']} |{player['name']} | {{{{{player['profession']}}}}} |{player['account'][:30]} | {player['fight_time'] / 1000:.0f}|"
+			row = f"| { player['last_party']} |{player['name']} | {{{{{player['profession']}}}}} {player['profession'][:3]} |{player['account'][:30]} | {player['fight_time'] / 1000:.0f}|"
 			fight_time = player["fight_time"] / 1000
 			for stat, category in category_stats.items():
 				stat_value = player[category].get(stat, 0)
@@ -613,7 +613,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 		# Build the table body by iterating over each player
 		for player in top_stats["player"].values():
 			# Create a row for the player with basic info
-			row = f"| { player['last_party']} |{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:30]} | {player['fight_time'] / 1000:.1f}|"
+			row = f"| { player['last_party']} |{player['name']} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"|{player['account'][:30]} | {player['fight_time'] / 1000:.1f}|"
 
 			# Iterate over each boon
 			for boon_id in boons:
@@ -762,7 +762,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 
 	# Build the table body
 	for player in top_stats["player"].values():
-		row = f"| {player['last_party']} |{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:30]} | {player['fight_time'] / 1000:.2f}|"
+		row = f"| {player['last_party']} |{player['name']} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"|{player['account'][:30]} | {player['fight_time'] / 1000:.2f}|"
 		for boon_id in boons:
 			if boon_id not in buff_data:
 				continue
@@ -842,7 +842,7 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 
 	# Build the table body
 	for player in top_stats["player"].values():
-		row = f"| {player['last_party']} |{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:32]} | {player['fight_time'] / 1000:.2f}|"
+		row = f"| {player['last_party']} |{player['name']} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"|{player['account'][:32]} | {player['fight_time'] / 1000:.2f}|"
 		applied_counts = 0
 		for boon_id in boons:
 			if boon_id not in buff_data:
@@ -923,7 +923,7 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
 	for healer in sorted_healing_stats:
 		if (healer[1]['healing'] + healer[1]['downed_healing'] + healer[1]['barrier']):
 			fighttime = healer[1]['fight_time'] / 1000
-			row = f"| {healer[1]['last_party']} |{healer[0].split('|')[0]} |"+" {{"+f"{healer[1]['profession']}"+"}} "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+			row = f"| {healer[1]['last_party']} |{healer[0].split('|')[0]} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
 			row += f" {healer[1]['healing']:,}| {healer[1]['healing'] / fighttime:,.2f}| {healer[1]['barrier']:,}|"
 			row += f"{healer[1]['barrier'] / fighttime:,.2f}| {healer[1]['downed_healing']:,}| {healer[1]['downed_healing'] / fighttime:,.2f}|"
 			rows.append(row)
@@ -1213,7 +1213,7 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 	rows = []
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
-	header += "|@@display:block;width:150px;!Name@@ | !Prof | !{{FightTime}} |"
+	header += "|!@@display:block;width:150px;Name@@ | !Prof | !{{FightTime}} |"
 	for skill in sorted_res_skills:
 		if skill in skill_data:
 			skill_icon = skill_data[skill]['icon']
@@ -1233,9 +1233,10 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 	for player in combat_resurrect['players']:
 		profession, name, fight_time = player.split('|')
 		time_secs = int(fight_time) / 1000
+		abbrv = profession[:3]
 		profession = "{{" + profession + "}}"
 
-		row = f"|{name} | {profession} | {time_secs:,.1f}|"
+		row = f"|{name} | {profession} {abbrv} | {time_secs:,.1f}|"
 		for skill in sorted_res_skills:
 			row += f" {combat_resurrect['players'][player].get(skill, 0):,.0f}|"
 
