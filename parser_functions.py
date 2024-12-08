@@ -47,7 +47,7 @@ On_Tag = 600
 Run_Back = 5000
 death_on_tag = {}
 commander_tag_positions = {}
-
+DPSStats = {}
 
 def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 	"""
@@ -329,6 +329,192 @@ def sum_breakpoints(breakpoints):
 		combat_time += end - start
 	return combat_time
 
+def calculate_dps_stats(fight_json):
+
+	fight_ticks = len(fight_json['players'][0]["damage1S"][0])
+	duration = round(fight_json['durationMS']/1000)
+
+	damage_ps = {}
+	for index, target in enumerate(fight_json['targets']):
+		if 'enemyPlayer' in target and target['enemyPlayer'] == True:
+			for player in fight_json['players']:
+				player_prof_name = player['profession'] + " " + player['name']
+				if player_prof_name not in damage_ps:
+					damage_ps[player_prof_name] = [0] * fight_ticks
+
+				damage_on_target = player["targetDamage1S"][index][0]
+				for i in range(fight_ticks):
+					damage_ps[player_prof_name][i] += damage_on_target[i]
+
+	squad_damage_per_tick = []
+	for fight_tick in range(fight_ticks - 1):
+		squad_damage_on_tick = 0
+		for player in fight_json['players']:
+			combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
+			if combat_time:
+				player_prof_name = player['profession'] + " " + player['name']
+				player_damage = damage_ps[player_prof_name]
+				squad_damage_on_tick += player_damage[fight_tick + 1] - player_damage[fight_tick]
+		squad_damage_per_tick.append(squad_damage_on_tick)
+
+	squad_damage_total = sum(squad_damage_per_tick)
+	squad_damage_per_tick_ma = calculate_moving_average(squad_damage_per_tick, 1)
+	squad_damage_ma_total = sum(squad_damage_per_tick_ma)
+
+	CHUNK_DAMAGE_SECONDS = 21
+	ch5_ca_damage_1s = {}
+
+	for player in fight_json['players']:
+		player_prof_name = player['profession'] + " " + player['name']
+		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
+		if combat_time:
+			if player_prof_name not in DPSStats:
+				DPSStats[player_prof_name] = {
+					"account": player["account"],
+					"name": player["name"],
+					"profession": player["profession"],
+					"duration": 0,
+					"combatTime": 0,
+					"coordinationDamage": 0,
+					"chunkDamage": [0] * CHUNK_DAMAGE_SECONDS,
+					"chunkDamageTotal": [0] * CHUNK_DAMAGE_SECONDS,
+					"carrionDamage": 0,
+					"carrionDamageTotal": 0,
+					"damageTotal": 0,
+					"squadDamageTotal": 0,
+					"burstDamage": [0] * CHUNK_DAMAGE_SECONDS,
+					"ch5CaBurstDamage": [0] * CHUNK_DAMAGE_SECONDS,
+					"downs": 0,
+					"kills": 0,
+				}
+				
+			ch5_ca_damage_1s[player_prof_name] = [0] * fight_ticks
+				
+			player_damage = damage_ps[player_prof_name]
+			
+			DPSStats[player_prof_name]["duration"] += duration
+			DPSStats[player_prof_name]["combatTime"] += combat_time
+			DPSStats[player_prof_name]["damageTotal"] += player_damage[fight_ticks - 1]
+			DPSStats[player_prof_name]["squadDamageTotal"] += squad_damage_total
+
+			for stats_target in player["statsTargets"]:
+				DPSStats[player_prof_name]["downs"] += stats_target[0]['downed']
+				DPSStats[player_prof_name]["kills"] += stats_target[0]['killed']
+
+			# Coordination_Damage: Damage weighted by coordination with squad
+			player_damage_per_tick = [player_damage[0]]
+			for fight_tick in range(fight_ticks - 1):
+				player_damage_per_tick.append(player_damage[fight_tick + 1] - player_damage[fight_tick])
+
+			player_damage_ma = calculate_moving_average(player_damage_per_tick, 1)
+
+			for fight_tick in range(fight_ticks - 1):
+				player_damage_on_tick = player_damage_ma[fight_tick]
+				if player_damage_on_tick == 0:
+					continue
+
+				squad_damage_on_tick = squad_damage_per_tick_ma[fight_tick]
+				if squad_damage_on_tick == 0:
+					continue
+
+				squad_damage_percent = squad_damage_on_tick / squad_damage_ma_total
+
+				DPSStats[player_prof_name]["coordinationDamage"] += player_damage_on_tick * squad_damage_percent * duration
+
+	# Chunk damage: Damage done within X seconds of target down
+	for index, target in enumerate(fight_json['targets']):
+		if 'enemyPlayer' in target and target['enemyPlayer'] == True and 'combatReplayData' in target and len(target['combatReplayData']['down']):
+			for chunk_damage_seconds in range(1, CHUNK_DAMAGE_SECONDS):
+				targetDowns = dict(target['combatReplayData']['down'])
+				for targetDownsIndex, (downKey, downValue) in enumerate(targetDowns.items()):
+					downIndex = math.ceil(downKey / 1000)
+					startIndex = max(0, math.ceil(downKey / 1000) - chunk_damage_seconds)
+					if targetDownsIndex > 0:
+						lastDownKey, lastDownValue = list(targetDowns.items())[targetDownsIndex - 1]
+						lastDownIndex = math.ceil(lastDownKey / 1000)
+						if lastDownIndex == downIndex:
+							# Probably an ele in mist form
+							continue
+						startIndex = max(startIndex, lastDownIndex)
+
+					squad_damage_on_target = 0
+					for player in fight_json['players']:
+						combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
+						if combat_time:
+							player_prof_name = player['profession'] + " " + player['name']	
+							damage_on_target = player["targetDamage1S"][index][0]
+							player_damage = damage_on_target[downIndex] - damage_on_target[startIndex]
+
+							DPSStats[player_prof_name]["chunkDamage"][chunk_damage_seconds] += player_damage
+							squad_damage_on_target += player_damage
+
+							if chunk_damage_seconds == 5:
+								for i in range(startIndex, downIndex):
+									ch5_ca_damage_1s[player_prof_name][i] += damage_on_target[i + 1] - damage_on_target[i]
+
+					for player in fight_json['players']:
+						combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
+						if combat_time:
+							player_prof_name = player['profession'] + " " + player['name']
+
+							DPSStats[player_prof_name]["chunkDamageTotal"][chunk_damage_seconds] += squad_damage_on_target
+
+	# Carrion damage: damage to downs that die 
+	for index, target in enumerate(fight_json['targets']):
+		if 'enemyPlayer' in target and target['enemyPlayer'] == True and 'combatReplayData' in target and len(target['combatReplayData']['dead']):
+			targetDeaths = dict(target['combatReplayData']['dead'])
+			targetDowns = dict(target['combatReplayData']['down'])
+			for deathKey, deathValue in targetDeaths.items():
+				for downKey, downValue in targetDowns.items():
+					if deathKey == downValue:
+						dmgEnd = math.ceil(deathKey / 1000)
+						dmgStart = math.ceil(downKey / 1000)
+
+						total_carrion_damage = 0
+						for player in fight_json['players']:
+							combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
+							if combat_time:
+								player_prof_name = player['profession'] + " " + player['name']
+								damage_on_target = player["targetDamage1S"][index][0]
+								carrion_damage = damage_on_target[dmgEnd] - damage_on_target[dmgStart]
+
+								DPSStats[player_prof_name]["carrionDamage"] += carrion_damage
+								total_carrion_damage += carrion_damage
+
+								for i in range(dmgStart, dmgEnd):
+									ch5_ca_damage_1s[player_prof_name][i] += damage_on_target[i + 1] - damage_on_target[i]
+
+						for player in fight_json['players']:
+							combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
+							if combat_time:
+								player_prof_name = player['profession'] + " " + player['name']
+								DPSStats[player_prof_name]["carrionDamageTotal"] += total_carrion_damage
+
+	# Burst damage: max damage done in n seconds
+	for player in fight_json['players']:
+		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
+		if combat_time:
+			player_prof_name = player['profession'] + " " + player['name']
+			player_damage = damage_ps[player_prof_name]
+			for i in range(1, CHUNK_DAMAGE_SECONDS):
+				for fight_tick in range(i, fight_ticks):
+					dmg = player_damage[fight_tick] - player_damage[fight_tick - i]
+					DPSStats[player_prof_name]["burstDamage"][i] = max(dmg, DPSStats[player_prof_name]["burstDamage"][i])
+
+	# Ch5Ca Burst damage: max damage done in n seconds
+	for player in fight_json['players']:
+		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
+		if combat_time:
+			player_prof_name = player['profession'] + " " + player['name']
+			player_damage_ps = ch5_ca_damage_1s[player_prof_name]
+			player_damage = [0] * len(player_damage_ps)
+			player_damage[0] = player_damage_ps[0]
+			for i in range(1, len(player_damage)):
+				player_damage[i] = player_damage[i - 1] + player_damage_ps[i]
+			for i in range(1, CHUNK_DAMAGE_SECONDS):
+				for fight_tick in range(i, fight_ticks):
+					dmg = player_damage[fight_tick] - player_damage[fight_tick - i]
+					DPSStats[player_prof_name]["ch5CaBurstDamage"][i] = max(dmg, DPSStats[player_prof_name]["ch5CaBurstDamage"][i])
 
 def get_player_stats_targets(statsTargets: dict, name: str, profession: str, fight_num: int, fight_time: int) -> None:
 	fight_stat_value= 0
@@ -1342,6 +1528,8 @@ def parse_file(file_path, fight_num, guild_data):
 	enemy_engaged_count = sum(1 for enemy in targets if not enemy['isFake'])
 
 	log_type, fight_name = determine_log_type_and_extract_fight_name(fight_name)
+
+	calculate_dps_stats(json_data)
 
 	top_stats['overall']['last_fight'] = f"{fight_date}-{fight_end}"
 	#Initialize fight_num stats

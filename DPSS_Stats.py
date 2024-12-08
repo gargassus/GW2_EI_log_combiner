@@ -1,7 +1,5 @@
 import math
 DPSStats = {}
-damagePS = {}
-stacking_uptime_Table = {}
 
 def moving_average(data, window_size):
 	num_elements = len(data)
@@ -14,25 +12,10 @@ def moving_average(data, window_size):
 
 	return ma
 
-damage_PS = {}
-
-def get_damage_ps(fight_json, fight, players_running_healing_addon, config, combat_time, fight_time):
-	fight_ticks = len(fight_json['players'][0]["damage1S"][0])
-	for index, target in enumerate(fight_json['targets']):
-		if 'enemyPlayer' in target and target['enemyPlayer'] == True:
-			for player in fight_json['players']:
-				player_prof_name  = "{{"+player['profession']+"}} "+player['name']		
-				if player_prof_name  not in damage_PS:
-					damage_PS[player_prof_name ] = [0] * fight_ticks
-
-				damage_on_target = player["targetDamage1S"][index][0]
-				for i in range(fight_ticks):
-					damage_PS[player_prof_name ][i] += damage_on_target[i]
-
-
-def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config, combat_time, fight_time):
+def calculate_dps_stats(fight_json):
 
 	fight_ticks = len(fight_json['players'][0]["damage1S"][0])
+	duration = round(fight_json['durationMS']/1000)
 
 	damagePS = {}
 	for index, target in enumerate(fight_json['targets']):
@@ -46,44 +29,25 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 				for i in range(fight_ticks):
 					damagePS[player_prof_name ][i] += damage_on_target[i]
 
-	skip_fight = {}
-	for player in fight_json['players']:
-		player_prof_name = "{{"+player['profession']+"}} "+player['name']
-
-		if player['notInSquad']:
-			skip_fight[player_prof_name] = True
-			continue
-
-		if 'dead' in player['combatReplayData'] and len(player['combatReplayData']['dead']) > 0 and (combat_time / fight_time) < 0.4:
-			skip_fight[player_prof_name] = True
-		else:
-			skip_fight[player_prof_name] = False
-
 	squad_damage_per_tick = []
 	for fight_tick in range(fight_ticks - 1):
 		squad_damage_on_tick = 0
 		for player in fight_json['players']:
 			player_prof_name = "{{"+player['profession']+"}} "+player['name']
-			if skip_fight[player_prof_name]:
-				continue
-	
 			player_damage = damagePS[player_prof_name]
 			squad_damage_on_tick += player_damage[fight_tick + 1] - player_damage[fight_tick]
 		squad_damage_per_tick.append(squad_damage_on_tick)
 
 	squad_damage_total = sum(squad_damage_per_tick)
-	squad_damage_per_tick_ma = moving_average(squad_damage_per_tick, 1)
+	squad_damage_per_tick_ma = calculate_moving_average(squad_damage_per_tick, 1)
 	squad_damage_ma_total = sum(squad_damage_per_tick_ma)
 
 	CHUNK_DAMAGE_SECONDS = 21
 	Ch5CaDamage1S = {}
-	UsedOffensiveSiege = {}
 
 	for player in fight_json['players']:
 		player_prof_name = "{{"+player['profession']+"}} "+player['name']
-		if skip_fight[player_prof_name]:
-			continue
-
+		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 		if player_prof_name not in DPSStats:
 			DPSStats[player_prof_name] = {
 				"account": player["account"],
@@ -106,11 +70,10 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 			
 			
 		Ch5CaDamage1S[player_prof_name] = [0] * fight_ticks
-		UsedOffensiveSiege[player_prof_name] = False
 			
 		player_damage = damagePS[player_prof_name]
 		
-		DPSStats[player_prof_name]["duration"] += fight_time
+		DPSStats[player_prof_name]["duration"] += duration
 		DPSStats[player_prof_name]["combatTime"] += combat_time
 		DPSStats[player_prof_name]["Damage_Total"] += player_damage[fight_ticks - 1]
 		DPSStats[player_prof_name]["Squad_Damage_Total"] += squad_damage_total
@@ -119,22 +82,12 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 			DPSStats[player_prof_name]["Downs"] += statsTarget[0]['downed']
 			DPSStats[player_prof_name]["Kills"] += statsTarget[0]['killed']
 
-		for damage_dist in player['totalDamageDist'][0]:
-			if damage_dist['id'] in config.siege_skill_ids:
-				UsedOffensiveSiege[player_prof_name] = True
-
-		if "minions" in player:	
-			for minion in player["minions"]:
-				for minion_damage_dist in minion["totalDamageDist"][0]:
-					if minion_damage_dist['id'] in config.siege_skill_ids:
-						UsedOffensiveSiege[player_prof_name] = True
-
 		# Coordination_Damage: Damage weighted by coordination with squad
 		player_damage_per_tick = [player_damage[0]]
 		for fight_tick in range(fight_ticks - 1):
 			player_damage_per_tick.append(player_damage[fight_tick + 1] - player_damage[fight_tick])
 
-		player_damage_ma = moving_average(player_damage_per_tick, 1)
+		player_damage_ma = calculate_moving_average(player_damage_per_tick, 1)
 
 		for fight_tick in range(fight_ticks - 1):
 			player_damage_on_tick = player_damage_ma[fight_tick]
@@ -147,7 +100,7 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 
 			squad_damage_percent = squad_damage_on_tick / squad_damage_ma_total
 
-			DPSStats[player_prof_name]["Coordination_Damage"] += player_damage_on_tick * squad_damage_percent * fight.duration
+			DPSStats[player_prof_name]["Coordination_Damage"] += player_damage_on_tick * squad_damage_percent * duration
 
 	# Chunk damage: Damage done within X seconds of target down
 	for index, target in enumerate(fight_json['targets']):
@@ -168,9 +121,6 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 					squad_damage_on_target = 0
 					for player in fight_json['players']:
 						player_prof_name = "{{"+player['profession']+"}} "+player['name']	
-						if skip_fight[player_prof_name]:
-							continue
-
 						damage_on_target = player["targetDamage1S"][index][0]
 						player_damage = damage_on_target[downIndex] - damage_on_target[startIndex]
 
@@ -200,9 +150,6 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 						total_carrion_damage = 0
 						for player in fight_json['players']:
 							player_prof_name = "{{"+player['profession']+"}} "+player['name']
-							if skip_fight[player_prof_name]:
-								continue
-							
 							damage_on_target = player["targetDamage1S"][index][0]
 							carrion_damage = damage_on_target[dmgEnd] - damage_on_target[dmgStart]
 
@@ -214,18 +161,11 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 
 						for player in fight_json['players']:
 							player_prof_name = "{{"+player['profession']+"}} "+player['name']
-							if skip_fight[player_prof_name]:
-								continue
-
 							DPSStats[player_prof_name]["Carrion_Damage_Total"] += total_carrion_damage
 
 	# Burst damage: max damage done in n seconds
 	for player in fight_json['players']:
 		player_prof_name = "{{"+player['profession']+"}} "+player['name']
-		if skip_fight[player_prof_name] or UsedOffensiveSiege[player_prof_name]:
-			# Exclude Dragon Banner from Burst stats
-			continue
-
 		player_damage = damagePS[player_prof_name]
 		for i in range(1, CHUNK_DAMAGE_SECONDS):
 			for fight_tick in range(i, fight_ticks):
@@ -235,10 +175,6 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 	# Ch5Ca Burst damage: max damage done in n seconds
 	for player in fight_json['players']:
 		player_prof_name = "{{"+player['profession']+"}} "+player['name']
-		if skip_fight[player_prof_name] or UsedOffensiveSiege[player_prof_name]:
-			# Exclude Dragon Banner from Burst stats
-			continue
-
 		player_damage_ps = Ch5CaDamage1S[player_prof_name]
 		player_damage = [0] * len(player_damage_ps)
 		player_damage[0] = player_damage_ps[0]
@@ -249,5 +185,4 @@ def calculate_dps_stats(fight_json, fight, players_running_healing_addon, config
 				dmg = player_damage[fight_tick] - player_damage[fight_tick - i]
 				DPSStats[player_prof_name]["Ch5Ca_Burst_Damage"][i] = max(dmg, DPSStats[player_prof_name]["Ch5Ca_Burst_Damage"][i])
 	
-	return DPSStats
 					 
