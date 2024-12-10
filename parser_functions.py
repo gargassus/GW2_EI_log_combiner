@@ -338,6 +338,8 @@ def calculate_dps_stats(fight_json):
 	for index, target in enumerate(fight_json['targets']):
 		if 'enemyPlayer' in target and target['enemyPlayer'] == True:
 			for player in fight_json['players']:
+				if player['notInSquad']:
+					continue
 				player_prof_name = player['profession'] + " " + player['name']
 				if player_prof_name not in damage_ps:
 					damage_ps[player_prof_name] = [0] * fight_ticks
@@ -350,6 +352,8 @@ def calculate_dps_stats(fight_json):
 	for fight_tick in range(fight_ticks - 1):
 		squad_damage_on_tick = 0
 		for player in fight_json['players']:
+			if player['notInSquad']:
+				continue
 			combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 			if combat_time:
 				player_prof_name = player['profession'] + " " + player['name']
@@ -365,6 +369,8 @@ def calculate_dps_stats(fight_json):
 	ch5_ca_damage_1s = {}
 
 	for player in fight_json['players']:
+		if player['notInSquad']:
+			continue
 		player_prof_name = player['profession'] + " " + player['name']
 		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 		if combat_time:
@@ -439,6 +445,8 @@ def calculate_dps_stats(fight_json):
 
 					squad_damage_on_target = 0
 					for player in fight_json['players']:
+						if player['notInSquad']:
+							continue
 						combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 						if combat_time:
 							player_prof_name = player['profession'] + " " + player['name']	
@@ -453,6 +461,8 @@ def calculate_dps_stats(fight_json):
 									ch5_ca_damage_1s[player_prof_name][i] += damage_on_target[i + 1] - damage_on_target[i]
 
 					for player in fight_json['players']:
+						if player['notInSquad']:
+							continue
 						combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 						if combat_time:
 							player_prof_name = player['profession'] + " " + player['name']
@@ -472,6 +482,8 @@ def calculate_dps_stats(fight_json):
 
 						total_carrion_damage = 0
 						for player in fight_json['players']:
+							if player['notInSquad']:
+								continue
 							combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 							if combat_time:
 								player_prof_name = player['profession'] + " " + player['name']
@@ -485,6 +497,8 @@ def calculate_dps_stats(fight_json):
 									ch5_ca_damage_1s[player_prof_name][i] += damage_on_target[i + 1] - damage_on_target[i]
 
 						for player in fight_json['players']:
+							if player['notInSquad']:
+								continue
 							combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 							if combat_time:
 								player_prof_name = player['profession'] + " " + player['name']
@@ -492,6 +506,8 @@ def calculate_dps_stats(fight_json):
 
 	# Burst damage: max damage done in n seconds
 	for player in fight_json['players']:
+		if player['notInSquad']:
+			continue
 		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 		if combat_time:
 			player_prof_name = player['profession'] + " " + player['name']
@@ -503,6 +519,8 @@ def calculate_dps_stats(fight_json):
 
 	# Ch5Ca Burst damage: max damage done in n seconds
 	for player in fight_json['players']:
+		if player['notInSquad']:
+			continue
 		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 		if combat_time:
 			player_prof_name = player['profession'] + " " + player['name']

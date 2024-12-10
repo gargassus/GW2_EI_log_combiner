@@ -264,6 +264,9 @@ if __name__ == '__main__':
 
 	build_on_tag_review(death_on_tag, tid_date_time)
 
+	build_dps_stats_tids(DPSStats, tid_date_time, tid_list)
+	build_dps_stats_menu(tid_date_time)
+
 	write_tid_list_to_json(tid_list, args.output_filename)
 
 	if write_all_data_to_json:

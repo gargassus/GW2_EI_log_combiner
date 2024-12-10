@@ -1291,7 +1291,7 @@ def build_menu_tid(datetime: str) -> None:
 	text = (
 		f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] '
 		f'[[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] '
-		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] [[{datetime}-Player-Damage-By-Skill]] [[{datetime}-Squad-Composition]] [[{datetime}-On-Tag-Review]]" '
+		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] [[{datetime}-Player-Damage-By-Skill]] [[{datetime}-Squad-Composition]] [[{datetime}-On-Tag-Review]] [[{datetime}-DPS-Stats]]" '
 		f'"{datetime}-Overview" "$:/temp/menutab1">>'
 	)
 
@@ -1352,6 +1352,23 @@ def build_buffs_stats_tid(datetime):
 
 	append_tid_for_output(
 		create_new_tid_from_template(title, caption, text, tags, creator=creator),
+		tid_list
+	)
+
+def build_dps_stats_menu(datetime):
+	buff_stats_tags = f"{datetime}"
+	buff_stats_title = f"{datetime}-DPS-Stats"
+	buff_stats_caption = f"DPS Stats"
+	buff_stats_creator = f"Drevarr@github.com"
+	buff_stats_text = "!!!`Experimental DPS stats `\n"
+	buff_stats_text += "* `Ch (t)s` = Damage/second done `t` seconds before an enemy goes down \n"
+	buff_stats_text += "* `Bur (t)s` = Maximum damage/second done over any `t` second interval \n"
+	buff_stats_text += "* `Ch5CaBur (t)s` = Maximum Chunk(5) + Carrion damage/second done over any `t` second interval \n\n"
+
+	buff_stats_text += f"<<tabs '[[{datetime}-DPS-Stats-chunkDamage]] [[{datetime}-DPS-Stats-burstDamage]] [[{datetime}-DPS-Stats-ch5CaBurstDamage]]' '{datetime}-DPS-Stats-chunkDamage' '$:/temp/tab1'>>"
+
+	append_tid_for_output(
+		create_new_tid_from_template(buff_stats_title, buff_stats_caption, buff_stats_text, buff_stats_tags, creator=buff_stats_creator),
 		tid_list
 	)
 
@@ -2261,6 +2278,54 @@ def build_on_tag_review(death_on_tag, tid_date_time):
 		tid_list
 	)
 
+
+def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> None:
+	exp_dps_stats = {"chunkDamage": "Ch", "burstDamage": "Bur", "ch5CaBurstDamage": "Ch5CaBur"}
+	sorted_DPSStats = []
+	for player_prof in DPSStats:
+		player = DPSStats[player_prof]['name']
+		profession = DPSStats[player_prof]['profession']
+		fightTime = DPSStats[player_prof]['duration']
+
+		if DPSStats[player_prof]['damageTotal'] / fightTime < 250:
+			continue
+		sorted_DPSStats.append([player_prof, DPSStats[player_prof]['damageTotal'] / fightTime])
+	sorted_DPSStats = sorted(sorted_DPSStats, key=lambda x: x[1], reverse=True)
+	sorted_DPSStats = list(map(lambda x: x[0], sorted_DPSStats))
+
+	for exp_dps_stat in exp_dps_stats:
+		rows = []
+
+		# Set the title, caption and tags for the table
+		tid_title = f"{tid_date_time}-DPS-Stats-{exp_dps_stat}"
+		tid_caption = exp_dps_stat
+		tid_tags = tid_date_time
+
+		# Add the select component to the table
+		rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
+		rows.append(f"| DPS Stats - {exp_dps_stat} |c")
+		header = "|!Player |!Profession | ! <span data-tooltip=`Number of seconds player was in squad logs`>Seconds</span>| !DPS|"
+		for i in range(1, 11):
+			header += f" !{exp_dps_stats[exp_dps_stat]} ({i})s|"
+		header += "h"
+		rows.append(header)
+		for player_prof in sorted_DPSStats:
+			player = DPSStats[player_prof]["name"]
+			profession = DPSStats[player_prof]["profession"]
+			fightTime = DPSStats[player_prof]['duration']
+			DPS = '<span data-tooltip="'+f"{DPSStats[player_prof]['damageTotal']:,.0f}"+' total damage">'+f"{round(DPSStats[player_prof]['damageTotal'] / fightTime):,.0f}</span>" 
+			row = f"|{player} | {{{{{profession}}}}} | {fightTime} | {DPS} |"
+			for i in range(1, 11):
+				row += ' <span data-tooltip="'+f"{DPSStats[player_prof][exp_dps_stat][i]:,.0f}"+f' chunk({i}) damage">'+f"{round(DPSStats[player_prof][exp_dps_stat][i] / fightTime):,.0f}</span>|"
+
+			rows.append(row)	
+
+		text = "\n".join(rows)
+
+		append_tid_for_output(
+			create_new_tid_from_template(tid_title, tid_caption, text, tid_tags),
+			tid_list
+		)
 
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	
