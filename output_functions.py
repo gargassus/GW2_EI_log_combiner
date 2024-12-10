@@ -2313,10 +2313,10 @@ def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> 
 			player = DPSStats[player_prof]["name"]
 			profession = DPSStats[player_prof]["profession"]
 			fightTime = DPSStats[player_prof]['duration']
-			DPS = '<span data-tooltip="'+f"{DPSStats[player_prof]['damageTotal']:,.0f}"+' total damage">'+f"{round(DPSStats[player_prof]['damageTotal'] / fightTime):,.0f}</span>" 
+			DPS = '<span data-tooltip="'+f"{DPSStats[player_prof]['damageTotal']:,.0f}"+' total damage">'+f"{round(DPSStats[player_prof]['damageTotal'] / i):,.0f}</span>" 
 			row = f"|{player} | {{{{{profession}}}}} | {fightTime} | {DPS} |"
 			for i in range(1, 11):
-				row += ' <span data-tooltip="'+f"{DPSStats[player_prof][exp_dps_stat][i]:,.0f}"+f' chunk({i}) damage">'+f"{round(DPSStats[player_prof][exp_dps_stat][i] / fightTime):,.0f}</span>|"
+				row += ' <span data-tooltip="'+f"{DPSStats[player_prof][exp_dps_stat][i]:,.0f}"+f' chunk({i}) damage">'+f"{round(DPSStats[player_prof][exp_dps_stat][i] / i):,.0f}</span>|"
 
 			rows.append(row)	
 
