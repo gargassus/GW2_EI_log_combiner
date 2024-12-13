@@ -1363,7 +1363,7 @@ def build_dps_stats_menu(datetime):
 	buff_stats_text = "!!!`Experimental DPS stats `\n"
 	buff_stats_text += "* `Ch (t)s` = Damage/second done `t` seconds before an enemy goes down \n"
 	buff_stats_text += "* `Bur (t)s` = Maximum damage/second done over any `t` second interval \n"
-	buff_stats_text += "* `Ch5CaBur (t)s` = Maximum Chunk(5) + Carrion damage/second done over any `t` second interval \n\n"
+	buff_stats_text += "* `Ch5Ca (t)s` = Maximum Chunk(5) + Carrion damage/second done over any `t` second interval \n\n"
 
 	buff_stats_text += f"<<tabs '[[{datetime}-DPS-Stats-chunkDamage]] [[{datetime}-DPS-Stats-burstDamage]] [[{datetime}-DPS-Stats-ch5CaBurstDamage]]' '{datetime}-DPS-Stats-chunkDamage' '$:/temp/tab1'>>"
 
@@ -2280,7 +2280,7 @@ def build_on_tag_review(death_on_tag, tid_date_time):
 
 
 def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> None:
-	exp_dps_stats = {"chunkDamage": "Ch", "burstDamage": "Bur", "ch5CaBurstDamage": "Ch5CaBur"}
+	exp_dps_stats = {"chunkDamage": "Ch", "burstDamage": "Bur", "ch5CaBurstDamage": "Ch5Ca"}
 	sorted_DPSStats = []
 	for player_prof in DPSStats:
 		player = DPSStats[player_prof]['name']
@@ -2316,7 +2316,10 @@ def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> 
 			DPS = '<span data-tooltip="'+f"{DPSStats[player_prof]['damageTotal']:,.0f}"+' total damage">'+f"{round(DPSStats[player_prof]['damageTotal'] / fightTime):,.0f}</span>" 
 			row = f"|{player} | {{{{{profession}}}}} | {fightTime} | {DPS} |"
 			for i in range(1, 11):
-				row += ' <span data-tooltip="'+f"{DPSStats[player_prof][exp_dps_stat][i]:,.0f}"+f' chunk({i}) damage">'+f"{round(DPSStats[player_prof][exp_dps_stat][i] / i):,.0f}</span>|"
+				if exp_dps_stat == "chunkDamage":
+					row += ' <span data-tooltip="'+f"{DPSStats[player_prof][exp_dps_stat][i]:,.0f}"+f' chunk({i}) damage">'+f"{round(DPSStats[player_prof][exp_dps_stat][i] / fightTime):,.0f}</span>|"
+				else:
+					row += ' <span data-tooltip="'+f"{DPSStats[player_prof][exp_dps_stat][i]:,.0f}"+f' chunk({i}) damage">'+f"{round(DPSStats[player_prof][exp_dps_stat][i] / i):,.0f}</span>|"
 
 			rows.append(row)	
 
