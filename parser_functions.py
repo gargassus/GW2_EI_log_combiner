@@ -158,7 +158,7 @@ def get_commander_tag_data(fight_json):
     """Extract commander tag data from the fight JSON."""
     
     commander_tag_positions = []
-    earliest_death_time = float('inf')
+    earliest_death_time = fight_json['durationMS']
     has_died = False
 
     for player in fight_json["players"]:

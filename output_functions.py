@@ -1252,6 +1252,8 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 def build_main_tid(datetime, tag_list, guild_name):
 	tag_str = ""
 	for tag in tag_list:
+		if tag == "":
+			continue
 		if tag == tag_list[-1] and len(tag_list) > 1:
 			tag_str += f"and {tag}"
 		if tag != tag_list[-1] and len(tag_list) > 1:
@@ -1259,12 +1261,17 @@ def build_main_tid(datetime, tag_list, guild_name):
 		if len(tag_list) == 1:
 			tag_str += f"{tag} "
 		
-		
+	if tag_str == "": 
+		tag_str = " - No Tags"
+	else:
+		tag_str = f"with {tag_str}"
+
 	main_created = f"{datetime}"
 	main_modified = f"{datetime}"
 	main_tags = f"{datetime} Logs"
 	main_title = f"{datetime}-Log-Summary"
-	main_caption = f"{datetime} - {guild_name} - Log Summary with {tag_str}"
+	
+	main_caption = f"{datetime} - {guild_name} - Log Summary {tag_str}"
 	main_creator = f"Drevarr@github.com"
 
 	main_text = "{{"+datetime+"-Tag_Stats}}\n\n{{"+datetime+"-Menu}}"
