@@ -155,26 +155,24 @@ def determine_player_role(player_data: dict) -> str:
 
 
 def get_commander_tag_data(fight_json):
-	"""Get commander tag data from the fight json."""
+    """Extract commander tag data from the fight JSON."""
+    
+    commander_tag_positions = []
+    earliest_death_time = float('inf')
+    has_died = False
 
-	commander_tag_data = {}
-	dead_tag_mark = 999999999
-	dead_tag = 0
+    for player in fight_json["players"]:
+        if player["hasCommanderTag"] and not player["notInSquad"]:
+            replay_data = player.get("combatReplayData", {})
+            commander_tag_positions = replay_data.get("positions", [])
 
-	for player in fight_json["players"]:
-		if player["hasCommanderTag"] and not player["notInSquad"]:
-			commander_tag_data = player["combatReplayData"]
-			commander_tag_positions = commander_tag_data["positions"]
+            for death_time, _ in replay_data.get("dead", []):
+                if death_time > 0:
+                    earliest_death_time = min(death_time, earliest_death_time)
+                    has_died = True
+            break
 
-			if commander_tag_data["dead"]:
-				for death in commander_tag_data["dead"]:
-					if death[0] <= 0:
-						continue
-					dead_tag_mark = min(death[0], dead_tag_mark)
-					dead_tag = 1
-			break
-
-	return commander_tag_positions, dead_tag_mark, dead_tag
+    return commander_tag_positions, earliest_death_time, has_died
 
 
 def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead_tag, inch_to_pixel, polling_rate):

@@ -2330,6 +2330,38 @@ def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> 
 			tid_list
 		)
 
+
+def build_support_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str, tid_list: list) -> None:
+	# ["Name", "Profession", "Cleanses", "Heals", "Boon Score", "color"]
+	rows = []
+	tid_title = f"{tid_date_time}-Support-Bubble-Chart"
+	tid_caption = "Support Bubble Chart"
+	tid_tags = tid_date_time
+
+	chart_data = []
+	chart_min = 0
+	chart_max = 0
+	chart_xAxis = "Cleanses"
+	chart_yAxis = "Hps + Bps"
+
+	for player, player_data in top_stats['player'].items():
+		name = player_data("name")
+		profession = player_data("profession")
+		fight_time = round(player_data(fight_time)/1000)
+		hps = round(player_data["extHealingStats"].get("outgoing_healing", 0)/fight_time)
+		bps = round(player_data["extHealingStats"].get("outgoing_barrier", 0)/fight_time)
+		hps_bps = hps+bps
+		cps = round(player_data["support"].get("condiCleanse", 0)/fight_time)
+		player_entry = [name, profession, hps_bps, cps]
+		boon_ps = 0
+		for boon in boons:
+			generated = (player_data["squadBuffs"][boon]["generation"] / 1000)
+			boon_ps += round(generated / fight_time, 3)
+		player_entry.append(boon_ps)
+
+		chart_data.append(player_entry)
+
+
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	
 	print("Writing raid stats to database")
