@@ -1004,7 +1004,7 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
 						else:								
 							hit_pct = hit_count / total_count * 100
 						# Build the tooltip
-						tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain:,}<br>"
+						tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain:,.0f}<br>"
 						# Add the tooltip to the row
 						detailEntry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext">'+tooltip+'</span></div>'
 						row += f" {detailEntry}|"
@@ -1072,7 +1072,7 @@ def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict,
 				hit_pct = 0
 				if total_count > 0:
 					hit_pct = hit_count / total_count * 100
-				tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain:,}<br>"
+				tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain:,.0f}<br>"
 				detail_entry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext">{tooltip}</span></div>'
 				row += f" {detail_entry}|"
 			else:
