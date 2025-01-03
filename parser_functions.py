@@ -192,7 +192,7 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 			
 		player_dist_to_tag = round(player['statsAll'][0]['distToCom'])
 
-		if player['combatReplayData']['dead'] and player['combatReplayData']['down']:
+		if player['combatReplayData']['dead'] and player['combatReplayData']['down'] and commander_tag_positions:
 			player_deaths = dict(player['combatReplayData']['dead'])
 			player_downs = dict(player['combatReplayData']['down'])
 

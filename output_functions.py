@@ -821,7 +821,7 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 	header += "h"
 
 	# Build the Squad table rows
-	header2 = f"|Average Uptime |<|<|<|<|"
+	header2 = f"|Total Generated |<|<|<|<|"
 	applied_counts = 0
 	for boon_id in boons:
 		if boon_id not in buff_data:
@@ -831,8 +831,10 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 		else:
 			applied_counts += top_stats["overall"]["targetBuffs"][boon_id]["applied_counts"]
 			uptime_ms = top_stats["overall"]["targetBuffs"][boon_id]["uptime_ms"]
-			uptime_percentage = round((uptime_ms / top_stats['overall']["fight_time"] / top_stats['overall']["enemy_count"]) * 100, 3)
-			uptime_percentage = f"{uptime_percentage:.3f}%"
+			#uptime_percentage = round((uptime_ms / top_stats['overall']["fight_time"] / top_stats['overall']["enemy_count"]) * 100, 3)
+			#uptime_percentage = round((uptime_ms / top_stats['overall']["fight_time"] / top_stats['overall']["enemy_count"]) * 100, 3)
+			uptime_percentage = round((uptime_ms / 1000), 3)			
+			uptime_percentage = f"{uptime_percentage:,.0f}"
 		header2 += f" {uptime_percentage}|" 
 	header2 += f" {applied_counts}|" 
 	header2 += "h"
@@ -853,11 +855,12 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 			else:
 				applied_counts += player["targetBuffs"][boon_id]["applied_counts"]
 				uptime_ms = player["targetBuffs"][boon_id]["uptime_ms"]
-				uptime_percentage = round((uptime_ms / player['fight_time'] / player['enemy_engaged_count']) * 100, 3)
-				uptime_percentage = f"{uptime_percentage:.3f}%"
+				#uptime_percentage = round((uptime_ms / player['fight_time'] / player['enemy_engaged_count']) * 100, 3)
+				uptime_percentage = round((uptime_ms / 1000), 3)				
+				uptime_percentage = f"{uptime_percentage:,.0f}"
 
 			row += f" {uptime_percentage}|"
-		row += f" {applied_counts}|"
+		row += f" {applied_counts:,.0f}|"
 
 		rows.append(row)
 	rows.append(f"|{caption} Table|c")
