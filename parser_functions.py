@@ -537,7 +537,7 @@ def get_player_stats_targets(statsTargets: dict, name: str, profession: str, fig
 	fight_stats = ["killed", "downed", "downContribution", "appliedCrowdControl"]
 	for stat in fight_stats:
 		for target in statsTargets:
-			if target[0]:
+			if target[0] and stat in target[0]:
 				fight_stat_value += target[0][stat]
 
 		fight_stat_value = round(fight_stat_value / fight_time, 3)

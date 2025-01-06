@@ -1618,6 +1618,8 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 		rows.append(header)
 
 		# Sort high scores for the current category
+		if category not in high_scores:
+			continue
 		sorted_high_scores = sorted(high_scores[category].items(), key=lambda x: x[1], reverse=True)
 		
 		# Build rows for each player
