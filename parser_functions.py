@@ -78,6 +78,53 @@ def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 		log_type = "PVE"
 	return log_type, fight_name
 
+
+def calculate_resist_offset(resist_data: dict, state_data: dict) -> int:
+	"""
+	Calculate the total time a player has resist during a set of states.
+
+	Args:
+		resist_data (dict): A dictionary mapping resist start times to end times.
+		state_data (dict): A dictionary mapping state start times to end times.
+
+	Returns:
+		int: The total resist offset time.
+	"""
+	total_offset = 0
+	for state_start in state_data:
+		state_end = state_data[state_start]
+		for resist_start in resist_data:
+			resist_end = resist_data[resist_start]
+			if resist_start <= state_end <= resist_end and state_start >= resist_start:
+				total_offset += state_end - state_start
+			elif state_end > resist_end and state_start >= resist_start and state_start <= resist_end:
+				total_offset += resist_end - state_start
+			elif state_end < resist_end and state_end >= resist_start and state_start < resist_start:
+				total_offset += state_end - resist_start
+	return total_offset
+
+
+def get_buff_states(buff_states: list) -> dict:
+	"""
+	Convert a list of (time, state) pairs into a dictionary mapping start times to end times for a buff.
+
+	:param buff_states: A list of (time, state) pairs where state is 1 when the buff is active and 0 when it is inactive.
+	:return: A dictionary mapping start times to end times for the buff.
+	"""
+	start_times = []
+	end_times = []
+
+	for time, state in buff_states:
+		if time == 0 and state == 0:
+			continue
+		elif state == 1:
+			start_times.append(time)
+		elif state == 0:
+			end_times.append(time)
+
+	return dict(zip(start_times, end_times))
+
+
 def calculate_moving_average(data: list, window_size: int) -> list:
 	"""
 	Calculate the moving average of a list of numbers with a specified window size.
@@ -155,24 +202,24 @@ def determine_player_role(player_data: dict) -> str:
 
 
 def get_commander_tag_data(fight_json):
-    """Extract commander tag data from the fight JSON."""
-    
-    commander_tag_positions = []
-    earliest_death_time = fight_json['durationMS']
-    has_died = False
+	"""Extract commander tag data from the fight JSON."""
+	
+	commander_tag_positions = []
+	earliest_death_time = fight_json['durationMS']
+	has_died = False
 
-    for player in fight_json["players"]:
-        if player["hasCommanderTag"] and not player["notInSquad"]:
-            replay_data = player.get("combatReplayData", {})
-            commander_tag_positions = replay_data.get("positions", [])
+	for player in fight_json["players"]:
+		if player["hasCommanderTag"] and not player["notInSquad"]:
+			replay_data = player.get("combatReplayData", {})
+			commander_tag_positions = replay_data.get("positions", [])
 
-            for death_time, _ in replay_data.get("dead", []):
-                if death_time > 0:
-                    earliest_death_time = min(death_time, earliest_death_time)
-                    has_died = True
-            break
+			for death_time, _ in replay_data.get("dead", []):
+				if death_time > 0:
+					earliest_death_time = min(death_time, earliest_death_time)
+					has_died = True
+			break
 
-    return commander_tag_positions, earliest_death_time, has_died
+	return commander_tag_positions, earliest_death_time, has_died
 
 
 def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead_tag, inch_to_pixel, polling_rate):
@@ -904,11 +951,24 @@ def get_buff_uptimes(fight_num: int, player: dict, group: str, stat_category: st
 	Returns:
 		None
 	"""
+	ResistanceBuff = [26980, 'b26980']
+	resist_data = {}
+	for buff in player[stat_category]:
+		print(f"Checking buffid {buff['id']}")
+		buff_id = 'b'+str(buff['id'])
+		if buff_id in ResistanceBuff:
+			resist_state = buff['states']
+			resist_data = get_buff_states(resist_state)
+			print("Resist Data Captured")
+			break
+
 	for buff in player[stat_category]:
 		buff_id = 'b'+str(buff['id'])
 		buff_uptime_ms = buff['buffData'][0]['uptime'] * fight_duration / 100
 		buff_presence = buff['buffData'][0]['presence']
 		state_changes = len(buff['states'])//2
+		buff_state = buff['states']
+		state_data = get_buff_states(buff_state)
 
 		if buff_id not in top_stats['player'][name_prof][stat_category]:
 			top_stats['player'][name_prof][stat_category][buff_id] = {}
@@ -928,11 +988,32 @@ def get_buff_uptimes(fight_num: int, player: dict, group: str, stat_category: st
 		elif stat_category == 'buffUptimesActive':
 			stat_value = buff_presence * active_time / 100 if buff_presence else buff_uptime_ms
 
+		non_damaging_conditions = [
+			'b720', #'Blinded'
+			'b721', #'Crippled' 
+			'b722', #'Chilled' 
+			'b727', #'Immobile' 
+			'b742', #'Weakness' 
+			'b791', #'Fear' 
+			'b26766', #'Slow' 
+			'b27705', #'Taunt'
+		]
+		resist_offset = 0
+		if buff_id in non_damaging_conditions and resist_data:
+			print('Processing Non Damaging Condition - Resistance Offset')
+			resist_offset += calculate_resist_offset(resist_data, state_data)
+			print("Resist Data", resist_data)
+
 		top_stats['player'][name_prof][stat_category][buff_id]['uptime_ms'] = top_stats['player'][name_prof][stat_category][buff_id].get('uptime_ms', 0) + stat_value
 		top_stats['player'][name_prof][stat_category][buff_id]['state_changes'] = top_stats['player'][name_prof][stat_category][buff_id].get('state_changes', 0) + state_changes
 		top_stats['fight'][fight_num][stat_category][buff_id]['uptime_ms'] = top_stats['fight'][fight_num][stat_category][buff_id].get('uptime_ms', 0) + stat_value
 		top_stats['overall'][stat_category][buff_id]['uptime_ms'] = top_stats['overall'][stat_category][buff_id].get('uptime_ms', 0) + stat_value
 		top_stats['overall'][stat_category]["group"][group][buff_id]['uptime_ms'] = top_stats['overall'][stat_category]["group"][group][buff_id].get('uptime_ms', 0) + stat_value
+		top_stats['player'][name_prof][stat_category][buff_id]['resist_reduction'] = top_stats['player'][name_prof][stat_category][buff_id].get('resist_reduction', 0) + resist_offset
+		top_stats['fight'][fight_num][stat_category][buff_id]['resist_reduction'] = top_stats['fight'][fight_num][stat_category][buff_id].get('resist_reduction', 0) + resist_offset
+		top_stats['overall'][stat_category][buff_id]['resist_reduction'] = top_stats['overall'][stat_category][buff_id].get('resist_reduction', 0) + resist_offset
+		top_stats['overall'][stat_category]["group"][group][buff_id]['resist_reduction'] = top_stats['overall'][stat_category]["group"][group][buff_id].get('resist_reduction', 0) + resist_offset
+
 
 
 def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_category: str, name_prof: str) -> None:
