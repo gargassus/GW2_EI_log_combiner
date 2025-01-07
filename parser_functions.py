@@ -954,12 +954,10 @@ def get_buff_uptimes(fight_num: int, player: dict, group: str, stat_category: st
 	ResistanceBuff = [26980, 'b26980']
 	resist_data = {}
 	for buff in player[stat_category]:
-		print(f"Checking buffid {buff['id']}")
 		buff_id = 'b'+str(buff['id'])
 		if buff_id in ResistanceBuff:
 			resist_state = buff['states']
 			resist_data = get_buff_states(resist_state)
-			print("Resist Data Captured")
 			break
 
 	for buff in player[stat_category]:
@@ -1000,9 +998,7 @@ def get_buff_uptimes(fight_num: int, player: dict, group: str, stat_category: st
 		]
 		resist_offset = 0
 		if buff_id in non_damaging_conditions and resist_data:
-			print('Processing Non Damaging Condition - Resistance Offset')
 			resist_offset += calculate_resist_offset(resist_data, state_data)
-			print("Resist Data", resist_data)
 
 		top_stats['player'][name_prof][stat_category][buff_id]['uptime_ms'] = top_stats['player'][name_prof][stat_category][buff_id].get('uptime_ms', 0) + stat_value
 		top_stats['player'][name_prof][stat_category][buff_id]['state_changes'] = top_stats['player'][name_prof][stat_category][buff_id].get('state_changes', 0) + state_changes

@@ -726,18 +726,38 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 		header += f" ![img width=24 [{boon_name}|{skillIcon}]] |"
 	header += "h"
 
+	non_damaging_conditions = [
+		'b720', #Blinded
+		'b721', #Crippled
+		'b722', #Chilled
+		'b727', #Immobile
+		'b742', #Weakness
+		'b791', #Fear
+		'b26766', #Slow
+		'b27705' #Taunt
+		]
 	# Build the Squad table rows
 	header2 = f"|Squad Average Uptime |<|<|<|<|"
 	for boon_id in boons:
 		if boon_id not in buff_data:
 			continue
 		if boon_id not in top_stats["overall"]["buffUptimes"]:
-			uptime_percentage = " - "
-		else:
+			detailEntry = " - "
+		elif boon_id in non_damaging_conditions:
+			offset_uptime_ms = top_stats["overall"]["buffUptimes"][boon_id]["uptime_ms"] - top_stats["overall"]["buffUptimes"][boon_id]["resist_reduction"]
+			offset_uptime_percentage = round((offset_uptime_ms / top_stats['overall']["fight_time"]) * 100, 3)
+			offset_uptime_percentage = f"{offset_uptime_percentage:.3f}%"			
 			uptime_ms = top_stats["overall"]["buffUptimes"][boon_id]["uptime_ms"]
 			uptime_percentage = round((uptime_ms / top_stats['overall']["fight_time"]) * 100, 3)
 			uptime_percentage = f"{uptime_percentage:.3f}%"
-		header2 += f" {uptime_percentage}|" 
+			tooltip = f"Uptime without resist reduction:<br>{uptime_percentage}"
+			# Add the tooltip to the row
+			detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext">'+tooltip+'</span></div>'
+		else:
+			uptime_ms = top_stats["overall"]["buffUptimes"][boon_id]["uptime_ms"]
+			uptime_percentage = round((uptime_ms / top_stats['overall']["fight_time"]) * 100, 3)
+			detailEntry = f"{uptime_percentage:.3f}%"
+		header2 += f" {detailEntry}|" 
 	header2 += "h"
 
 	rows.append(header)
@@ -751,12 +771,22 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 			if boon_id not in buff_data:
 				continue
 			if boon_id not in top_stats["overall"]["buffUptimes"]['group'][group]:
-				uptime_percentage = " - "
-			else:
+				detailEntry = " - "
+			elif boon_id in non_damaging_conditions:
+				offset_uptime_ms = top_stats["overall"]["buffUptimes"]['group'][group][boon_id]["uptime_ms"] - top_stats["overall"]["buffUptimes"]['group'][group][boon_id]["resist_reduction"]
+				offset_uptime_percentage = round((offset_uptime_ms / top_stats['overall']['group_data'][group]['fight_time']) * 100, 3)
+				offset_uptime_percentage = f"{offset_uptime_percentage:.3f}%"
 				uptime_ms = top_stats["overall"]["buffUptimes"]['group'][group][boon_id]["uptime_ms"]
 				uptime_percentage = round((uptime_ms / top_stats['overall']['group_data'][group]['fight_time']) * 100, 3)
 				uptime_percentage = f"{uptime_percentage:.3f}%"
-			footer += f" {uptime_percentage}|"
+				tooltip = f"Uptime without resist reduction:<br>{uptime_percentage}"
+				# Add the tooltip to the row
+				detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext">'+tooltip+'</span></div>'
+			else:
+				uptime_ms = top_stats["overall"]["buffUptimes"]['group'][group][boon_id]["uptime_ms"]
+				uptime_percentage = round((uptime_ms / top_stats['overall']['group_data'][group]['fight_time']) * 100, 3)
+				detailEntry = f"{uptime_percentage:.3f}%"
+			footer += f" {detailEntry}|"
 		footer += "h"	#footer, moved to header
 		rows.append(footer)
 
@@ -768,13 +798,23 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 				continue
 
 			if boon_id not in player["buffUptimes"]:
-				uptime_percentage = " - "
-			else:
+				detailEntry = " - "
+			elif boon_id in non_damaging_conditions:
+				offset_uptime_ms = player["buffUptimes"][boon_id]["uptime_ms"] - player["buffUptimes"][boon_id]["resist_reduction"]
+				offset_uptime_percentage = round(offset_uptime_ms / player['fight_time'] * 100, 3)
+				offset_uptime_percentage = f"{offset_uptime_percentage:.3f}%"
 				uptime_ms = player["buffUptimes"][boon_id]["uptime_ms"]
 				uptime_percentage = round(uptime_ms / player['fight_time'] * 100, 3)
 				uptime_percentage = f"{uptime_percentage:.3f}%"
+				tooltip = f"Uptime without resist reduction:<br>{uptime_percentage}"
+				# Add the tooltip to the row
+				detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext">'+tooltip+'</span></div>'
+			else:
+				uptime_ms = player["buffUptimes"][boon_id]["uptime_ms"]
+				uptime_percentage = round(uptime_ms / player['fight_time'] * 100, 3)
+				detailEntry = f"{uptime_percentage:.3f}%"
 
-			row += f" {uptime_percentage}|"
+			row += f" {detailEntry}|"
 		rows.append(row)
 	rows.append(f"|{caption} Table|c")
 

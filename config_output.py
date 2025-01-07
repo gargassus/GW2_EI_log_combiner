@@ -128,11 +128,6 @@ buffs_conditions = {
     'b27705': "Taunt", 'b738': "Vulnerability"
 }
 
-non_damaging_conditions = {
-    720: 'Blinded', 721: 'Crippled', 722: 'Chilled', 727: 'Immobile', 742: 'Weakness',
-    791: 'Fear', 26766: 'Slow', 27705: 'Taunt'
-    }
-
 buffs_support = {
     'b890': "Revealed", 'b5577': "Shocking Aura", 'b5579': "Frost Aura", 'b5677': "Fire Aura", 'b5684': "Magnetic Aura", 'b5974': "Superspeed",
     'b9231': "Merciful Intervention (Target)", 'b9235': "Merciful Intervention (Self)", 'b10269': "Hide in Shadows", 'b10332': "Chaos Aura",
