@@ -1169,6 +1169,9 @@ def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: s
 	if name_prof not in top_stats['skill_casts_by_role'][profession]:
 		top_stats['skill_casts_by_role'][profession][name_prof] = {
 			'ActiveTime': 0,
+			'total': 0,
+			'total_no_auto': 0,
+			'account': player['account'],
 			'Skills': {}
 		}
 
@@ -1178,6 +1181,10 @@ def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: s
 		skill_id = 's'+str(skill['id'])
 		cast_count = len(skill['skills'])
 
+		top_stats['skill_casts_by_role'][profession][name_prof]['total'] += cast_count
+		if not skill_data[skill_id]['auto']:
+			top_stats['skill_casts_by_role'][profession][name_prof]['total_no_auto'] += cast_count
+			
 		if skill_id not in top_stats['skill_casts_by_role'][profession][name_prof]['Skills']:
 			top_stats['skill_casts_by_role'][profession][name_prof]['Skills'][skill_id] = 0
 		if skill_id not in top_stats['skill_casts_by_role'][profession]['total']:
