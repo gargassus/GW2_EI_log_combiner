@@ -2162,59 +2162,62 @@ def build_damage_outgoing_by_skill_tid(tid_date_time: str, tid_list: list) -> No
 	)
 	
 def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict, buff_data: dict, tid_date_time: str, tid_list: list) -> None:
-    """
-    Build a table of damage outgoing by player and skill.
+	"""
+	Build a table of damage outgoing by player and skill.
 
-    Args:
-        top_stats (dict): A dictionary containing top stats for each player.
-        skill_data (dict): A dictionary containing skill metadata, such as name and icon.
-        buff_data (dict): A dictionary containing buff metadata, such as name and icon.
-        tid_date_time (str): A string representing the timestamp or unique identifier for the TID.
-        tid_list (list): A list of TIDs to which the generated TID should be appended.
-    """
-    # Sort players by total damage output in descending order
-    damage_totals = {
-        player: data['dpsTargets']['damage']
-        for player, data in top_stats['player'].items()
-        if data['statsTargets']['criticalRate'] > 50
-    }
-    sorted_damage_totals = sorted(damage_totals.items(), key=lambda x: x[1], reverse=True)
+	Args:
+		top_stats (dict): A dictionary containing top stats for each player.
+		skill_data (dict): A dictionary containing skill metadata, such as name and icon.
+		buff_data (dict): A dictionary containing buff metadata, such as name and icon.
+		tid_date_time (str): A string representing the timestamp or unique identifier for the TID.
+		tid_list (list): A list of TIDs to which the generated TID should be appended.
+	"""
+	# Sort players by total damage output in descending order
+	damage_totals = {
+		player: data['dpsTargets']['damage']
+		for player, data in top_stats['player'].items()
+		if data['statsTargets']['criticalRate'] > 50
+	}
+	sorted_damage_totals = sorted(damage_totals.items(), key=lambda x: x[1], reverse=True)
 
-    # Iterate over each player and build a table of their damage output by skill
-    for player, total_damage in sorted_damage_totals:
-        player_damage = {
-            skill_id: skill_data['totalDamage']
-            for skill_id, skill_data in top_stats['player'][player]['targetDamageDist'].items()
-        }
-        sorted_player_damage = sorted(player_damage.items(), key=lambda x: x[1], reverse=True)
+	# Iterate over each player and build a table of their damage output by skill
+	for player, total_damage in sorted_damage_totals:
+		player_damage = {
+			skill_id: skill_data['totalDamage']
+			for skill_id, skill_data in top_stats['player'][player]['targetDamageDist'].items()
+		}
+		sorted_player_damage = sorted(player_damage.items(), key=lambda x: x[1], reverse=True)
 
-        # Initialize the HTML components
-        rows = []
-        name, profession = player.split("|")
+		# Initialize the HTML components
+		rows = []
+		name, profession = player.split("|")
 
-        # Build the table header
-        header = "|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
-        header += f"|{{{profession}}} {name}|c\n"
-        header += "|!Skill Name | Damage | % of Total Damage|h"
-        rows.append(header)
+		# Build the table header
+		header = "|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
+		header += f"|{{{profession}}} {name}|c\n"
+		header += "|!Skill Name | Damage | Dmg/Hit | % of Total Damage|h"
+		rows.append(header)
 
-        # Populate the table with the player's damage output by skill
-        for skill_id, damage in sorted_player_damage:
-            skill_name = skill_data.get(f"s{skill_id}", {}).get("name", buff_data.get(f"b{skill_id}", {}).get("name", ""))
-            skill_icon = skill_data.get(f"s{skill_id}", {}).get("icon", buff_data.get(f"b{skill_id}", {}).get("icon", ""))
-            entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name[:30]}"
-            row = f"|{entry} | {damage:,.0f} | {damage / total_damage * 100:,.1f}%|"
-            rows.append(row)
+		# Populate the table with the player's damage output by skill
+		for skill_id, damage in sorted_player_damage:
+			skill_name = skill_data.get(f"s{skill_id}", {}).get("name", buff_data.get(f"b{skill_id}", {}).get("name", ""))
+			skill_icon = skill_data.get(f"s{skill_id}", {}).get("icon", buff_data.get(f"b{skill_id}", {}).get("icon", ""))
+			connect_hits = top_stats['player'][player]['targetDamageDist'][skill_id]['connectedHits']
+			if connect_hits == 0:
+				connect_hits = 1
+			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name[:30]}"
+			row = f"|{entry} | {damage:,.0f} | {damage / connect_hits:,.1f} | {damage / total_damage * 100:,.1f}%|"
+			rows.append(row)
 
-        # Create the TID
-        text = "\n".join(rows)
-        player_title = f"{tid_date_time}-Damage-By-Skill-{profession}-{name}"
-        player_caption = f"{{{profession}}} - {name}"
+		# Create the TID
+		text = "\n".join(rows)
+		player_title = f"{tid_date_time}-Damage-By-Skill-{profession}-{name}"
+		player_caption = f"{{{profession}}} - {name}"
 
-        append_tid_for_output(
-            create_new_tid_from_template(player_title, player_caption, text, tid_date_time),
-            tid_list
-        )
+		append_tid_for_output(
+			create_new_tid_from_template(player_title, player_caption, text, tid_date_time),
+			tid_list
+		)
 
 
 def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list) -> None:
