@@ -2488,7 +2488,7 @@ def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	print("Database updated.")
 
 
-def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, personal_buff_data: dict, fb_pages: dict, mechanics: dict, minions: dict, death_on_tag: dict, DPSStats: dict, outfile: str) -> None:
+def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, personal_buff_data: dict, fb_pages: dict, mechanics: dict, minions: dict, mesmer_clone_usage: dict, death_on_tag: dict, DPSStats: dict, outfile: str) -> None:
 	"""Print the top_stats dictionary as a JSON object to the console."""
 
 	json_dict = {}
@@ -2507,6 +2507,7 @@ def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, da
 	json_dict["fb_pages"] = {key: value for key, value in fb_pages.items()}
 	json_dict["mechanics"] = {key: value for key, value in mechanics.items()}
 	json_dict["minions"] = {key: value for key, value in minions.items()}
+	json_dict["mesmer_clone_usage"] = {key: value for key, value in mesmer_clone_usage.items()}
 	json_dict["death_on_tag"] = {key: value for key, value in death_on_tag.items()}
 	json_dict['players_running_healing_addon'] = top_stats['players_running_healing_addon']
 	json_dict["DPSStats"] = {key: value for key, value in DPSStats.items()}

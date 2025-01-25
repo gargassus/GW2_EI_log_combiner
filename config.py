@@ -74,3 +74,16 @@ high_scores = [
     "condiCleanse",
     "receivedCrowdControl",
 ]
+
+#mesmer F_skills
+mesmer_shatter_skills = [
+"Split Second",
+"Rewinder",
+"Time Sink",
+"Distortion",
+"Continuum Split",
+"Mind Wrack",
+"Cry of Frustration",
+"Diversion",
+"Distortion"
+]

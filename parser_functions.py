@@ -26,6 +26,9 @@ top_stats = config.top_stats
 
 team_colors = config.team_colors
 
+mesmer_shatter_skills = config.mesmer_shatter_skills
+mesmer_clone_usage = {}
+
 # Buff and skill data collected from al logs
 buff_data = {}
 skill_data = {}
@@ -103,6 +106,29 @@ def calculate_resist_offset(resist_data: dict, state_data: dict) -> int:
 				total_offset += state_end - resist_start
 	return total_offset
 
+def determine_clone_usage(player, skill_map, mesmer_shatter_skills):
+	active_clones = {}
+	name_prof = f"{player['name']}_{player['profession']}"
+	if name_prof not in mesmer_clone_usage:
+		mesmer_clone_usage[name_prof] = {}
+	if "activeClones" in player:
+		for timestamp in player['activeClones']:
+			active_clones[timestamp[0]] = timestamp[1]
+	if "rotation" in player:
+		for skill in player["rotation"]:
+			skill_id = f"s{skill['id']}"
+			if skill_map[skill_id]['name'] in mesmer_shatter_skills:
+				skill_name = skill_map[skill_id]['name']
+
+				if skill_name not in mesmer_clone_usage[name_prof]:
+					mesmer_clone_usage[name_prof][skill_name] = {}
+
+				for item in skill['skills']:
+					cast_time = item['castTime']
+					for key, value in reversed(list(active_clones.items())):
+						if key <= cast_time:
+							mesmer_clone_usage[name_prof][skill_name][value] = mesmer_clone_usage[name_prof][skill_name].get(value, 0) + value
+							break
 
 def get_buff_states(buff_states: list) -> dict:
 	"""
@@ -1751,6 +1777,9 @@ def parse_file(file_path, fight_num, guild_data):
 		get_player_stats_targets(player["statsTargets"], name, profession, fight_num, (fight_duration_ms/1000))
 
 		get_minions_by_player(player, name, profession)
+
+		if player["profession"] in ["Mesmer", "Chronomancer", "Mirage"]:
+			determine_clone_usage(player, skill_map, mesmer_shatter_skills)
 
 		get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead_tag, inches_to_pixel, polling_rate)
 
