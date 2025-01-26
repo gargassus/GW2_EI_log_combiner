@@ -264,6 +264,8 @@ if __name__ == '__main__':
 
 	build_on_tag_review(death_on_tag, tid_date_time)
 
+	build_mesmer_clone_usage(mesmer_clone_usage, tid_date_time, tid_list)
+
 	build_dps_stats_tids(DPSStats, tid_date_time, tid_list)
 	build_dps_stats_menu(tid_date_time)
 

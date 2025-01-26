@@ -1365,7 +1365,7 @@ def build_general_stats_tid(datetime):
 	caption = "General Stats"
 	creator = "Drevarr@github.com"
 	text = (f"<<tabs '[[{datetime}-Damage]] [[{datetime}-Offensive]] "
-			f"[[{datetime}-Defenses]] [[{datetime}-Support]] [[{datetime}-Heal-Stats]] [[{datetime}-Healers]] [[{datetime}-Combat-Resurrect]] [[{datetime}-FB-Pages]]' "
+			f"[[{datetime}-Defenses]] [[{datetime}-Support]] [[{datetime}-Heal-Stats]] [[{datetime}-Healers]] [[{datetime}-Combat-Resurrect]] [[{datetime}-FB-Pages]] [[{datetime}-Mesmer-Clone-Usage]]' "
 			f"'{datetime}-Offensive' '$:/temp/tab1'>>")
 
 	append_tid_for_output(
@@ -2421,6 +2421,32 @@ def build_support_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str,
 
 		chart_data.append(player_entry)
 
+def build_mesmer_clone_usage(mesmer_clone_usage: dict, tid_date_time: str, tid_list: list) -> None: 
+	rows = []
+	tid_title = f"{tid_date_time}-Mesmer-Clone-Usage"
+	tid_caption = "Mesmer Clone Usage"
+	tid_tags = tid_date_time
+
+	rows.append("<style>.dot {height: 10px; width: 10px; background-color: magenta; border-radius: 50%; border: 1px solid darkmagenta; display: inline-block;}")
+	rows.append(".dot1 {height: 10px; width: 10px; background-color: white; border-radius: 50%; border: 1px solid darkmagenta; display: inline-block;}</style>")
+
+	for player, data in mesmer_clone_usage.items():
+		name=player.split("_")[0]
+		prof="{{"+player.split("_")[1]+"}}"
+
+		rows.append(f'\n|{prof} {name} | <span class="dot"></span><span class="dot"></span><span class="dot"></span> | <span class="dot1"></span><span class="dot"></span><span class="dot"></span> | <span class="dot1"></span><span class="dot1"></span><span class="dot"></span> | <span class="dot1"></span><span class="dot1"></span><span class="dot1"></span> | Total |h')
+
+		for spell in data:
+			rows.append(f"| {spell}| {data[spell].get(3,0)} | {data[spell].get(2,0)} | {data[spell].get(1,0)} | {data[spell].get(0,0)} | {sum(data[spell].values())} |")
+
+		rows.append("\n\n")
+
+	text = "\n".join(rows)
+
+	append_tid_for_output(
+		create_new_tid_from_template(tid_title, tid_caption, text, tid_tags),
+		tid_list
+	)
 
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	
