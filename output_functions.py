@@ -1381,7 +1381,7 @@ def build_dashboard_menu_tid(datetime: str) -> None:
 	caption = "Dashboard"
 	creator = "Drevarr@github.com"
 
-	text = (f"<<tabs '[[{datetime}-Support-Bubble-Chart]] [[{datetime}-DPS-Bubble-Chart]]' "
+	text = (f"<<tabs '[[{datetime}-Support-Bubble-Chart]] [[{datetime}-DPS-Bubble-Chart]] [[{datetime}-Utility-Bubble-Chart]]' "
 			f"'{datetime}-Support-Bubble-Chart' '$:/temp/tab1'>>")
 
 	append_tid_for_output(
@@ -2344,7 +2344,7 @@ def build_on_tag_review(death_on_tag, tid_date_time):
 		run_back = death_on_tag[name_prof]['Run_Back']
 		total = death_on_tag[name_prof]['Total']
 		off_tag_ranges = death_on_tag[name_prof]['Ranges']
-		row = f"|{player} | {{{{{profession}}}}} | {avg_dist} | {on_tag} | {off_tag} | {after_tag} | {run_back} | {total} |{off_tag_ranges} |"
+		row = f"|{player} | {{{{{profession}}}}} {profession[:3]} | {avg_dist} | {on_tag} | {off_tag} | {after_tag} | {run_back} | {total} |{off_tag_ranges} |"
 		rows.append(row)	
 
 	text = "\n".join(rows)
@@ -2406,10 +2406,66 @@ def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> 
 			tid_list
 		)
 
+def build_utility_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
+	# ["Name", "Profession", "Cleanses", "Heals", "Boon Score", "color"]
+	tid_title = f"{tid_date_time}-Utility-Bubble-Chart"
+	tid_caption = "Utility Bubble Chart"
+	tid_tags = tid_date_time
+
+	chart_data = []
+	chart_min = 100
+	chart_max = 0
+	chart_xAxis = "Strips/Sec"
+	chart_yAxis = "Condition Score"
+	chart_xData = "Strips/Sec"
+	chart_yData = "Condition Score"
+
+	data_header = ["Name", "Profession", "Condition Score", "Strips/Sec", "Boon Score", "color"]
+	chart_data.append(data_header)
+
+	for player, player_data in top_stats['player'].items():
+		name = player_data["name"]
+		profession = player_data["profession"]
+		fight_time = round(player_data["active_time"]/1000)
+		xdata = round(player_data["support"].get("boonStrips", 0)/fight_time,2)
+
+		cps=0
+		for condition in boons:
+			if condition in player_data["targetBuffs"] and player_data["targetBuffs"][condition]["uptime_ms"] > 0:
+				condi_generated = (player_data["targetBuffs"][condition]["uptime_ms"] / 1000)
+				cps += round(condi_generated / fight_time, 2)
+
+		cps = round(cps, 2)
+		player_entry = [name, profession, xdata, cps]
+
+		boon_ps = 0
+		for boon in boons:
+			if boon in player_data["squadBuffs"] and player_data["squadBuffs"][boon]["generation"] > 0:
+				generated = (player_data["squadBuffs"][boon]["generation"] / 1000)
+				boon_ps += round(generated / fight_time, 2)
+		player_entry.append(round(boon_ps, 2))
+
+		if boon_ps > chart_max:
+			chart_max = boon_ps
+		if boon_ps < chart_min:
+			chart_min = boon_ps
+		player_color = profession_colors[profession]
+		player_entry.append(player_color)
+
+		chart_data.append(player_entry)
+
+	text = "__''Utility Bubble Chart''__\n"
+	text += "\n,,Bubble size based on boon score,,\n\n"
+	text += "{{"+f"{tid_date_time}-Utility-Bubble-Chart||BubbleChart_Template"+"}}"
+
+	append_tid_for_output(
+		create_new_tid_from_template(tid_title, tid_caption, text, tid_tags, fields={"data": str(chart_data)[1:-1], "max": str(chart_max), "min": str(chart_min), "xAxis": chart_xAxis, "yAxis": chart_yAxis, "xData": chart_xData, "yData": chart_yData}),
+		tid_list
+	)
+
 
 def build_support_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
 	# ["Name", "Profession", "Cleanses", "Heals", "Boon Score", "color"]
-	rows = []
 	tid_title = f"{tid_date_time}-Support-Bubble-Chart"
 	tid_caption = "Support Bubble Chart"
 	tid_tags = tid_date_time
@@ -2458,9 +2514,8 @@ def build_support_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str,
 		tid_list
 	)
 	
-def build_DPS_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
+def build_DPS_bubble_chart(top_stats: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
 	# ["Name", "Profession", "Damage/Sec", "Down_Contr/Sec", "Dmg_to_Down/Sec", "color"]
-	rows = []
 	tid_title = f"{tid_date_time}-DPS-Bubble-Chart"
 	tid_caption = "DPS Bubble Chart"
 	tid_tags = tid_date_time

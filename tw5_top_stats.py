@@ -270,8 +270,9 @@ if __name__ == '__main__':
 
 	profession_color = config_output.profession_color
 	build_support_bubble_chart(top_stats, buff_data, tid_date_time, tid_list, profession_color)
-	build_DPS_bubble_chart(top_stats, buff_data, tid_date_time, tid_list, profession_color)
-
+	build_DPS_bubble_chart(top_stats, tid_date_time, tid_list, profession_color)
+	build_utility_bubble_chart(top_stats, buff_data, tid_date_time, tid_list, profession_color)
+	
 	build_dps_stats_tids(DPSStats, tid_date_time, tid_list)
 	build_dps_stats_menu(tid_date_time)
 
