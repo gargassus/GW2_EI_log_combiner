@@ -120,6 +120,8 @@ if __name__ == '__main__':
 	#create the menu tiddler and append to tid_list
 	build_menu_tid(tid_date_time)
 
+	build_dashboard_menu_tid(tid_date_time)
+	
 	build_general_stats_tid(tid_date_time)
 
 	build_buffs_stats_tid(tid_date_time)
@@ -265,6 +267,10 @@ if __name__ == '__main__':
 	build_on_tag_review(death_on_tag, tid_date_time)
 
 	build_mesmer_clone_usage(mesmer_clone_usage, tid_date_time, tid_list)
+
+	profession_color = config_output.profession_color
+	build_support_bubble_chart(top_stats, buff_data, tid_date_time, tid_list, profession_color)
+	build_DPS_bubble_chart(top_stats, buff_data, tid_date_time, tid_list, profession_color)
 
 	build_dps_stats_tids(DPSStats, tid_date_time, tid_list)
 	build_dps_stats_menu(tid_date_time)

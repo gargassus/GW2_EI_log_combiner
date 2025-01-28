@@ -1346,7 +1346,7 @@ def build_menu_tid(datetime: str) -> None:
 	text = (
 		f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] '
 		f'[[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] '
-		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] [[{datetime}-Player-Damage-By-Skill]] [[{datetime}-Squad-Composition]] [[{datetime}-On-Tag-Review]] [[{datetime}-DPS-Stats]]" '
+		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] [[{datetime}-Player-Damage-By-Skill]] [[{datetime}-Squad-Composition]] [[{datetime}-On-Tag-Review]] [[{datetime}-DPS-Stats]] [[{datetime}-Dashboard]]" '
 		f'"{datetime}-Overview" "$:/temp/menutab1">>'
 	)
 
@@ -1370,6 +1370,24 @@ def build_general_stats_tid(datetime):
 
 	append_tid_for_output(
 		create_new_tid_from_template(title, caption, text, tags, creator=creator, fields={'radio': 'Total'}),
+		tid_list
+	)
+
+def build_dashboard_menu_tid(datetime: str) -> None:
+	"""
+	Build a TID for the dashboard menu.
+	"""
+
+	tags = f"{datetime}"
+	title = f"{datetime}-Dashboard"
+	caption = "Dashboard"
+	creator = "Drevarr@github.com"
+
+	text = (f"<<tabs '[[{datetime}-Support-Bubble-Chart]] [[{datetime}-DPS-Bubble-Chart]]' "
+			f"'{datetime}-Support-Bubble-Chart' '$:/temp/tab1'>>")
+
+	append_tid_for_output(
+		create_new_tid_from_template(title, caption, text, tags, creator=creator),
 		tid_list
 	)
 
@@ -2391,7 +2409,7 @@ def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> 
 		)
 
 
-def build_support_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str, tid_list: list) -> None:
+def build_support_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
 	# ["Name", "Profession", "Cleanses", "Heals", "Boon Score", "color"]
 	rows = []
 	tid_title = f"{tid_date_time}-Support-Bubble-Chart"
@@ -2399,27 +2417,92 @@ def build_support_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str,
 	tid_tags = tid_date_time
 
 	chart_data = []
-	chart_min = 0
+	chart_min = 100
 	chart_max = 0
-	chart_xAxis = "Cleanses"
+	chart_xAxis = "Cleanse/Sec"
 	chart_yAxis = "Hps + Bps"
+	chart_xData = "Cleanse/Sec"
+	chart_yData = "Hps + Bps"
+
+	data_header = ["Name", "Profession", "Hps + Bps", "Cleanse/Sec", "Boon Score", "color"]
+	chart_data.append(data_header)
 
 	for player, player_data in top_stats['player'].items():
-		name = player_data("name")
-		profession = player_data("profession")
-		fight_time = round(player_data(fight_time)/1000)
+		name = player_data["name"]
+		profession = player_data["profession"]
+		fight_time = round(player_data["fight_time"]/1000)
 		hps = round(player_data["extHealingStats"].get("outgoing_healing", 0)/fight_time)
 		bps = round(player_data["extHealingStats"].get("outgoing_barrier", 0)/fight_time)
 		hps_bps = hps+bps
-		cps = round(player_data["support"].get("condiCleanse", 0)/fight_time)
+		cps = round(player_data["support"].get("condiCleanse", 0)/fight_time,2)
 		player_entry = [name, profession, hps_bps, cps]
 		boon_ps = 0
 		for boon in boons:
-			generated = (player_data["squadBuffs"][boon]["generation"] / 1000)
-			boon_ps += round(generated / fight_time, 3)
-		player_entry.append(boon_ps)
+			if boon in player_data["squadBuffs"] and player_data["squadBuffs"][boon]["generation"] > 0:
+				generated = (player_data["squadBuffs"][boon]["generation"] / 1000)
+				boon_ps += round(generated / fight_time, 2)
+		player_entry.append(round(boon_ps, 2))
+		if boon_ps > chart_max:
+			chart_max = boon_ps
+		if boon_ps < chart_min:
+			chart_min = boon_ps
+		player_color = profession_colors[profession]
+		player_entry.append(player_color)
 
 		chart_data.append(player_entry)
+
+	text = "__''Support Bubble Chart''__\n"
+	text += "\n,,Bubble size based on boon score,,\n\n"
+	text += "{{"+f"{tid_date_time}-Support-Bubble-Chart||BubbleChart_Template"+"}}"
+
+	append_tid_for_output(
+		create_new_tid_from_template(tid_title, tid_caption, text, tid_tags, fields={"data": str(chart_data)[1:-1], "max": str(chart_max), "min": str(chart_min), "xAxis": chart_xAxis, "yAxis": chart_yAxis, "xData": chart_xData, "yData": chart_yData}),
+		tid_list
+	)
+	
+def build_DPS_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
+	# ["Name", "Profession", "Damage/Sec", "Down_Contr/Sec", "Dmg_to_Down/Sec", "color"]
+	rows = []
+	tid_title = f"{tid_date_time}-DPS-Bubble-Chart"
+	tid_caption = "DPS Bubble Chart"
+	tid_tags = tid_date_time
+
+	chart_data = []
+	chart_min = 1000
+	chart_max = 0
+	chart_xAxis = "Damage/Sec"
+	chart_yAxis = "Down_Contr/Sec"
+	chart_xData = "Damage/Sec"
+	chart_yData = "Down_Contr/Sec"
+
+	data_header = ["Name", "Profession", "Damage/Sec", "Down_Contr/Sec", "Dmg_to_Down/Sec", "color"]
+	chart_data.append(data_header)
+
+	for player, player_data in top_stats['player'].items():
+		name = player_data["name"]
+		profession = player_data["profession"]
+		fight_time = round(player_data["fight_time"]/1000)
+		Dps = round(player_data["statsTargets"].get("totalDmg", 0)/fight_time)
+		DCps = round(player_data["statsTargets"].get("downContribution", 0)/fight_time)
+		DDps = round(player_data["statsTargets"].get("againstDownedDamage", 0)/fight_time)
+		player_entry = [name, profession, Dps, DCps, DDps]
+		if DDps > chart_max:
+			chart_max = DDps
+		if DDps < chart_min:
+			chart_min = DDps
+		player_color = profession_colors[profession]
+		player_entry.append(player_color)
+
+		chart_data.append(player_entry)
+
+	text = "__''DPS Bubble Chart''__\n"
+	text += "\n,,Bubble size based on against downed damage/sec,,\n\n"
+	text += "{{"+f"{tid_date_time}-DPS-Bubble-Chart||BubbleChart_Template"+"}}"
+
+	append_tid_for_output(
+		create_new_tid_from_template(tid_title, tid_caption, text, tid_tags, fields={"data": str(chart_data)[1:-1], "max": str(chart_max), "min": str(chart_min), "xAxis": chart_xAxis, "yAxis": chart_yAxis, "xData": chart_xData, "yData": chart_yData}),
+		tid_list
+	)
 
 def build_mesmer_clone_usage(mesmer_clone_usage: dict, tid_date_time: str, tid_list: list) -> None: 
 	rows = []
