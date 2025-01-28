@@ -169,7 +169,7 @@ def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dic
 	rows.append(header)
 
 	for player in top_stats["player"].values():
-		fight_time = player["fight_time"]
+		fight_time = player["active_time"]
 		profession = "{{"+player["profession"]+"}}"
 		row = f"|{player['name']} | {profession} |{player['account'][:30]} | {fight_time/1000:.1f}|"
 
@@ -207,7 +207,7 @@ def build_gear_skill_summary(top_stats: dict, gear_skill_ids: list, skill_data: 
 	rows.append(header)
 
 	for player in top_stats["player"].values():
-		fight_time = player["fight_time"]
+		fight_time = player["active_time"]
 		profession = "{{"+player["profession"]+"}}"
 		row = f"|{player['name']} | {profession} |{player['account'][:30]} | {fight_time/1000:.1f}|"
 
@@ -475,8 +475,8 @@ def build_damage_summary_table(top_stats: dict, caption: str, tid_date_time: str
 
 	# Build the table body
 	for player, player_data in top_stats["player"].items():
-		fighttime = player_data["fight_time"] / 1000
-		row = f"| {player_data['last_party']} |{player_data['name']} |"+" {{"+f"{player_data['profession']}"+"}}"+f" {player_data['profession'][:3]} "+f"|{player_data['account'][:30]} | {player_data['fight_time'] / 1000:.1f}|"
+		fighttime = player_data["active_time"] / 1000
+		row = f"| {player_data['last_party']} |{player_data['name']} |"+" {{"+f"{player_data['profession']}"+"}}"+f" {player_data['profession'][:3]} "+f"|{player_data['account'][:30]} | {fighttime:.1f}|"
 		row += " {:,}| {:,.0f}| {:,}| {:,.0f}| {:,}| {:,.0f}| {:,}| {:,}| {:,}| {:,}| {:,}|".format(
 			player_data["dpsTargets"]["damage"],
 			player_data["dpsTargets"]["damage"]/fighttime,
@@ -536,8 +536,9 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 
 		# Build the table body
 		for player in top_stats["player"].values():
-			row = f"| { player['last_party']} |{player['name']} | {{{{{player['profession']}}}}} {player['profession'][:3]} |{player['account'][:30]} | {player['fight_time'] / 1000:.0f}|"
-			fight_time = player["fight_time"] / 1000
+			fight_time = player["active_time"] / 1000
+			row = f"| { player['last_party']} |{player['name']} | {{{{{player['profession']}}}}} {player['profession'][:3]} |{player['account'][:30]} | {fight_time:.0f}|"
+			
 			for stat, category in category_stats.items():
 				stat_value = player[category].get(stat, 0)
 				if stat in ["receivedCrowdControlDuration","appliedCrowdControlDuration"]:
@@ -613,7 +614,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 		# Build the table body by iterating over each player
 		for player in top_stats["player"].values():
 			# Create a row for the player with basic info
-			row = f"| { player['last_party']} |{player['name']} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"|{player['account'][:30]} | {player['fight_time'] / 1000:.1f}|"
+			row = f"| { player['last_party']} |{player['name']} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"|{player['account'][:30]} | {player['active_time'] / 1000:.1f}|"
 
 			# Iterate over each boon
 			for boon_id in boons:
@@ -631,21 +632,21 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 					if category == "selfBuffs":
 						generation_ms = player[category][boon_id]["generation"]
 						if stacking:
-							uptime_percentage = round((generation_ms / player['fight_time'] / num_fights), 3)
+							uptime_percentage = round((generation_ms / player['active_time'] / num_fights), 3)
 						else:
-							uptime_percentage = round((generation_ms / player['fight_time'] / num_fights) * 100, 3)
+							uptime_percentage = round((generation_ms / player['active_time'] / num_fights) * 100, 3)
 					elif category == "groupBuffs":
 						generation_ms = player[category][boon_id]["generation"]
 						if stacking:
-							uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights), 3)
+							uptime_percentage = round((generation_ms / player['active_time']) / (group_supported - num_fights), 3)
 						else:
-							uptime_percentage = round((generation_ms / player['fight_time']) / (group_supported - num_fights) * 100, 3)
+							uptime_percentage = round((generation_ms / player['active_time']) / (group_supported - num_fights) * 100, 3)
 					elif category == "squadBuffs":
 						generation_ms = player[category][boon_id]["generation"]
 						if stacking:
-							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights), 3)
+							uptime_percentage = round((generation_ms / player['active_time']) / (squad_supported - num_fights), 3)
 						else:
-							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported - num_fights) * 100, 3)
+							uptime_percentage = round((generation_ms / player['active_time']) / (squad_supported - num_fights) * 100, 3)
 					elif category == "totalBuffs":
 						generation_ms = 0
 						if boon_id in player["selfBuffs"]:
@@ -653,9 +654,9 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 						if boon_id in player["squadBuffs"]:
 							generation_ms += player["squadBuffs"][boon_id]["generation"]
 						if stacking:
-							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported), 3)
+							uptime_percentage = round((generation_ms / player['active_time']) / (squad_supported), 3)
 						else:
-							uptime_percentage = round((generation_ms / player['fight_time']) / (squad_supported) * 100, 3)
+							uptime_percentage = round((generation_ms / player['active_time']) / (squad_supported) * 100, 3)
 					else:
 						raise ValueError(f"Invalid category: {category}")
 					
@@ -675,7 +676,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 					if toggle == "Total":
 						entry = f"{generation_ms/1000:,.1f}"
 					elif toggle == "Average":
-						entry = f"{generation_ms/player['fight_time']:,.1f}"
+						entry = f"{generation_ms/player['active_time']:,.1f}"
 					else:
 						entry = uptime_percentage
 
@@ -745,17 +746,17 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 			detailEntry = " - "
 		elif boon_id in non_damaging_conditions:
 			offset_uptime_ms = top_stats["overall"]["buffUptimes"][boon_id]["uptime_ms"] - top_stats["overall"]["buffUptimes"][boon_id]["resist_reduction"]
-			offset_uptime_percentage = round((offset_uptime_ms / top_stats['overall']["fight_time"]) * 100, 3)
+			offset_uptime_percentage = round((offset_uptime_ms / top_stats['overall']["active_time"]) * 100, 3)
 			offset_uptime_percentage = f"{offset_uptime_percentage:.3f}%"			
 			uptime_ms = top_stats["overall"]["buffUptimes"][boon_id]["uptime_ms"]
-			uptime_percentage = round((uptime_ms / top_stats['overall']["fight_time"]) * 100, 3)
+			uptime_percentage = round((uptime_ms / top_stats['overall']["active_time"]) * 100, 3)
 			uptime_percentage = f"{uptime_percentage:.3f}%"
 			tooltip = f"Uptime without resist reduction:<br>{uptime_percentage}"
 			# Add the tooltip to the row
 			detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext">'+tooltip+'</span></div>'
 		else:
 			uptime_ms = top_stats["overall"]["buffUptimes"][boon_id]["uptime_ms"]
-			uptime_percentage = round((uptime_ms / top_stats['overall']["fight_time"]) * 100, 3)
+			uptime_percentage = round((uptime_ms / top_stats['overall']["active_time"]) * 100, 3)
 			detailEntry = f"{uptime_percentage:.3f}%"
 		header2 += f" {detailEntry}|" 
 	header2 += "h"
@@ -792,7 +793,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 
 	# Build the table body
 	for player in top_stats["player"].values():
-		row = f"| {player['last_party']} |{player['name']} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"|{player['account'][:30]} | {player['fight_time'] / 1000:.2f}|"
+		row = f"| {player['last_party']} |{player['name']} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"|{player['account'][:30]} | {player['active_time'] / 1000:.2f}|"
 		for boon_id in boons:
 			if boon_id not in buff_data:
 				continue
@@ -801,17 +802,17 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 				detailEntry = " - "
 			elif boon_id in non_damaging_conditions:
 				offset_uptime_ms = player["buffUptimes"][boon_id]["uptime_ms"] - player["buffUptimes"][boon_id]["resist_reduction"]
-				offset_uptime_percentage = round(offset_uptime_ms / player['fight_time'] * 100, 3)
+				offset_uptime_percentage = round(offset_uptime_ms / player['active_time'] * 100, 3)
 				offset_uptime_percentage = f"{offset_uptime_percentage:.3f}%"
 				uptime_ms = player["buffUptimes"][boon_id]["uptime_ms"]
-				uptime_percentage = round(uptime_ms / player['fight_time'] * 100, 3)
+				uptime_percentage = round(uptime_ms / player['active_time'] * 100, 3)
 				uptime_percentage = f"{uptime_percentage:.3f}%"
 				tooltip = f"Uptime without resist reduction:<br>{uptime_percentage}"
 				# Add the tooltip to the row
 				detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext">'+tooltip+'</span></div>'
 			else:
 				uptime_ms = player["buffUptimes"][boon_id]["uptime_ms"]
-				uptime_percentage = round(uptime_ms / player['fight_time'] * 100, 3)
+				uptime_percentage = round(uptime_ms / player['active_time'] * 100, 3)
 				detailEntry = f"{uptime_percentage:.3f}%"
 
 			row += f" {detailEntry}|"
@@ -871,8 +872,6 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 		else:
 			applied_counts += top_stats["overall"]["targetBuffs"][boon_id]["applied_counts"]
 			uptime_ms = top_stats["overall"]["targetBuffs"][boon_id]["uptime_ms"]
-			#uptime_percentage = round((uptime_ms / top_stats['overall']["fight_time"] / top_stats['overall']["enemy_count"]) * 100, 3)
-			#uptime_percentage = round((uptime_ms / top_stats['overall']["fight_time"] / top_stats['overall']["enemy_count"]) * 100, 3)
 			uptime_percentage = round((uptime_ms / 1000), 3)			
 			uptime_percentage = f"{uptime_percentage:,.0f}"
 		header2 += f" {uptime_percentage}|" 
@@ -884,7 +883,7 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 
 	# Build the table body
 	for player in top_stats["player"].values():
-		row = f"| {player['last_party']} |{player['name']} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"|{player['account'][:32]} | {player['fight_time'] / 1000:.2f}|"
+		row = f"| {player['last_party']} |{player['name']} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"|{player['account'][:32]} | {player['active_time'] / 1000:.2f}|"
 		applied_counts = 0
 		for boon_id in boons:
 			if boon_id not in buff_data:
@@ -895,7 +894,6 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 			else:
 				applied_counts += player["targetBuffs"][boon_id]["applied_counts"]
 				uptime_ms = player["targetBuffs"][boon_id]["uptime_ms"]
-				#uptime_percentage = round((uptime_ms / player['fight_time'] / player['enemy_engaged_count']) * 100, 3)
 				uptime_percentage = round((uptime_ms / 1000), 3)				
 				uptime_percentage = f"{uptime_percentage:,.0f}"
 
@@ -930,7 +928,7 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
 		name = healer.split('|')[0]
 		profession = healer.split('|')[1]
 		account = top_stats['player'][healer]['account']
-		fight_time = top_stats['player'][healer]['fight_time']
+		fight_time = top_stats['player'][healer]['active_time']
 		last_party = top_stats['player'][healer]['last_party']
 
 		healing_stats[healer] = {
@@ -1027,7 +1025,7 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
 			# Check if the player is running the extension
 			if player_data['profession'] == profession:
 				# Build the row
-				row = f"| {player_data['last_party']} |{player_data['name']} | {player_data['profession']} |{player_data['account'][:32]} | {player_data['fight_time'] / 1000:.2f}|"
+				row = f"| {player_data['last_party']} |{player_data['name']} | {player_data['profession']} |{player_data['account'][:32]} | {player_data['active_time'] / 1000:.2f}|"
 				# Iterate over each modifier and add the details to the row
 				for mod in prof_mod_list:
 					if mod in player_data['damageModifiers']:
@@ -1101,7 +1099,7 @@ def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict,
 	rows.append(header)
 
 	for player in top_stats['player'].values():
-		row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:32]} | {player['fight_time'] / 1000:.2f}|"
+		row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:32]} | {player['active_time'] / 1000:.2f}|"
 		for modifier_id in shared_mod_list:
 			if modifier_id in player['damageModifiers']:
 				modifier_data = player['damageModifiers'][modifier_id]
@@ -1214,7 +1212,7 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 	This function iterates over the top_stats dictionary and builds a dictionary with the following structure:
 	{
 		'res_skills': {skill_name: total_downed_healing},
-		'players': {profession_name | player_name | fight_time: {skill_name: downed_healing}}
+		'players': {profession_name | player_name | active_time: {skill_name: downed_healing}}
 	}
 
 	The function then builds a table with the following columns:
@@ -1235,7 +1233,7 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 
 		if 'skills' in player_data['extHealingStats']:
 
-			prof_name = player_data['profession'] + '|' + player_data['name'] + '|' + str(player_data['fight_time'])
+			prof_name = player_data['profession'] + '|' + player_data['name'] + '|' + str(player_data['active_time'])
 
 			for skill in player_data['extHealingStats']['skills']:
 
@@ -1279,8 +1277,8 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 	rows.append(header)
 
 	for player in combat_resurrect['players']:
-		profession, name, fight_time = player.split('|')
-		time_secs = int(fight_time) / 1000
+		profession, name, active_time = player.split('|')
+		time_secs = int(active_time) / 1000
 		abbrv = profession[:3]
 		profession = "{{" + profession + "}}"
 
@@ -1826,11 +1824,11 @@ def build_personal_buff_summary(top_stats: dict, buff_data: dict, personal_buff_
 			if player_data['profession'] == profession:
 
 				# Build the row
-				row = f"| {player_data['last_party']} |{player_data['name']} | {{{{{player_data['profession']}}}}} |{player_data['account'][:32]} | {player_data['fight_time'] / 1000:.2f}|"
+				row = f"| {player_data['last_party']} |{player_data['name']} | {{{{{player_data['profession']}}}}} |{player_data['account'][:32]} | {player_data['active_time'] / 1000:.2f}|"
 
 				for buff_id in prof_buff_list:
 					if buff_id in player_data['buffUptimes']:
-						buff_id_uptime = round((player_data['buffUptimes'][buff_id]['uptime_ms'] / player_data['fight_time']) * 100, 2)
+						buff_id_uptime = round((player_data['buffUptimes'][buff_id]['uptime_ms'] / player_data['active_time']) * 100, 2)
 						state_changes = player_data['buffUptimes'][buff_id]['state_changes']
 						tooltip = f"{state_changes} state changes"
 						detail_entry = f'<div class="xtooltip"> {buff_id_uptime:.2f}% <span class="xtooltiptext">{tooltip}</span></div>'
@@ -1898,7 +1896,7 @@ def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time:
 			name_prof = f"{player}|{profession}"
 			prof_name = "{{"+profession+"}}"+player
 			fights = players[name_prof]['num_fights']
-			fight_time = f"{players[name_prof]['fight_time']/1000:,.1f}"
+			fight_time = f"{players[name_prof]['active_time']/1000:,.1f}"
 
 			row = f"|{prof_name} | {fights}| {fight_time}|"
 			for minion in minions[profession]['pets_list']:
@@ -2430,7 +2428,7 @@ def build_support_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str,
 	for player, player_data in top_stats['player'].items():
 		name = player_data["name"]
 		profession = player_data["profession"]
-		fight_time = round(player_data["fight_time"]/1000)
+		fight_time = round(player_data["active_time"]/1000)
 		hps = round(player_data["extHealingStats"].get("outgoing_healing", 0)/fight_time)
 		bps = round(player_data["extHealingStats"].get("outgoing_barrier", 0)/fight_time)
 		hps_bps = hps+bps
@@ -2481,7 +2479,7 @@ def build_DPS_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str, tid
 	for player, player_data in top_stats['player'].items():
 		name = player_data["name"]
 		profession = player_data["profession"]
-		fight_time = round(player_data["fight_time"]/1000)
+		fight_time = round(player_data["active_time"]/1000)
 		Dps = round(player_data["statsTargets"].get("totalDmg", 0)/fight_time)
 		DCps = round(player_data["statsTargets"].get("downContribution", 0)/fight_time)
 		DDps = round(player_data["statsTargets"].get("againstDownedDamage", 0)/fight_time)
@@ -2559,7 +2557,7 @@ def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 			month,
 			day,
 			player_stats.get('num_fights', 0),
-			player_stats.get('fight_time', 0) / 1000,
+			player_stats.get('active_time', 0) / 1000,
 			player_stats.get('account', ''),
 			player_stats.get('guild_status', ''),
 			player_stats.get('name', ''),
