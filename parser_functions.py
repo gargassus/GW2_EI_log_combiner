@@ -274,6 +274,8 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 					continue
 
 				position_mark = math.floor(death_key / polling_rate)
+				if position_mark <= 0:
+					position_mark = 1
 				player_positions = player['combatReplayData']['positions']
 				
 				for down_key, down_value in player_downs.items():
@@ -307,7 +309,6 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 								delta_x = position[0] - tag_position[0]
 								delta_y = position[1] - tag_position[1]
 								player_distances.append(math.sqrt(delta_x * delta_x + delta_y * delta_y))
-
 							player_dist_to_tag = round((sum(player_distances) / len(player_distances)) / inch_to_pixel)
 
 						if death_range <= On_Tag:
