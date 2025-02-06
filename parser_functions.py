@@ -238,6 +238,20 @@ def get_commander_tag_data(fight_json):
 
 	for player in fight_json["players"]:
 		if player["hasCommanderTag"] and not player["notInSquad"]:
+			commander_name = f"{player['name']}|{player['profession']}"
+			commander_summary_data[commander_name] = {
+				'heal_stats': {},
+				'support': {},
+				'statsAll': {},
+				'defenses': {},
+				'totalDamageTaken': {},
+				'prot_mods': {
+					'hitCount': 0,
+					'totalHitCount': 0,
+					'damageGain': 0,
+					'totalDamage': 0
+				}
+			}
 			replay_data = player.get("combatReplayData", {})
 			commander_tag_positions = replay_data.get("positions", [])
 
@@ -1272,9 +1286,14 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 					if commander_name not in commander_summary_data:
 						commander_summary_data[commander_name] = {
 							'heal_stats': {},
-							'prot_mods': {}
+							'prot_mods': {
+								'hitCount': 0,
+								'totalHitCount': 0,
+								'damageGain': 0,
+								'totalDamage': 0
+							}
 						}
-						
+					print(name_prof, "error with commander name:", commander_name, "fight num:", fight_num)
 					if name_prof not in commander_summary_data[commander_name]['heal_stats']:
 						commander_summary_data[commander_name]['heal_stats'][name_prof] = {
 							'outgoing_healing': 0,
@@ -1341,9 +1360,13 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 					if commander_name not in commander_summary_data:
 						commander_summary_data[commander_name] = {
 							'heal_stats': {},
-							'prot_mods': {}
+							'prot_mods': {
+								'hitCount': 0,
+								'totalHitCount': 0,
+								'damageGain': 0,
+								'totalDamage': 0
+							}
 						}
-						
 					if name_prof not in commander_summary_data[commander_name]['heal_stats']:
 						commander_summary_data[commander_name]['heal_stats'][name_prof] = {
 							'outgoing_healing': 0,
@@ -1489,16 +1512,23 @@ def get_damage_mod_by_player(fight_num: int, player: dict, name_prof: str) -> No
 				mod_damage_gain = modifier["damageModifiers"][0]['damageGain']
 				mod_total_damage = modifier["damageModifiers"][0]['totalDamage']
 
-				if commander_tag and mod_id == 'd-58':
-					if name_prof not in commander_summary_data:
-						commander_summary_data[name_prof] = {
-							'heal_stats': {},
-							'prot_mods': {}
+				if commander_tag and name_prof not in commander_summary_data:
+					commander_summary_data[name_prof] = {
+						'heal_stats': {},
+						'prot_mods': {
+							'hitCount': 0,
+							'totalHitCount': 0,
+							'damageGain': 0,
+							'totalDamage': 0
 						}
-					commander_summary_data[name_prof]['prot_mods']['hitCount'] = commander_summary_data[name_prof]['prot_mods'].get('hitCount', 0) + mod_hit_count
-					commander_summary_data[name_prof]['prot_mods']['totalHitCount'] = commander_summary_data[name_prof]['prot_mods'].get('totalHitCount', 0) + mod_total_hit_count
-					commander_summary_data[name_prof]['prot_mods']['damageGain'] = commander_summary_data[name_prof]['prot_mods'].get('damageGain', 0) + mod_damage_gain
-					commander_summary_data[name_prof]['prot_mods']['totalDamage'] = commander_summary_data[name_prof]['prot_mods'].get('totalDamage', 0) + mod_total_damage
+					}
+					if mod_id == 'd-58':
+						print(commander_summary_data[name_prof]['prot_mods'])
+						print(name_prof, "Error with mod id:", mod_id, "fight num:", fight_num)
+						commander_summary_data[name_prof]['prot_mods']['hitCount'] = commander_summary_data[name_prof]['prot_mods'].get('hitCount', 0) + mod_hit_count
+						commander_summary_data[name_prof]['prot_mods']['totalHitCount'] = commander_summary_data[name_prof]['prot_mods'].get('totalHitCount', 0) + mod_total_hit_count
+						commander_summary_data[name_prof]['prot_mods']['damageGain'] = commander_summary_data[name_prof]['prot_mods'].get('damageGain', 0) + mod_damage_gain
+						commander_summary_data[name_prof]['prot_mods']['totalDamage'] = commander_summary_data[name_prof]['prot_mods'].get('totalDamage', 0) + mod_total_damage
 
 
 				if mod_id not in top_stats['player'][name_prof]['damageModifiers']:
