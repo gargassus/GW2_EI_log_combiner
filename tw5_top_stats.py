@@ -36,7 +36,14 @@ from output_functions import *
 if __name__ == '__main__':
 	config_ini = configparser.ConfigParser()
 	config_ini.read('top_stats_config.ini')
+	weights={}
 
+	for section in config_ini.sections():
+		if section == "Boon_Weights":
+			weights[section] = dict(config_ini[section])
+		if section == "Condition_Weights":
+			weights[section] = dict(config_ini[section])
+	
 	parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
 	parser.add_argument('-i', '--input', dest='input_directory', help='Directory containing .json files from Elite Insights')
 	parser.add_argument('-o', '--output', dest="output_filename", help="Not required. Override json file name to write the computed summary")
@@ -269,17 +276,24 @@ if __name__ == '__main__':
 	build_mesmer_clone_usage(mesmer_clone_usage, tid_date_time, tid_list)
 
 	profession_color = config_output.profession_color
-	build_support_bubble_chart(top_stats, buff_data, tid_date_time, tid_list, profession_color)
+	build_support_bubble_chart(top_stats, buff_data, weights, tid_date_time, tid_list, profession_color)
 	build_DPS_bubble_chart(top_stats, tid_date_time, tid_list, profession_color)
 	build_utility_bubble_chart(top_stats, buff_data, tid_date_time, tid_list, profession_color)
 	
 	build_dps_stats_tids(DPSStats, tid_date_time, tid_list)
 	build_dps_stats_menu(tid_date_time)
 
+	#attendance
+	build_attendance_table(top_stats,tid_date_time, tid_list)
+
+	#commander Tag summary
+	build_commander_summary(commander_summary_data, skill_data, buff_data, tid_date_time, tid_list)
+	build_commander_summary_menu(commander_summary_data, tid_date_time, tid_list)
+
 	write_tid_list_to_json(tid_list, args.output_filename)
 
 	if write_all_data_to_json:
-		output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, personal_buff_data, fb_pages, mechanics, minions, mesmer_clone_usage, death_on_tag, DPSStats, args.json_output_filename)
+		output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, personal_buff_data, fb_pages, mechanics, minions, mesmer_clone_usage, death_on_tag, DPSStats, commander_summary_data, args.json_output_filename)
 
 	if db_update:
 		write_data_to_db(top_stats, top_stats['overall']['last_fight'])

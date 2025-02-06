@@ -1344,7 +1344,7 @@ def build_menu_tid(datetime: str) -> None:
 	text = (
 		f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] '
 		f'[[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] '
-		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] [[{datetime}-Player-Damage-By-Skill]] [[{datetime}-Squad-Composition]] [[{datetime}-On-Tag-Review]] [[{datetime}-DPS-Stats]] [[{datetime}-Dashboard]]" '
+		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] [[{datetime}-Player-Damage-By-Skill]] [[{datetime}-Squad-Composition]] [[{datetime}-On-Tag-Review]] [[{datetime}-DPS-Stats]] [[{datetime}-Attendance]] [[{datetime}-commander-summary-menu]] [[{datetime}-Dashboard]]" '
 		f'"{datetime}-Overview" "$:/temp/menutab1">>'
 	)
 
@@ -2464,7 +2464,7 @@ def build_utility_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str,
 	)
 
 
-def build_support_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
+def build_support_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
 	# ["Name", "Profession", "Cleanses", "Heals", "Boon Score", "color"]
 	tid_title = f"{tid_date_time}-Support-Bubble-Chart"
 	tid_caption = "Support Bubble Chart"
@@ -2485,15 +2485,17 @@ def build_support_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str,
 		name = player_data["name"]
 		profession = player_data["profession"]
 		fight_time = round(player_data["active_time"]/1000)
-		hps = round(player_data["extHealingStats"].get("outgoing_healing", 0)/fight_time)
-		bps = round(player_data["extHealingStats"].get("outgoing_barrier", 0)/fight_time)
-		hps_bps = hps+bps
+		hpt = player_data["extHealingStats"].get("outgoing_healing", 0)
+		bpt = player_data["extBarrierStats"].get("outgoing_barrier", 0)
+		hps_bps = round((hpt+bpt)/fight_time)
 		cps = round(player_data["support"].get("condiCleanse", 0)/fight_time,2)
 		player_entry = [name, profession, hps_bps, cps]
 		boon_ps = 0
 		for boon in boons:
 			if boon in player_data["squadBuffs"] and player_data["squadBuffs"][boon]["generation"] > 0:
-				generated = (player_data["squadBuffs"][boon]["generation"] / 1000)
+				boon_name = boons[boon]['name'].lower()
+				boon_wt = int(weights["Boon_Weights"].get(boon_name, 0))
+				generated = (player_data["squadBuffs"][boon]["generation"] / 1000) * boon_wt
 				boon_ps += round(generated / fight_time, 2)
 		player_entry.append(round(boon_ps, 2))
 		if boon_ps > chart_max:
@@ -2506,7 +2508,7 @@ def build_support_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str,
 		chart_data.append(player_entry)
 
 	text = "__''Support Bubble Chart''__\n"
-	text += "\n,,Bubble size based on boon score,,\n\n"
+	text += "\n,,Bubble size based on weighted boon generation,,\n\n"
 	text += "{{"+f"{tid_date_time}-Support-Bubble-Chart||BubbleChart_Template"+"}}"
 
 	append_tid_for_output(
@@ -2523,12 +2525,12 @@ def build_DPS_bubble_chart(top_stats: dict, tid_date_time: str, tid_list: list, 
 	chart_data = []
 	chart_min = 1000
 	chart_max = 0
-	chart_xAxis = "Damage/Sec"
-	chart_yAxis = "Down_Contr/Sec"
-	chart_xData = "Damage/Sec"
-	chart_yData = "Down_Contr/Sec"
+	chart_yAxis = "Damage/Sec"
+	chart_xAxis = "Down Contr %"
+	chart_yData = "Damage/Sec"
+	chart_xData = "Down Contr %"
 
-	data_header = ["Name", "Profession", "Damage/Sec", "Down_Contr/Sec", "Dmg_to_Down/Sec", "color"]
+	data_header = ["Name", "Profession", "Damage/Sec", "Down Contr %", "Dmg to Down %", "color"]
 	chart_data.append(data_header)
 
 	for player, player_data in top_stats['player'].items():
@@ -2536,8 +2538,13 @@ def build_DPS_bubble_chart(top_stats: dict, tid_date_time: str, tid_list: list, 
 		profession = player_data["profession"]
 		fight_time = round(player_data["active_time"]/1000)
 		Dps = round(player_data["statsTargets"].get("totalDmg", 0)/fight_time)
-		DCps = round(player_data["statsTargets"].get("downContribution", 0)/fight_time)
-		DDps = round(player_data["statsTargets"].get("againstDownedDamage", 0)/fight_time)
+		DCps = 0.00
+		DDps = 0.00
+		if Dps > 0:
+			DCps = round((player_data["statsTargets"].get("downContribution", 0)/fight_time)/Dps,4)
+			DCps = round(DCps*100,2)
+			DDps = round((player_data["statsTargets"].get("againstDownedDamage", 0)/fight_time)/Dps,2)
+			DDps = round(DDps*100,2)
 		player_entry = [name, profession, Dps, DCps, DDps]
 		if DDps > chart_max:
 			chart_max = DDps
@@ -2549,7 +2556,7 @@ def build_DPS_bubble_chart(top_stats: dict, tid_date_time: str, tid_list: list, 
 		chart_data.append(player_entry)
 
 	text = "__''DPS Bubble Chart''__\n"
-	text += "\n,,Bubble size based on against downed damage/sec,,\n\n"
+	text += "\n,,Bubble size based on against downed damage % of Damage"
 	text += "{{"+f"{tid_date_time}-DPS-Bubble-Chart||BubbleChart_Template"+"}}"
 
 	append_tid_for_output(
@@ -2585,6 +2592,161 @@ def build_mesmer_clone_usage(mesmer_clone_usage: dict, tid_date_time: str, tid_l
 		create_new_tid_from_template(tid_title, tid_caption, text, tid_tags),
 		tid_list
 	)
+
+
+def build_attendance_table(top_stats: dict, tid_date_time: str, tid_list: list) -> None:
+    """Build an attendance table from top_stats data and append it to tid_list."""
+    attendance_data = {}
+
+    for player, data in top_stats["player"].items():
+        account = data["account"]
+        player_name = data["name"]
+        guild_status = data["guild_status"]
+        profession = f"{{{{ {data['profession']} }}}}"
+
+        num_fights = data["num_fights"]
+        active_time = round(data["active_time"] / 1000)
+
+        if account not in attendance_data:
+            attendance_data[account] = {}
+        if player_name not in attendance_data[account]:
+            attendance_data[account][player_name] = {}
+
+        attendance_data[account][player_name][profession] = {
+            "num_fights": num_fights,
+            "active_time": active_time,
+			"guild_status": guild_status
+        }
+
+    rows = []
+    tid_title = f"{tid_date_time}-Attendance"
+    tid_caption = "Attendance"
+    tid_tags = tid_date_time
+
+    rows.append("\n\n|thead-dark table-caption-top table-hover|k")
+    rows.append("| Attendance Review |c")
+    rows.append("|Account|Name|Profession| Num Fights| Active Time| Status |h")
+
+    for account, players_data in attendance_data.items():
+        total_active_time = 0
+        total_num_fights = 0
+        is_first_entry = True
+
+
+        for player_name, professions_data in players_data.items():
+            for profession, stats in professions_data.items():
+                total_active_time += stats["active_time"]
+                total_num_fights += stats["num_fights"]
+
+                if is_first_entry:
+                    rows.append(
+                        f"|{account}|{player_name}|{profession}| {stats['num_fights']}| {stats['active_time']}| {guild_status} |"
+                    )
+                    is_first_entry = False
+                else:
+                    rows.append(
+                        f"|~|{player_name}|{profession}| {stats['num_fights']}| {stats['active_time']}| {guild_status} |"
+                    )
+        rows.append(
+            f"| Totals for {account}:|<|<| {total_num_fights}| {total_active_time}| {guild_status} ||h"
+        )
+
+    text = "\n".join(rows)
+
+    append_tid_for_output(
+        create_new_tid_from_template(tid_title, tid_caption, text, tid_tags),
+        tid_list
+    )
+
+def build_commander_summary_menu(commander_summary_data: dict, tid_date_time: str, tid_list: list) -> None:
+	#build the menu for the commander summary
+	tags = f"{tid_date_time}"
+	title = f"{tid_date_time}-commander-summary-menu"
+	caption = "Commander-Summary"
+	text = '<<tabs "'
+	for commander in commander_summary_data:
+		tag_name, tag_prof = commander.split("|")
+
+		text += f"[[{tid_date_time}-{tag_name}-{tag_prof}-Tag-Summary]] "
+
+	text += f'" "{tid_date_time}-{tag_name}-{tag_prof}-Tag-Summary" "$:/temp/tagtab">>'
+
+	append_tid_for_output(
+		create_new_tid_from_template(title, caption, text, tags),
+		tid_list
+	)
+
+def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff_data: dict, tid_date_time: str, tid_list: list) -> None:
+
+	for commander, cmd_data in commander_summary_data.items():
+		rows = []
+		# Set the title, caption and tags for the table
+		tag_name, tag_prof = commander.split("|")
+		tid_title = f"{tid_date_time}-{tag_name}-{tag_prof}-Tag-Summary"
+		tid_caption = "{{"+f"{tag_prof}"+"}}"+f"-{tag_name}-Tag-Summary"
+		tid_tags = tid_date_time
+
+		damage_by_skill={}
+		for skill , damage_data in cmd_data["totalDamageTaken"].items():
+			damage_by_skill[skill] = damage_data["totalDamage"]
+
+		sorted_items = {k: v for k, v in sorted(damage_by_skill.items(), key=lambda item: item[1], reverse=True)}
+
+		prot_data =cmd_data["prot_mods"] 
+		def_data = cmd_data["defenses"]
+		damageTaken = def_data['damageTaken']
+		damageBarrier = def_data["damageBarrier"]
+		downCount = def_data["downCount"]
+		deadCount = def_data["deadCount"]
+		boonStrips = def_data["boonStrips"]
+		conditionCleanses = def_data["conditionCleanses"]
+		receivedCrowdControl = def_data["receivedCrowdControl"]
+		damageGain = int(prot_data["damageGain"])
+		rows.append('<div style="overflow-x:auto;">\n<div class="flex-row">\n    <div class="flex-col">\n\n')
+		rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
+		rows.append(f"| {commander} - Defense Stats Summary |c")
+		rows.append("| !Damage | !Barrier | !Protection | !Downed | !Dead | !Stripped| !Cleansed| !Hard CC|h")
+		rows.append(f"| {damageTaken:,} | {damageBarrier:,} | {damageGain:,} | {downCount} | {deadCount} | {boonStrips:,}| {conditionCleanses:,}| {receivedCrowdControl}|")
+		rows.append("\n\n")
+
+		rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
+		rows.append(f"| {commander} - Incoming Heal Stats Summary |c")
+		rows.append("|!Healer | !Healing | !Barrier | !Downed Healing |h")
+		for healer, data in cmd_data["heal_stats"].items():
+			healer_name, healer_profession = healer.split("|")
+			healer_profession = "{{"+healer_profession+"}}"
+			healing = int(data["outgoing_healing"])
+			barrier = int(data["outgoing_barrier"])
+			downed = int(data["downed_healing"])
+			rows.append(f"|{healer_profession} {healer_name}| {healing:,}| {barrier:,}| {downed:,}|")
+		rows.append("\n\n")
+		rows.append('</div>\n    <div class="flex-col">\n\n')
+		rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")		
+		rows.append(f"| {commander} - Incoming Damage Summary |c")
+		rows.append("|!Skill | !Damage| !Hits| !Barrier Absorbed|h")
+		for item in sorted_items:
+			skill_id = "s"+str(item)
+			if skill_id in skill_data:
+				skill_name = skill_data[skill_id]["name"]
+				skill_icon = skill_data[skill_id]["icon"]
+			else:
+				skill_id = "b"+str(item)
+				skill_name = buff_data[skill_id]["name"]
+				skill_icon = buff_data[skill_id]["icon"]
+
+			damage = cmd_data["totalDamageTaken"][item]["totalDamage"]
+			hits = cmd_data["totalDamageTaken"][item]["connectedHits"]
+			barrier = cmd_data["totalDamageTaken"][item]["shieldDamage"]
+			rows.append("|[img width=24 ["+f"{skill_icon}"+"]]"+f"{skill_name} | {int(damage):,}| {int(hits):,}| {int(barrier):,}|")
+		rows.append("\n\n")
+		rows.append('    </div>\n  </div>\n</div>')
+
+		text = "\n".join(rows)
+
+		append_tid_for_output(
+			create_new_tid_from_template(tid_title, tid_caption, text, tid_tags),
+			tid_list
+		)
 
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	
@@ -2652,7 +2814,7 @@ def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	print("Database updated.")
 
 
-def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, personal_buff_data: dict, fb_pages: dict, mechanics: dict, minions: dict, mesmer_clone_usage: dict, death_on_tag: dict, DPSStats: dict, outfile: str) -> None:
+def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, personal_buff_data: dict, fb_pages: dict, mechanics: dict, minions: dict, mesmer_clone_usage: dict, death_on_tag: dict, DPSStats: dict, commander_summary_data: dict, outfile: str) -> None:
 	"""Print the top_stats dictionary as a JSON object to the console."""
 
 	json_dict = {}
@@ -2675,6 +2837,8 @@ def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, da
 	json_dict["death_on_tag"] = {key: value for key, value in death_on_tag.items()}
 	json_dict['players_running_healing_addon'] = top_stats['players_running_healing_addon']
 	json_dict["DPSStats"] = {key: value for key, value in DPSStats.items()}
+	json_dict["commander_summary_data"] = {key: value for key, value in commander_summary_data.items()}
+	
 	with open(outfile, 'w') as json_file:
 		json.dump(json_dict, json_file, indent=4)
 
