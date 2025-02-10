@@ -173,6 +173,22 @@ def calculate_moving_average(data: list, window_size: int) -> list:
 	return ma
 
 
+def find_lowest(dict):
+    temp = min(dict.values())
+    res = []
+    for key, value in dict.items():
+        if(value == temp):
+            res.append(key)
+            res.append(value)
+    return res
+
+def find_smallest_value(my_dict):
+    if not my_dict:
+        return "Dictionary is empty"
+    
+    min_key = min(my_dict, key=my_dict.get)
+    return min_key
+
 def update_high_score(stat_name: str, key: str, value: float) -> None:
 	"""
 	Update the high scores dictionary with a new value if it is higher than the current lowest value.
@@ -181,18 +197,23 @@ def update_high_score(stat_name: str, key: str, value: float) -> None:
 		stat_name (str): The name of the stat to update.
 		key (str): The key to store the value under.
 		value (float): The value to store.
-
-	Returns:
-		None
 	"""
+
 	if stat_name not in high_scores:
 		high_scores[stat_name] = {}
-	if len(high_scores[stat_name]) < 5 or value > min(high_scores[stat_name].values()):
-		if len(high_scores[stat_name]) == 5:
-			lowest_key = min(high_scores[stat_name], key=high_scores[stat_name].get)
-			del high_scores[stat_name][lowest_key]
-		high_scores[stat_name][key] = value
 
+	if len(high_scores[stat_name]) < 5:
+		high_scores[stat_name][key] = value
+		return
+
+	lowest_key = min(high_scores[stat_name], key=high_scores[stat_name].get)
+	lowest_value = high_scores[stat_name][lowest_key]
+
+	if value >= lowest_value and key not in high_scores[stat_name]:
+		del high_scores[stat_name][lowest_key]
+		high_scores[stat_name][key] = value
+	#elif value > lowest_value and key in high_scores[stat_name]:
+	#	high_scores[stat_name][key] = value
 
 def determine_player_role(player_data: dict) -> str:
 	"""
@@ -909,7 +930,7 @@ def get_stat_by_target_and_skill(fight_num: int, player: dict, stat_category: st
 		stat_category (str): The category of stats to collect.
 		name_prof (str): The name of the profession.
 	"""
-	for target in player[stat_category]:
+	for index, target in enumerate(player[stat_category]):
 		if target[0]:
 			for skill in target[0]:
 				skill_id = skill['id']
@@ -923,7 +944,7 @@ def get_stat_by_target_and_skill(fight_num: int, player: dict, stat_category: st
 					
 				for stat, value in skill.items():
 					if stat == 'max':
-						update_high_score(f"statTarget_{stat}", "{{"+player["profession"]+"}}"+player["name"]+"-"+str(fight_num)+" | "+str(skill_id), value)
+						update_high_score(f"statTarget_{stat}", "{{"+player["profession"]+"}}"+player["name"]+"-"+str(fight_num)+"-"+str(index)+" | "+str(skill_id), value)
 						if value > top_stats['player'][name_prof][stat_category][skill_id].get(stat, 0):
 							top_stats['player'][name_prof][stat_category][skill_id][stat] = value
 							top_stats['fight'][fight_num][stat_category][skill_id][stat] = value
