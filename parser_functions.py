@@ -900,6 +900,8 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 		name_prof (str): The name of the profession.
 	"""
 	for stat, value in player[stat_category][0].items():
+		if stat == 'boonStripsTime' and value > 999999:
+			value = 0	
 		if stat in config.high_scores:
 			active_time_seconds = player['activeTimes'][0] / 1000
 			high_score_value = round(value / active_time_seconds, 3) if active_time_seconds > 0 else 0
