@@ -528,6 +528,10 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 		for stat in category_stats:
 			if stat =="damage":
 				header += " !{{totalDmg}} |"
+			elif stat == "connectedDamageCount":
+				header += " !{{connectedDamageCount}} |"
+			elif stat == "connectedDirectDamageCount":
+				header += " !{{connectedDirectDamageCount}} | !{{connectedIndirectDamageCount}} |"
 			else:
 				header += " !{{"+f"{stat}"+"}} |"
 		header += "h"
@@ -544,6 +548,10 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 				if stat in ["receivedCrowdControlDuration","appliedCrowdControlDuration"]:
 					stat_value = stat_value / 1000
 
+				#if stat == "connectedDirectDamageCount":
+				#	total_hits = player[category].get("connectedDamageCount", 0)
+				#	stat_value = f"{stat_value} | {total_hits - stat_value}"
+
 				if stat in pct_stats:
 					divisor_value = player[category].get(pct_stats[stat], 0)
 					if divisor_value == 0:
@@ -557,6 +565,14 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 						stat_value = f"{stat_value/(fight_time/60):.2f}"
 					else:
 						stat_value = f"{stat_value:,.1f}"
+				elif stat == "connectedDirectDamageCount":
+					total_hits = player[category].get("connectedDamageCount", 0)
+					if toggle == "Stat/1s":
+						stat_value = f"{stat_value/fight_time:.2f}| {(total_hits-stat_value)/fight_time:.2f}"
+					elif toggle == "Stat/60s":
+						stat_value = f"{stat_value/(fight_time/60):.2f}| {(total_hits-stat_value)/(fight_time/60):.2f}"
+					else:
+						stat_value = f"{stat_value:,}| {(total_hits-stat_value):,}"
 				else:
 					if toggle == "Stat/1s":
 						stat_value = f"{stat_value/fight_time:,.2f}"
