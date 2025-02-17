@@ -49,6 +49,8 @@ defenses_table = {
 	#"strikeDamageTaken": 'defenses',
 	#"lifeLeechDamageTaken": 'defenses',
 	#"breakbarDamageTaken": 'defenses',
+    "directHits": 'defenses',
+	"glanceCount": "defenses",
 	"blockedCount": 'defenses',
 	"evadedCount": 'defenses',
 	"missedCount": 'defenses',

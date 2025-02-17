@@ -249,6 +249,15 @@ def determine_player_role(player_data: dict) -> str:
 	else:
 		return "DPS"
 
+def calculate_defensive_hits_and_glances(player_data: dict) -> dict:
+	direct_hits = 0
+	glancing_hits = 0
+	for skill in player_data['totalDamageTaken'][0]:
+		glancing_hits += skill['glance']
+		if not skill['indirectDamage']:
+			direct_hits += skill['hits']
+
+	return direct_hits, glancing_hits
 
 def get_commander_tag_data(fight_json):
 	"""Extract commander tag data from the fight JSON."""
@@ -909,6 +918,15 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 		top_stats['player'][name_prof][stat_category][stat] = top_stats['player'][name_prof][stat_category].get(stat, 0) + value
 		top_stats['fight'][fight_num][stat_category][stat] = top_stats['fight'][fight_num][stat_category].get(stat, 0) + value
 		top_stats['overall'][stat_category][stat] = top_stats['overall'][stat_category].get(stat, 0) + value
+
+		if stat_category == 'defenses':
+			direct_hits, glancing_hits = calculate_defensive_hits_and_glances(player)
+			top_stats['player'][name_prof][stat_category]['directHits'] = top_stats['player'][name_prof][stat_category].get('directHits', 0) + direct_hits
+			top_stats['player'][name_prof][stat_category]['glanceCount'] = top_stats['player'][name_prof][stat_category].get('glanceCount', 0) + glancing_hits	
+			top_stats['fight'][fight_num][stat_category]['directHits'] = top_stats['fight'][fight_num][stat_category].get('directHits', 0) + direct_hits
+			top_stats['fight'][fight_num][stat_category]['glanceCount'] = top_stats['fight'][fight_num][stat_category].get('glanceCount', 0) + glancing_hits
+			top_stats['overall'][stat_category]['directHits'] = top_stats['overall'][stat_category].get('directHits', 0) + direct_hits
+			top_stats['overall'][stat_category]['glanceCount'] = top_stats['overall'][stat_category].get('glanceCount', 0) + glancing_hits
 
 		commander_tag = player['hasCommanderTag']
 		if commander_tag:
