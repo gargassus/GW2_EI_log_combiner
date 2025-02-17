@@ -919,15 +919,6 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 		top_stats['fight'][fight_num][stat_category][stat] = top_stats['fight'][fight_num][stat_category].get(stat, 0) + value
 		top_stats['overall'][stat_category][stat] = top_stats['overall'][stat_category].get(stat, 0) + value
 
-		if stat_category == 'defenses':
-			direct_hits, glancing_hits = calculate_defensive_hits_and_glances(player)
-			top_stats['player'][name_prof][stat_category]['directHits'] = top_stats['player'][name_prof][stat_category].get('directHits', 0) + direct_hits
-			top_stats['player'][name_prof][stat_category]['glanceCount'] = top_stats['player'][name_prof][stat_category].get('glanceCount', 0) + glancing_hits	
-			top_stats['fight'][fight_num][stat_category]['directHits'] = top_stats['fight'][fight_num][stat_category].get('directHits', 0) + direct_hits
-			top_stats['fight'][fight_num][stat_category]['glanceCount'] = top_stats['fight'][fight_num][stat_category].get('glanceCount', 0) + glancing_hits
-			top_stats['overall'][stat_category]['directHits'] = top_stats['overall'][stat_category].get('directHits', 0) + direct_hits
-			top_stats['overall'][stat_category]['glanceCount'] = top_stats['overall'][stat_category].get('glanceCount', 0) + glancing_hits
-
 		commander_tag = player['hasCommanderTag']
 		if commander_tag:
 			commander_name = f"{player['name']}|{player['profession']}"
@@ -939,6 +930,14 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 				commander_summary_data[commander_name][stat_category][stat] = 0
 			commander_summary_data[commander_name][stat_category][stat] += value
 
+def get_defense_hits_and_glances(fight_num: int, player: dict, stat_category: str, name_prof: str) -> None:
+	direct_hits, glancing_hits = calculate_defensive_hits_and_glances(player)
+	top_stats['player'][name_prof][stat_category]['directHits'] = top_stats['player'][name_prof][stat_category].get('directHits', 0) + direct_hits
+	top_stats['player'][name_prof][stat_category]['glanceCount'] = top_stats['player'][name_prof][stat_category].get('glanceCount', 0) + glancing_hits	
+	top_stats['fight'][fight_num][stat_category]['directHits'] = top_stats['fight'][fight_num][stat_category].get('directHits', 0) + direct_hits
+	top_stats['fight'][fight_num][stat_category]['glanceCount'] = top_stats['fight'][fight_num][stat_category].get('glanceCount', 0) + glancing_hits
+	top_stats['overall'][stat_category]['directHits'] = top_stats['overall'][stat_category].get('directHits', 0) + direct_hits
+	top_stats['overall'][stat_category]['glanceCount'] = top_stats['overall'][stat_category].get('glanceCount', 0) + glancing_hits
 
 def get_stat_by_target_and_skill(fight_num: int, player: dict, stat_category: str, name_prof: str) -> None:
 	"""
@@ -1931,6 +1930,8 @@ def parse_file(file_path, fight_num, guild_data):
 			# format: player[stat_category][0][stat]
 			if stat_cat in ['defenses', 'support', 'statsAll']:
 				get_stat_by_key(fight_num, player, stat_cat, name_prof)
+				if stat_cat in ['defenses']:
+					get_defense_hits_and_glances(fight_num, player, stat_cat, name_prof)
 
 			# format: player[stat_cat][target][0][skill][stat]
 			if stat_cat in ['targetDamageDist']:
