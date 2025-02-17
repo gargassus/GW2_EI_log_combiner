@@ -1280,9 +1280,9 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 		if skill in skill_data:
 			skill_icon = skill_data[skill]['icon']
 			skill_name = skill_data[skill]['name']
-		elif skill in buff_data:
-			skill_icon = buff_data[skill]['icon']
-			skill_name = buff_data[skill]['name']
+		elif skill.replace(skill[0], "b", 1) in buff_data:
+			skill_icon = buff_data[skill.replace(skill[0], "b", 1)]['icon']
+			skill_name = buff_data[skill.replace(skill[0], "b", 1)]['name']
 		else:
 			skill_icon = "unknown.png"
 			skill_name = skill
