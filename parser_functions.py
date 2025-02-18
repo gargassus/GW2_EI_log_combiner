@@ -290,7 +290,7 @@ def get_commander_tag_data(fight_json):
 				if death_time > 0:
 					earliest_death_time = min(death_time, earliest_death_time)
 					has_died = True
-			break
+					break
 
 	return commander_tag_positions, earliest_death_time, has_died
 
@@ -320,9 +320,7 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 				if death_key < 0:  # Handle death on the field before main squad combat log starts
 					continue
 
-				position_mark = math.floor(death_key / polling_rate)
-				if position_mark <= 0:
-					position_mark = 1
+				position_mark = max(1, math.floor(death_key / polling_rate))
 				player_positions = player['combatReplayData']['positions']
 				
 				for down_key, down_value in player_downs.items():
@@ -340,7 +338,7 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 							death_on_tag[name_prof]["After_Tag_Death"] += 1
 
 							# Calc Avg distance through dead tag final mark
-							player_dead_poll = int(dead_tag_mark / polling_rate)
+							player_dead_poll = max(1, int(dead_tag_mark / polling_rate))
 							player_distances = []
 							for position, tag_position in zip(player_positions[:player_dead_poll], commander_tag_positions[:player_dead_poll]):
 								delta_x = position[0] - tag_position[0]
@@ -923,12 +921,10 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 		if commander_tag:
 			commander_name = f"{player['name']}|{player['profession']}"
 			if commander_name not in commander_summary_data:
-				commander_summary_data[commander_name] = {}
-			if stat_category not in commander_summary_data[commander_name]:
+				commander_summary_data[commander_name] = {stat_category: {}}
+			elif stat_category not in commander_summary_data[commander_name]:
 				commander_summary_data[commander_name][stat_category] = {}
-			if stat not in commander_summary_data[commander_name][stat_category]:
-				commander_summary_data[commander_name][stat_category][stat] = 0
-			commander_summary_data[commander_name][stat_category][stat] += value
+			commander_summary_data[commander_name][stat_category][stat] = commander_summary_data[commander_name][stat_category].get(stat, 0) + value
 
 def get_defense_hits_and_glances(fight_num: int, player: dict, stat_category: str, name_prof: str) -> None:
 	direct_hits, glancing_hits = calculate_defensive_hits_and_glances(player)

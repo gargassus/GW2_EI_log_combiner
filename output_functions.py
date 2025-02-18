@@ -2711,16 +2711,15 @@ def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff
 			damage_by_skill[skill] = damage_data["totalDamage"]
 
 		sorted_items = {k: v for k, v in sorted(damage_by_skill.items(), key=lambda item: item[1], reverse=True)}
-
 		prot_data =cmd_data["prot_mods"] 
 		def_data = cmd_data["defenses"]
-		damageTaken = def_data['damageTaken']
-		damageBarrier = def_data["damageBarrier"]
-		downCount = def_data["downCount"]
-		deadCount = def_data["deadCount"]
-		boonStrips = def_data["boonStrips"]
-		conditionCleanses = def_data["conditionCleanses"]
-		receivedCrowdControl = def_data["receivedCrowdControl"]
+		damageTaken = cmd_data["defenses"].get('damageTaken',0)
+		damageBarrier = cmd_data["defenses"].get("damageBarrier",0)
+		downCount = cmd_data["defenses"].get("downCount",0)
+		deadCount = cmd_data["defenses"].get("deadCount",0)
+		boonStrips = cmd_data["defenses"].get("boonStrips",0)
+		conditionCleanses = cmd_data["defenses"].get("conditionCleanses",0)
+		receivedCrowdControl = cmd_data["defenses"].get("receivedCrowdControl",0)
 		damageGain = int(prot_data["damageGain"])
 		rows.append('<div style="overflow-x:auto;">\n<div class="flex-row">\n    <div class="flex-col">\n\n')
 		rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
