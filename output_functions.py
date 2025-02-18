@@ -2422,7 +2422,7 @@ def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> 
 			tid_list
 		)
 
-def build_utility_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
+def build_utility_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
 	# ["Name", "Profession", "Cleanses", "Heals", "Boon Score", "color"]
 	tid_title = f"{tid_date_time}-Utility-Bubble-Chart"
 	tid_caption = "Utility Bubble Chart"
@@ -2448,7 +2448,9 @@ def build_utility_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str,
 		cps=0
 		for condition in boons:
 			if condition in player_data["targetBuffs"] and player_data["targetBuffs"][condition]["uptime_ms"] > 0:
-				condi_generated = (player_data["targetBuffs"][condition]["uptime_ms"] / 1000)
+				condi_name = boons[condition]['name'].lower()
+				condi_wt = int(weights["Condition_Weights"].get(condi_name, 0))				
+				condi_generated = (player_data["targetBuffs"][condition]["uptime_ms"] / 1000) * condi_wt
 				cps += round(condi_generated / fight_time, 2)
 
 		cps = round(cps, 2)
@@ -2457,7 +2459,9 @@ def build_utility_bubble_chart(top_stats: dict, boons: dict, tid_date_time: str,
 		boon_ps = 0
 		for boon in boons:
 			if boon in player_data["squadBuffs"] and player_data["squadBuffs"][boon]["generation"] > 0:
-				generated = (player_data["squadBuffs"][boon]["generation"] / 1000)
+				boon_name = boons[boon]['name'].lower()
+				boon_wt = int(weights["Boon_Weights"].get(boon_name, 0))
+				generated = (player_data["squadBuffs"][boon]["generation"] / 1000) * boon_wt
 				boon_ps += round(generated / fight_time, 2)
 		player_entry.append(round(boon_ps, 2))
 
