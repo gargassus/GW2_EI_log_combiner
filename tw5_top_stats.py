@@ -36,7 +36,39 @@ from output_functions import *
 if __name__ == '__main__':
 	config_ini = configparser.ConfigParser()
 	config_ini.read('top_stats_config.ini')
-	weights={}
+	weights ={
+		'Boon_Weights': {
+			'Aegis': 1,
+			'Alacrity': 1,
+			'Fury': 1,
+			'Might': 1,
+			'Protection': 1,
+			'Quickness': 1,
+			'Regeneration': 1,
+			'Resistance': 1,
+			'Resolution': 1,
+			'Stability': 1,
+			'Swiftness': 1,
+			'Vigor': 1,
+			'Superspeed': 1
+		},
+		'Condition_Weights': {
+			'Bleed': 1,
+			'Burning': 1,
+			'Confusion': 1,
+			'Poisoned': 1,
+			'Torment': 1,
+			'Blinded': 1,
+			'Chilled': 1,
+			'Crippled': 1,
+			'Fear': 1,
+			'Immobilized': 1,
+			'Slow': 1,
+			'Taunt': 1,
+			'Weakness': 1,
+			'Vulnerability': 1
+		}
+	}
 
 	for section in config_ini.sections():
 		if section == "Boon_Weights":
