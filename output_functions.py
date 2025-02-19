@@ -2055,7 +2055,7 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 		rows.append('\n<div class="flex-row">\n\n    <div class="flex-col">\n\n')
 
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
-		header += "|!Skill Name |!Hits | !Total Healing| !Avg Healing| !Pct|h"
+		header += "|!Skill Name |!Hits | !Total Healing| !Avg Healing| !Max Heal| !Pct|h"
 		rows.append(header)
 
 		outgoing_healing = top_stats['player'][healer]['extHealingStats'].get('outgoing_healing', 0)
@@ -2064,12 +2064,12 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 				skill_name = skill_data.get(skill, {}).get("name", buff_data.get(skill.replace("s", "b"), {}).get("name", ""))
 				skill_icon = skill_data.get(skill, {}).get("icon", buff_data.get(skill.replace("s", "b"), {}).get("icon", ""))
 				entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
-
+				max_heal = top_stats['player'][healer]['extHealingStats']['skills'][skill]['max']
 				hits = top_stats['player'][healer]['extHealingStats']['skills'][skill]['hits']
 				total_healing = top_stats['player'][healer]['extHealingStats']['skills'][skill]['healing']
 				avg_healing = total_healing/hits if hits > 0 else 0
 
-				row = f"|{entry} | {hits:,.0f} | {total_healing:,.0f}| {avg_healing:,.0f}| {total_healing/outgoing_healing*100:,.2f}%|"
+				row = f"|{entry} | {hits:,.0f} | {total_healing:,.0f}| {avg_healing:,.0f}| {max_heal:,.0f}| {total_healing/outgoing_healing*100:,.2f}%|"
 
 				rows.append(row)
 
@@ -2082,7 +2082,7 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += "| Total Barrier |c\n"
-		header += "|!Skill Name |!Hits | !Total Barrier| !Avg Barrier| !Pct|h"
+		header += "|!Skill Name |!Hits | !Total Barrier| !Avg Barrier| !Max Barrier| !Pct|h"
 		rows.append(header)
 
 		outgoing_barrier = top_stats['player'][healer]['extBarrierStats'].get('outgoing_barrier', 0)
@@ -2092,12 +2092,12 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 				skill_name = skill_data.get(skill, {}).get("name", buff_data.get(skill.replace("s", "b"), {}).get("name", ""))
 				skill_icon = skill_data.get(skill, {}).get("icon", buff_data.get(skill.replace("s", "b"), {}).get("icon", ""))
 				entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
-
+				max_barrier = top_stats['player'][healer]['extBarrierStats']['skills'][skill]['max']
 				hits = top_stats['player'][healer]['extBarrierStats']['skills'][skill]['hits']
 				total_barrier = top_stats['player'][healer]['extBarrierStats']['skills'][skill]['totalBarrier']
 				avg_barrier = total_barrier/hits if hits > 0 else 0
 
-				row = f"|{entry} | {hits:,.0f} | {total_barrier:,.0f}| {avg_barrier:,.0f}| {total_barrier/outgoing_barrier*100:,.2f}%|"
+				row = f"|{entry} | {hits:,.0f} | {total_barrier:,.0f}| {avg_barrier:,.0f}| {max_barrier:,.0f}| {total_barrier/outgoing_barrier*100:,.2f}%|"
 
 				rows.append(row)
 
