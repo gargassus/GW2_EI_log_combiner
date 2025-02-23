@@ -2684,6 +2684,8 @@ def build_commander_summary_menu(commander_summary_data: dict, tid_date_time: st
 	title = f"{tid_date_time}-commander-summary-menu"
 	caption = "Commander-Summary"
 	text = '<<tabs "'
+	tag_name = "None"
+	tag_prof = "None"
 	for commander in commander_summary_data:
 		tag_name, tag_prof = commander.split("|")
 

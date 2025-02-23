@@ -319,8 +319,9 @@ if __name__ == '__main__':
 	build_attendance_table(top_stats,tid_date_time, tid_list)
 
 	#commander Tag summary
-	build_commander_summary(commander_summary_data, skill_data, buff_data, tid_date_time, tid_list)
-	build_commander_summary_menu(commander_summary_data, tid_date_time, tid_list)
+	if build_commander_summary_menu:
+		build_commander_summary(commander_summary_data, skill_data, buff_data, tid_date_time, tid_list)
+		build_commander_summary_menu(commander_summary_data, tid_date_time, tid_list)
 
 	write_tid_list_to_json(tid_list, args.output_filename)
 
