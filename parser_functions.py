@@ -28,6 +28,8 @@ team_colors = config.team_colors
 
 mesmer_shatter_skills = config.mesmer_shatter_skills
 mesmer_clone_usage = {}
+enemy_avg_damage_per_skill = {}
+player_damage_mitigation = {}
 
 # Buff and skill data collected from all logs
 buff_data = {}
@@ -1663,6 +1665,80 @@ def get_mechanics_by_fight(fight_number, mechanics_map, players, log_type):
 				else:
 					mechanics[fight_number][mechanic_name]['enemy_data'][actor] += 1
 
+def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, skill_data: dict, buff_data: dict) -> None:
+	"""Collects damage mitigation data from a fight and stores it in a dictionary."""
+	for target in targets:
+		if 'totalDamageDist' in target:
+			for skill in target['totalDamageDist'][0]:
+				skill_id = skill['id']
+				if f"s{skill_id}" in skill_data:
+					skill_name = skill_data[f"s{skill_id}"]['name']
+				elif f"b{skill_id}" in buff_data:
+					skill_name = buff_data[f"b{skill_id}"]['name']
+				else:
+					skill_name = f"Unknown Skill {skill_id}"
+				if skill_name not in enemy_avg_damage_per_skill:
+					enemy_avg_damage_per_skill[skill_name] = {
+						'dmg': 0,
+						'hits': 0
+					}
+				enemy_avg_damage_per_skill[skill_name]['dmg'] += skill['totalDamage']
+				enemy_avg_damage_per_skill[skill_name]['hits'] += skill['connectedHits']
+
+	for player in players:
+		if player['notInSquad']:
+			continue
+		name_prof = f"{player['name']}|{player['profession']}"
+		if 'totalDamageTaken' in player:
+			if name_prof not in player_damage_mitigation:
+				player_damage_mitigation[name_prof] = {}
+			for skill in player['totalDamageTaken'][0]:
+				skill_id = skill['id']
+				if f"s{skill_id}" in skill_data:
+					skill_name = skill_data[f"s{skill_id}"]['name']
+				elif f"b{skill_id}" in buff_data:
+					skill_name = buff_data[f"b{skill_id}"]['name']
+				else:
+					skill_name = f"Unknown Skill {skill_id}"
+				if skill_name not in player_damage_mitigation[name_prof]:
+					player_damage_mitigation[name_prof][skill_name] = {
+						'blocked': 0,
+						'evaded': 0,
+						'glanced': 0,
+						'missed': 0,
+						'invulned': 0,
+						'interrupted': 0,
+						'total_dmg': 0,
+						'skill_hits': 0,
+						'total_hits': 0,
+						'avg_dmg': 0,
+						'avoided_damage': 0
+					}
+
+				player_damage_mitigation[name_prof][skill_name]['blocked'] += skill['blocked']
+				player_damage_mitigation[name_prof][skill_name]['evaded'] += skill['evaded']
+				player_damage_mitigation[name_prof][skill_name]['glanced'] += skill['glance']
+				player_damage_mitigation[name_prof][skill_name]['missed'] += skill['missed']
+				player_damage_mitigation[name_prof][skill_name]['invulned'] += skill['invulned']
+				player_damage_mitigation[name_prof][skill_name]['interrupted'] += skill['interrupted']				
+				player_damage_mitigation[name_prof][skill_name]['total_dmg'] = enemy_avg_damage_per_skill[skill_name]['dmg'] if skill_name in enemy_avg_damage_per_skill else 0
+				player_damage_mitigation[name_prof][skill_name]['skill_hits'] += skill['hits']
+				player_damage_mitigation[name_prof][skill_name]['total_hits'] = enemy_avg_damage_per_skill[skill_name]['hits'] if skill_name in enemy_avg_damage_per_skill else 0
+				if player_damage_mitigation[name_prof][skill_name]['total_hits'] > 0:
+					player_damage_mitigation[name_prof][skill_name]['avg_dmg'] = player_damage_mitigation[name_prof][skill_name]['total_dmg'] / player_damage_mitigation[name_prof][skill_name]['total_hits']
+					avoided_damage = (
+						player_damage_mitigation[name_prof][skill_name]['glanced'] * player_damage_mitigation[name_prof][skill_name]['avg_dmg'] / 2
+						+ (
+							(
+							player_damage_mitigation[name_prof][skill_name]['blocked']
+							+ player_damage_mitigation[name_prof][skill_name]['evaded']
+							+ player_damage_mitigation[name_prof][skill_name]['missed']
+							+ player_damage_mitigation[name_prof][skill_name]['invulned']
+							+ player_damage_mitigation[name_prof][skill_name]['interrupted']
+						) * player_damage_mitigation[name_prof][skill_name]['avg_dmg']
+						)
+					)
+					player_damage_mitigation[name_prof][skill_name]['avoided_damage'] = avoided_damage
 
 def get_minions_by_player(player_data: dict, player_name: str, profession: str) -> None:
 	"""
@@ -1823,6 +1899,7 @@ def parse_file(file_path, fight_num, guild_data):
 	#collect mechanics data
 	get_mechanics_by_fight(fight_num, mechanics_map, players, log_type)
 
+	get_damage_mitigation_data(fight_num, players, targets, skill_map, buff_map)
 	#process each player in the fight
 	for player in players:
 		# skip players not in squad

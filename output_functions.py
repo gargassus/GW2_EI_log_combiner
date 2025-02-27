@@ -1360,7 +1360,7 @@ def build_menu_tid(datetime: str) -> None:
 	text = (
 		f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] '
 		f'[[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] '
-		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] [[{datetime}-Player-Damage-By-Skill]] [[{datetime}-Squad-Composition]] [[{datetime}-On-Tag-Review]] [[{datetime}-DPS-Stats]] [[{datetime}-Attendance]] [[{datetime}-commander-summary-menu]] [[{datetime}-Dashboard]]" '
+		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] [[{datetime}-Player-Damage-By-Skill]] [[{datetime}-Squad-Composition]] [[{datetime}-On-Tag-Review]] [[{datetime}-DPS-Stats]] [[{datetime}-Defense-Damage-Mitigation]] [[{datetime}-Attendance]] [[{datetime}-commander-summary-menu]] [[{datetime}-Dashboard]]" '
 		f'"{datetime}-Overview" "$:/temp/menutab1">>'
 	)
 
@@ -2769,6 +2769,52 @@ def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff
 			tid_list
 		)
 
+
+def build_defense_damage_mitigation(player_damage_mitigation: dict, tid_date_time: str, tid_list: list) -> None:
+	tags = f"{tid_date_time}"
+	title = f"{tid_date_time}-Defense-Damage-Mitigation"
+	caption = "Damage Mitigation"
+
+	rows = []
+
+	rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
+	rows.append(f"| Damage Mitigation based on Average Enemy Damage per `skillID` and Player defensive activity per `skillID` |c")
+	rows.append("|!Player | !Prof | !{{directHits}}| !{{evadedCount}}| !{{blockedCount}}| !{{glanceCount}}| !{{missedCount}}| !{{invulnedCount}}| !{{interruptedCount}}| !~Damage|h")
+
+	for name_prof, data in player_damage_mitigation.items():
+		player_name, player_profession = name_prof.split("|")
+		player_profession = "{{"+player_profession+"}} "+player_profession[:3]
+		total_blocked = 0
+		total_evaded = 0
+		total_missed = 0
+		total_glanced = 0
+		total_invulned = 0
+		total_interrupted = 0
+		total_mitigation = 0
+		total_hits = 0
+
+		for skill in data:
+			total_blocked += data[skill]["blocked"]
+			total_evaded += data[skill]["evaded"]
+			total_missed += data[skill]["missed"]
+			total_glanced += data[skill]["glanced"]
+			total_invulned += data[skill]["invulned"]
+			total_interrupted += data[skill]["interrupted"]
+			total_mitigation += data[skill]["avoided_damage"]
+			total_hits += data[skill]["skill_hits"]
+		
+		rows.append(f"|{player_name}|{player_profession}| {total_hits:,}| {total_evaded:,}| {total_blocked:,}| {total_glanced:,}| {total_missed:,}| {total_invulned:,}| {total_interrupted:,}| {total_mitigation:,.0f}|")
+
+	rows.append("\n\n")
+
+	text = "\n".join(rows)
+
+	append_tid_for_output(
+		create_new_tid_from_template(title, caption, text, tags),
+		tid_list	
+	)
+
+
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	
 	print("Writing raid stats to database")
@@ -2835,7 +2881,7 @@ def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	print("Database updated.")
 
 
-def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, personal_buff_data: dict, fb_pages: dict, mechanics: dict, minions: dict, mesmer_clone_usage: dict, death_on_tag: dict, DPSStats: dict, commander_summary_data: dict, outfile: str) -> None:
+def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, personal_buff_data: dict, fb_pages: dict, mechanics: dict, minions: dict, mesmer_clone_usage: dict, death_on_tag: dict, DPSStats: dict, commander_summary_data: dict, player_damage_mitigation: dict, outfile: str) -> None:
 	"""Print the top_stats dictionary as a JSON object to the console."""
 
 	json_dict = {}
@@ -2859,7 +2905,8 @@ def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, da
 	json_dict['players_running_healing_addon'] = top_stats['players_running_healing_addon']
 	json_dict["DPSStats"] = {key: value for key, value in DPSStats.items()}
 	json_dict["commander_summary_data"] = {key: value for key, value in commander_summary_data.items()}
-	
+	json_dict["player_damage_mitigation"] = {key: value for key, value in player_damage_mitigation.items()}
+
 	with open(outfile, 'w') as json_file:
 		json.dump(json_dict, json_file, indent=4)
 
