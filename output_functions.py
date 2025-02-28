@@ -2815,12 +2815,12 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, tid_date_tim
 			total_invulned_dmg += data[skill]["invulned_dmg"]
 			total_interrupted_dmg += data[skill]["interrupted_dmg"]
 
-		blocked_entry = f'<div class="xtooltip"> {total_blocked:,.0f} <span class="xtooltiptext">Dmg: '+f"{total_blocked_dmg:,.0f}"+'</span></div>'
-		evaded_entry = f'<div class="xtooltip"> {total_evaded:,.0f} <span class="xtooltiptext">Dmg: '+f"{total_evaded_dmg:,.0f}"+'</span></div>'
-		missed_entry = f'<div class="xtooltip"> {total_missed:,.0f} <span class="xtooltiptext">Dmg: '+f"{total_missed_dmg:,.0f}"+'</span></div>'
-		glanced_entry = f'<div class="xtooltip"> {total_glanced:,.0f} <span class="xtooltiptext">Dmg: '+f"{total_glanced_dmg:,.0f}"+'</span></div>'
-		invulned_entry = f'<div class="xtooltip"> {total_invulned:,.0f} <span class="xtooltiptext">Dmg: '+f"{total_invulned_dmg:,.0f}"+'</span></div>'
-		interrupted_entry = f'<div class="xtooltip"> {total_interrupted:,.0f} <span class="xtooltiptext">Dmg: '+f"{total_interrupted_dmg:,.0f}"+'</span></div>'
+		blocked_entry = f'<span data-tooltip="Dmg: {total_blocked_dmg:,.0f}">{total_blocked:,.0f}</span>'
+		evaded_entry = f'<span data-tooltip="Dmg: {total_evaded_dmg:,.0f}">{total_evaded:,.0f}</span>'
+		missed_entry = f'<span data-tooltip="Dmg: {total_missed_dmg:,.0f}">{total_missed:,.0f}</span>'
+		glanced_entry = f'<span data-tooltip="Dmg: {total_glanced_dmg:,.0f}">{total_glanced:,.0f}</span>'
+		invulned_entry = f'<span data-tooltip="Dmg: {total_invulned_dmg:,.0f}">{total_invulned:,.0f}</span>'
+		interrupted_entry = f'<span data-tooltip="Dmg: {total_interrupted_dmg:,.0f}">{total_interrupted:,.0f}</span>'
 		rows.append(f"|{player_name}|{player_profession}| {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}|")
 
 	rows.append("\n\n")
