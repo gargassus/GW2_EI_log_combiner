@@ -1703,11 +1703,17 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 				if skill_name not in player_damage_mitigation[name_prof]:
 					player_damage_mitigation[name_prof][skill_name] = {
 						'blocked': 0,
+						'blocked_dmg': 0,
 						'evaded': 0,
+						'evaded_dmg': 0,
 						'glanced': 0,
+						'glanced_dmg': 0,
 						'missed': 0,
+						'missed_dmg': 0,
 						'invulned': 0,
+						'invulned_dmg': 0,
 						'interrupted': 0,
+						'interrupted_dmg': 0,
 						'total_dmg': 0,
 						'skill_hits': 0,
 						'total_hits': 0,
@@ -1738,7 +1744,13 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 						) * player_damage_mitigation[name_prof][skill_name]['avg_dmg']
 						)
 					)
-					player_damage_mitigation[name_prof][skill_name]['avoided_damage'] = avoided_damage
+					player_damage_mitigation[name_prof][skill_name]['blocked_dmg'] += player_damage_mitigation[name_prof][skill_name]['blocked'] * player_damage_mitigation[name_prof][skill_name]['avg_dmg']
+					player_damage_mitigation[name_prof][skill_name]['evaded_dmg'] += player_damage_mitigation[name_prof][skill_name]['evaded'] * player_damage_mitigation[name_prof][skill_name]['avg_dmg']
+					player_damage_mitigation[name_prof][skill_name]['glanced_dmg'] += player_damage_mitigation[name_prof][skill_name]['glanced'] * (player_damage_mitigation[name_prof][skill_name]['avg_dmg']/2)
+					player_damage_mitigation[name_prof][skill_name]['missed_dmg'] += player_damage_mitigation[name_prof][skill_name]['missed'] * player_damage_mitigation[name_prof][skill_name]['avg_dmg']
+					player_damage_mitigation[name_prof][skill_name]['invulned_dmg'] += player_damage_mitigation[name_prof][skill_name]['invulned'] * player_damage_mitigation[name_prof][skill_name]['avg_dmg']
+					player_damage_mitigation[name_prof][skill_name]['interrupted_dmg'] += player_damage_mitigation[name_prof][skill_name]['interrupted'] * player_damage_mitigation[name_prof][skill_name]['avg_dmg']
+					player_damage_mitigation[name_prof][skill_name]['avoided_damage'] += avoided_damage
 
 def get_minions_by_player(player_data: dict, player_name: str, profession: str) -> None:
 	"""

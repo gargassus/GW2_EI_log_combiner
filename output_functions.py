@@ -2792,6 +2792,12 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, tid_date_tim
 		total_interrupted = 0
 		total_mitigation = 0
 		total_hits = 0
+		total_blocked_dmg = 0
+		total_evaded_dmg = 0
+		total_missed_dmg = 0
+		total_glanced_dmg = 0
+		total_invulned_dmg = 0
+		total_interrupted_dmg = 0
 
 		for skill in data:
 			total_blocked += data[skill]["blocked"]
@@ -2802,8 +2808,20 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, tid_date_tim
 			total_interrupted += data[skill]["interrupted"]
 			total_mitigation += data[skill]["avoided_damage"]
 			total_hits += data[skill]["skill_hits"]
-		
-		rows.append(f"|{player_name}|{player_profession}| {total_hits:,}| {total_evaded:,}| {total_blocked:,}| {total_glanced:,}| {total_missed:,}| {total_invulned:,}| {total_interrupted:,}| {total_mitigation:,.0f}|")
+			total_blocked_dmg += data[skill]["blocked_dmg"]
+			total_evaded_dmg += data[skill]["evaded_dmg"]
+			total_missed_dmg += data[skill]["missed_dmg"]
+			total_glanced_dmg += data[skill]["glanced_dmg"]
+			total_invulned_dmg += data[skill]["invulned_dmg"]
+			total_interrupted_dmg += data[skill]["interrupted_dmg"]
+
+		blocked_entry = f'<div class="xtooltip"> {total_blocked:,.0f} <span class="xtooltiptext">Dmg: '+f"{total_blocked_dmg:,.0f}"+'</span></div>'
+		evaded_entry = f'<div class="xtooltip"> {total_evaded:,.0f} <span class="xtooltiptext">Dmg: '+f"{total_evaded_dmg:,.0f}"+'</span></div>'
+		missed_entry = f'<div class="xtooltip"> {total_missed:,.0f} <span class="xtooltiptext">Dmg: '+f"{total_missed_dmg:,.0f}"+'</span></div>'
+		glanced_entry = f'<div class="xtooltip"> {total_glanced:,.0f} <span class="xtooltiptext">Dmg: '+f"{total_glanced_dmg:,.0f}"+'</span></div>'
+		invulned_entry = f'<div class="xtooltip"> {total_invulned:,.0f} <span class="xtooltiptext">Dmg: '+f"{total_invulned_dmg:,.0f}"+'</span></div>'
+		interrupted_entry = f'<div class="xtooltip"> {total_interrupted:,.0f} <span class="xtooltiptext">Dmg: '+f"{total_interrupted_dmg:,.0f}"+'</span></div>'
+		rows.append(f"|{player_name}|{player_profession}| {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}|")
 
 	rows.append("\n\n")
 
