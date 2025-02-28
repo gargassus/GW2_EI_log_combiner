@@ -2770,7 +2770,7 @@ def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff
 		)
 
 
-def build_defense_damage_mitigation(player_damage_mitigation: dict, tid_date_time: str, tid_list: list) -> None:
+def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: dict, tid_date_time: str, tid_list: list) -> None:
 	tags = f"{tid_date_time}"
 	title = f"{tid_date_time}-Defense-Damage-Mitigation"
 	caption = "Damage Mitigation"
@@ -2779,10 +2779,14 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, tid_date_tim
 
 	rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
 	rows.append(f"| Damage Mitigation based on Average Enemy Damage per `skillID` and Player defensive activity per `skillID` |c")
-	rows.append("|!Player | !Prof | !{{directHits}}| !{{evadedCount}}| !{{blockedCount}}| !{{glanceCount}}| !{{missedCount}}| !{{invulnedCount}}| !{{interruptedCount}}| !~Damage|h")
+	rows.append("|!Player | !Prof | !{{FightTime}} | !{{directHits}}| !{{evadedCount}}| !{{blockedCount}}| !{{glanceCount}}| !{{missedCount}}| !{{invulnedCount}}| !{{interruptedCount}}| !~Damage|!~Dmg/{{FightTime}}|h")
 
 	for name_prof, data in player_damage_mitigation.items():
 		player_name, player_profession = name_prof.split("|")
+		if name_prof in top_stats['player']:
+			active_time = round(top_stats['player'][name_prof].get('active_time', 0) / 1000)
+		else:
+			active_time = 0		
 		player_profession = "{{"+player_profession+"}} "+player_profession[:3]
 		total_blocked = 0
 		total_evaded = 0
@@ -2821,7 +2825,8 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, tid_date_tim
 		glanced_entry = f'<span data-tooltip="Dmg: {total_glanced_dmg:,.0f}">{total_glanced:,.0f}</span>'
 		invulned_entry = f'<span data-tooltip="Dmg: {total_invulned_dmg:,.0f}">{total_invulned:,.0f}</span>'
 		interrupted_entry = f'<span data-tooltip="Dmg: {total_interrupted_dmg:,.0f}">{total_interrupted:,.0f}</span>'
-		rows.append(f"|{player_name}|{player_profession}| {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}|")
+		avg_damage = round(total_mitigation/active_time) if active_time > 0 else 0
+		rows.append(f"|{player_name}|{player_profession}| {active_time:,} | {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}| {avg_damage:,.0f}|")
 
 	rows.append("\n\n")
 
