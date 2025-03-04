@@ -274,6 +274,7 @@ def build_tag_summary(top_stats):
 		commander = fight_data["commander"]
 		if commander not in tag_summary:
 			tag_summary[commander] = {
+				"account": top_stats["player"][commander]["account"],
 				"num_fights": 0,
 				"fight_time": 0,
 				"enemy_killed": 0,
@@ -300,10 +301,10 @@ def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
 	rows.append("|thead-dark table-caption-top table-hover sortable|k")
 	rows.append("| Summary by Command Tag |c")
 	rows.append(
-		"| | | | Enemy |<| Squad|<| |h"
+		"| | | | | Enemy |<| Squad|<| |h"
 	)	
 	rows.append(
-		"|Name | Prof | Fights | {{DownedEnemy}} | {{killed}} | {{DownedAlly}} | {{DeadAlly}} | KDR |h"
+		"|Name |Account | Prof | Fights | {{DownedEnemy}} | {{killed}} | {{DownedAlly}} | {{DeadAlly}} | KDR |h"
 	)
 	for tag, tag_data in tag_summary.items():
 		name = tag.split("|")[0]
@@ -311,6 +312,7 @@ def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
 			profession = "{{"+tag.split("|")[1]+"}}"
 		else:
 			profession = ""
+		account = tag_data["account"]
 		fights = tag_data["num_fights"]
 		downs = tag_data["enemy_downed"]
 		kills = tag_data["enemy_killed"]
@@ -318,7 +320,7 @@ def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
 		deaths = tag_data["squad_deaths"]
 		kdr = kills / deaths if deaths else kills
 		rows.append(
-			f"|{name} | {profession} | {fights} | {downs} | {kills} | {downed} | {deaths} | {kdr:.2f}|"
+			f"|{name} |{account} | {profession} | {fights} | {downs} | {kills} | {downed} | {deaths} | {kdr:.2f}|"
 		)
 
 		# Sum all tags
@@ -330,7 +332,7 @@ def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
 		total_kdr = total_kills / total_deaths if total_deaths else total_kills
 
 	rows.append(
-		f"|Totals |<| {total_fights} | {total_downs} | {total_kills} | {total_downed} | {total_deaths} | {total_kdr:.2f}|f"
+		f"|Totals |<|<| {total_fights} | {total_downs} | {total_kills} | {total_downed} | {total_deaths} | {total_kdr:.2f}|f"
 	)
 	rows.append("\n\n</div>")
 
@@ -2776,6 +2778,8 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: d
 	caption = "Damage Mitigation"
 
 	rows = []
+	rows.append("\n!!!@@ Note: This is a rough estimate based on average skill damage by the enemy and defensive actions by the player.@@")
+	rows.append("\n!!!@@If you have high incoming downed damage the values are likely exaggerated@@\n\n")
 
 	rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
 	rows.append(f"| Damage Mitigation based on Average Enemy Damage per `skillID` and Player defensive activity per `skillID` |c")
@@ -2804,20 +2808,21 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: d
 		total_interrupted_dmg = 0
 
 		for skill in data:
-			total_blocked += data[skill]["blocked"]
-			total_evaded += data[skill]["evaded"]
-			total_missed += data[skill]["missed"]
-			total_glanced += data[skill]["glanced"]
-			total_invulned += data[skill]["invulned"]
-			total_interrupted += data[skill]["interrupted"]
-			total_mitigation += data[skill]["avoided_damage"]
-			total_hits += data[skill]["skill_hits"]
-			total_blocked_dmg += data[skill]["blocked_dmg"]
-			total_evaded_dmg += data[skill]["evaded_dmg"]
-			total_missed_dmg += data[skill]["missed_dmg"]
-			total_glanced_dmg += data[skill]["glanced_dmg"]
-			total_invulned_dmg += data[skill]["invulned_dmg"]
-			total_interrupted_dmg += data[skill]["interrupted_dmg"]
+			if data[skill]["avoided_damage"]:
+				total_blocked += data[skill]["blocked"]
+				total_evaded += data[skill]["evaded"]
+				total_missed += data[skill]["missed"]
+				total_glanced += data[skill]["glanced"]
+				total_invulned += data[skill]["invulned"]
+				total_interrupted += data[skill]["interrupted"]
+				total_mitigation += data[skill]["avoided_damage"]
+				total_hits += data[skill]["skill_hits"]
+				total_blocked_dmg += data[skill]["blocked_dmg"]
+				total_evaded_dmg += data[skill]["evaded_dmg"]
+				total_missed_dmg += data[skill]["missed_dmg"]
+				total_glanced_dmg += data[skill]["glanced_dmg"]
+				total_invulned_dmg += data[skill]["invulned_dmg"]
+				total_interrupted_dmg += data[skill]["interrupted_dmg"]
 
 		blocked_entry = f'<span data-tooltip="Dmg: {total_blocked_dmg:,.0f}">{total_blocked:,.0f}</span>'
 		evaded_entry = f'<span data-tooltip="Dmg: {total_evaded_dmg:,.0f}">{total_evaded:,.0f}</span>'
