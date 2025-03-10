@@ -1377,7 +1377,6 @@ def build_menu_tid(datetime: str) -> None:
 		tid_list
 	)
 
-
 def build_general_stats_tid(datetime):
 	"""
 	Build a TID for general stats menu.
@@ -1876,7 +1875,6 @@ def build_personal_buff_summary(top_stats: dict, buff_data: dict, personal_buff_
 			tid_list
 		)
 
-
 def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time: str) -> None:
 	"""
 	Build a table of minions for each player in the log.
@@ -2156,7 +2154,6 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 			tid_list
 		)
 
-
 def build_damage_outgoing_by_skill_tid(tid_date_time: str, tid_list: list) -> None:
 	"""
 	Build a table of damage outgoing by player and skill.
@@ -2259,7 +2256,6 @@ def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict
 			tid_list
 		)
 
-
 def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list) -> None:
 	"""
 	Build a table of the squad composition for each fight.
@@ -2342,8 +2338,25 @@ def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list)
 		tid_list
 	)
 
-
 def build_on_tag_review(death_on_tag, tid_date_time):
+	"""
+	Build a table of on tag review stats for all players in the log running the extension.
+
+	This function iterates over the death_on_tag dictionary, which contains data about each player's deaths including distance to tag, and whether they died on, off, or after tag, and whether they were able to run back after dying off tag.
+
+	The function builds a table with the following columns:
+		- Player (player name)
+		- Profession (profession icon and abbreviated name)
+		- Avg Dist (average distance to tag for the player)
+		- On-Tag (number of deaths on tag)
+		- Off-Tag (number of deaths off tag)
+		- After-Tag (number of deaths after tag)
+		- Run-Back (number of times the player was able to run back after dying off tag)
+		- Total (total number of deaths for the player)
+		- OffTag Ranges (ranges of off tag distances)
+
+	The function then pushes the table to the tid_list for output.
+	"""
 	rows = []
 	# Set the title, caption and tags for the table
 	tid_title = f"{tid_date_time}-On-Tag-Review"
@@ -2378,8 +2391,23 @@ def build_on_tag_review(death_on_tag, tid_date_time):
 		tid_list
 	)
 
-
 def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> None:
+	"""
+	Build a table of DPS stats for all players in the log running the extension.
+
+	This function iterates over the DPSStats dictionary, which contains data about each player's damage output, including total damage, fight time, and several types of DPS stats.
+
+	The function builds a table with the following columns:
+		- Player (player name)
+		- Profession (profession icon and abbreviated name)
+		- Seconds (number of seconds player was in squad logs)
+		- DPS (total damage divided by fight time)
+		- Chunk DPS (total chunk damage divided by fight time)
+		- Burst DPS (total burst damage divided by fight time)
+		- Ch5Ca DPS (total chunk damage divided by fight time for 5 player chunks)
+
+	The function then pushes the table to the tid_list for output.
+	"""
 	exp_dps_stats = {"chunkDamage": "Ch", "burstDamage": "Bur", "ch5CaBurstDamage": "Ch5Ca"}
 	sorted_DPSStats = []
 	for player_prof in DPSStats:
@@ -2432,6 +2460,20 @@ def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> 
 
 def build_utility_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
 	# ["Name", "Profession", "Cleanses", "Heals", "Boon Score", "color"]
+	"""
+	Build a bubble chart of utility stats for all players in the log running the extension.
+
+	This function iterates over the top_stats dictionary, which contains data about each player's utility output, including total strips, uptime, and several types of utility stats.
+
+	The function builds a table with the following columns:
+		- Player (player name)
+		- Profession (profession icon and abbreviated name)
+		- Condition Score (sum of weighted uptime of all conditions)
+		- Strips/Sec (total strips divided by fight time)
+		- Boon Score (sum of weighted boon generation)
+
+	The function then pushes the table to the tid_list for output.
+	"""
 	tid_title = f"{tid_date_time}-Utility-Bubble-Chart"
 	tid_caption = "Utility Bubble Chart"
 	tid_tags = tid_date_time
@@ -2491,9 +2533,30 @@ def build_utility_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_
 		tid_list
 	)
 
-
 def build_support_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
 	# ["Name", "Profession", "Cleanses", "Heals", "Boon Score", "color"]
+	"""
+	Build a bubble chart of support stats for all players in the log.
+
+	This function generates a bubble chart based on support metrics for each player,
+	including healing per second, barrier per second, and boon generation. The chart
+	displays the following data columns:
+		- Name: Player's name
+		- Profession: Player's profession
+		- Hps + Bps: Combined healing and barrier per second
+		- Cleanse/Sec: Condition cleanses per second
+		- Boon Score: Weighted boon generation score
+		- Color: Color representing the player's profession
+
+	Args:
+		top_stats (dict): Dictionary containing statistics for each player.
+		boons (dict): Dictionary containing boons and their names.
+		weights (dict): Dictionary containing weights for conditions and boons.
+		tid_date_time (str): String representing the date and time for the chart.
+		tid_list (list): List to append the generated chart data.
+		profession_colors (dict): Dictionary mapping professions to their respective colors.
+	"""
+
 	tid_title = f"{tid_date_time}-Support-Bubble-Chart"
 	tid_caption = "Support Bubble Chart"
 	tid_tags = tid_date_time
@@ -2546,6 +2609,22 @@ def build_support_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_
 	
 def build_DPS_bubble_chart(top_stats: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
 	# ["Name", "Profession", "Damage/Sec", "Down_Contr/Sec", "Dmg_to_Down/Sec", "color"]
+	"""
+	Build a bubble chart of DPS stats for all players in the log running the extension.
+
+	The bubble size is based on the percentage of damage that was against downed targets.
+	The x-axis is the percentage of damage that was down contribution.
+	The y-axis is the damage per second.
+
+	The function builds a table with the following columns:
+		- Player (player name)
+		- Profession (profession icon and abbreviated name)
+		- Damage/Sec (total damage divided by fight time)
+		- Down Contr % (down contribution divided by damage per second)
+		- Dmg to Down % (damage against downed targets divided by damage per second)
+
+	The function then pushes the table to the tid_list for output.
+	"""
 	tid_title = f"{tid_date_time}-DPS-Bubble-Chart"
 	tid_caption = "DPS Bubble Chart"
 	tid_tags = tid_date_time
@@ -2593,6 +2672,22 @@ def build_DPS_bubble_chart(top_stats: dict, tid_date_time: str, tid_list: list, 
 	)
 
 def build_mesmer_clone_usage(mesmer_clone_usage: dict, tid_date_time: str, tid_list: list) -> None: 
+	"""
+	Build and append a table of Mesmer clone usage for all players in the log.
+
+	This function iterates over the mesmer_clone_usage dictionary, which contains data about each player's clone usage.
+	It generates an HTML table with the following columns for each player:
+	- Profession and Name: Player's profession and name.
+	- Clone States: Visual representation of clone states using dots.
+	- Total: Total clone usage metrics for each state.
+
+	The generated HTML is appended to the tid_list for output.
+
+	Args:
+		mesmer_clone_usage (dict): Dictionary containing clone usage data for each player.
+		tid_date_time (str): String representing the date and time for the table.
+		tid_list (list): List to append the generated table data.
+	"""
 	rows = []
 	tid_title = f"{tid_date_time}-Mesmer-Clone-Usage"
 	tid_caption = "Mesmer Clone Usage"
@@ -2621,73 +2716,79 @@ def build_mesmer_clone_usage(mesmer_clone_usage: dict, tid_date_time: str, tid_l
 		tid_list
 	)
 
-
 def build_attendance_table(top_stats: dict, tid_date_time: str, tid_list: list) -> None:
-    """Build an attendance table from top_stats data and append it to tid_list."""
-    attendance_data = {}
+	"""Build an attendance table from top_stats data and append it to tid_list."""
+	attendance_data = {}
 
-    for player, data in top_stats["player"].items():
-        account = data["account"]
-        player_name = data["name"]
-        guild_status = data["guild_status"]
-        profession = f"{{{{ {data['profession']} }}}}"
+	for player, data in top_stats["player"].items():
+		account = data["account"]
+		player_name = data["name"]
+		guild_status = data["guild_status"]
+		profession = f"{{{{ {data['profession']} }}}}"
 
-        num_fights = data["num_fights"]
-        active_time = round(data["active_time"] / 1000)
+		num_fights = data["num_fights"]
+		active_time = round(data["active_time"] / 1000)
 
-        if account not in attendance_data:
-            attendance_data[account] = {}
-        if player_name not in attendance_data[account]:
-            attendance_data[account][player_name] = {}
+		if account not in attendance_data:
+			attendance_data[account] = {}
+		if player_name not in attendance_data[account]:
+			attendance_data[account][player_name] = {}
 
-        attendance_data[account][player_name][profession] = {
-            "num_fights": num_fights,
-            "active_time": active_time,
+		attendance_data[account][player_name][profession] = {
+			"num_fights": num_fights,
+			"active_time": active_time,
 			"guild_status": guild_status
-        }
+		}
 
-    rows = []
-    tid_title = f"{tid_date_time}-Attendance"
-    tid_caption = "Attendance"
-    tid_tags = tid_date_time
+	rows = []
+	tid_title = f"{tid_date_time}-Attendance"
+	tid_caption = "Attendance"
+	tid_tags = tid_date_time
 
-    rows.append("\n\n|thead-dark table-caption-top table-hover|k")
-    rows.append("| Attendance Review |c")
-    rows.append("|Account|Name|Profession| Num Fights| Active Time| Status |h")
+	rows.append("\n\n|thead-dark table-caption-top table-hover|k")
+	rows.append("| Attendance Review |c")
+	rows.append("|Account|Name|Profession| Num Fights| Active Time| Status |h")
 
-    for account, players_data in attendance_data.items():
-        total_active_time = 0
-        total_num_fights = 0
-        is_first_entry = True
+	for account, players_data in attendance_data.items():
+		total_active_time = 0
+		total_num_fights = 0
+		is_first_entry = True
 
 
-        for player_name, professions_data in players_data.items():
-            for profession, stats in professions_data.items():
-                total_active_time += stats["active_time"]
-                total_num_fights += stats["num_fights"]
+		for player_name, professions_data in players_data.items():
+			for profession, stats in professions_data.items():
+				total_active_time += stats["active_time"]
+				total_num_fights += stats["num_fights"]
 
-                if is_first_entry:
-                    rows.append(
-                        f"|{account}|{player_name}|{profession}| {stats['num_fights']}| {stats['active_time']}| {guild_status} |"
-                    )
-                    is_first_entry = False
-                else:
-                    rows.append(
-                        f"|~|{player_name}|{profession}| {stats['num_fights']}| {stats['active_time']}| {guild_status} |"
-                    )
-        rows.append(
-            f"| Totals for {account}:|<|<| {total_num_fights}| {total_active_time}| {guild_status} ||h"
-        )
+				if is_first_entry:
+					rows.append(
+						f"|{account}|{player_name}|{profession}| {stats['num_fights']}| {stats['active_time']}| {guild_status} |"
+					)
+					is_first_entry = False
+				else:
+					rows.append(
+						f"|~|{player_name}|{profession}| {stats['num_fights']}| {stats['active_time']}| {guild_status} |"
+					)
+		rows.append(
+			f"| Totals for {account}:|<|<| {total_num_fights}| {total_active_time}| {guild_status} ||h"
+		)
 
-    text = "\n".join(rows)
+	text = "\n".join(rows)
 
-    append_tid_for_output(
-        create_new_tid_from_template(tid_title, tid_caption, text, tid_tags),
-        tid_list
-    )
+	append_tid_for_output(
+		create_new_tid_from_template(tid_title, tid_caption, text, tid_tags),
+		tid_list
+	)
 
 def build_commander_summary_menu(commander_summary_data: dict, tid_date_time: str, tid_list: list) -> None:
-	#build the menu for the commander summary
+	"""
+	Builds the menu for the commander summary.
+
+	Args:
+		commander_summary_data (dict): A dictionary of commander summary data.
+		tid_date_time (str): A string to use as the date and time for the table id.
+		tid_list (list): The list of tables to append the new table to.
+	"""
 	tags = f"{tid_date_time}"
 	title = f"{tid_date_time}-commander-summary-menu"
 	caption = "Commander-Summary"
@@ -2707,7 +2808,16 @@ def build_commander_summary_menu(commander_summary_data: dict, tid_date_time: st
 	)
 
 def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff_data: dict, tid_date_time: str, tid_list: list) -> None:
+	"""
+	Builds the commander summary tables.
 
+	Args:
+		commander_summary_data (dict): A dictionary of commander summary data.
+		skill_data (dict): A dictionary of skill data.
+		buff_data (dict): A dictionary of buff data.
+		tid_date_time (str): A string to use as the date and time for the table id.
+		tid_list (list): The list of tables to append the new table to.
+	"""
 	for commander, cmd_data in commander_summary_data.items():
 		rows = []
 		# Set the title, caption and tags for the table
@@ -2777,8 +2887,28 @@ def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff
 			tid_list
 		)
 
-
 def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: dict, tid_date_time: str, tid_list: list) -> None:
+	"""
+	Build a table of defense damage mitigation for each player in the log running the extension.
+
+	This function iterates over the player_damage_mitigation dictionary, which contains dictionaries of defensive actions for each player.
+	It then builds a table with the following columns:
+		- Name
+		- Prof
+		- Fight Time
+		- Blocked
+		- Evaded
+		- Glanced
+		- Missed
+		- Invulned
+		- Interrupted
+		- Damage Mitigation
+		- Damage Mitigation per Second
+
+	The table will have one row for each player running the extension, and the columns will contain the player's name, profession, fight time, and the number of each defensive action and damage mitigation for each defensive action.
+
+	The function will also add the table to the tid_list for output.
+	"""
 	tags = f"{tid_date_time}"
 	title = f"{tid_date_time}-Defense-Damage-Mitigation"
 	caption = "Damage Mitigation"
@@ -2848,7 +2978,6 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: d
 		tid_list	
 	)
 
-
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	
 	print("Writing raid stats to database")
@@ -2913,7 +3042,6 @@ def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 
 	conn.close()
 	print("Database updated.")
-
 
 def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, personal_buff_data: dict, fb_pages: dict, mechanics: dict, minions: dict, mesmer_clone_usage: dict, death_on_tag: dict, DPSStats: dict, commander_summary_data: dict, player_damage_mitigation: dict, outfile: str) -> None:
 	"""Print the top_stats dictionary as a JSON object to the console."""
