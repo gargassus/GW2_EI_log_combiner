@@ -540,6 +540,10 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 				header += " !{{boonStripsTime}}{{downed}} |"
 			elif stat in defense_hits:
 				header += " !{{"+f"{defense_hits[stat]}"+"}}"+"[img width=16 [Hits|hits.png]] |"
+			elif stat == "appliedCrowdControlDownContribution":
+				header += " !{{appliedCrowdControl}}{{downed}} |"
+			elif stat == "appliedCrowdControlDurationDownContribution":
+				header += " !{{appliedCrowdControlDuration}}{{downed}} |"
 			else:
 				header += " !{{"+f"{stat}"+"}} |"
 		header += "h"

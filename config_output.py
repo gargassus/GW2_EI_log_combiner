@@ -123,7 +123,9 @@ offensive_table = {
     #"againstDownedCount": 'statsTargets',
     "againstDownedDamage": 'statsTargets',
     "appliedCrowdControl": 'statsTargets',
-    "appliedCrowdControlDuration": 'statsTargets'
+    "appliedCrowdControlDuration": 'statsTargets',
+    "appliedCrowdControlDownContribution": 'statsTargets',
+	"appliedCrowdControlDurationDownContribution": 'statsTargets'
 }
 
 boons = {
