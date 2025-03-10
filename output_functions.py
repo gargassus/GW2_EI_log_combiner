@@ -518,8 +518,8 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 	pct_stats = {
 		"criticalRate": "critableDirectDamageCount", "flankingRate":"connectedDirectDamageCount", "glanceRate":"connectedDirectDamageCount", "againstMovingRate": "connectedDamageCount"
 	}
-	time_stats = ["resurrectTime", "condiCleanseTime", "condiCleanseTimeSelf", "boonStripsTime", "removedStunDuration"]
-
+	time_stats = ["resurrectTime", "condiCleanseTime", "condiCleanseTimeSelf", "boonStripsTime", "removedStunDuration", "boonStripDownContributionTime"]
+	defense_hits = {"damageTakenCount": 'damageTaken', "conditionDamageTakenCount": 'conditionDamageTaken', "powerDamageTakenCount": 'powerDamageTaken', "downedDamageTakenCount": 'downedDamageTaken', "damageBarrierCount": 'damageBarrier'}
 	rows = []
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	for toggle in ["Total", "Stat/1s", "Stat/60s"]:
@@ -534,6 +534,12 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 				header += " !{{connectedDamageCount}} |"
 			elif stat == "connectedDirectDamageCount":
 				header += " !{{connectedDirectDamageCount}} | !{{connectedIndirectDamageCount}} |"
+			elif stat == "boonStripDownContribution":
+				header += " !{{boonStrips}}{{downed}} |"
+			elif stat == "boonStripDownContributionTime":
+				header += " !{{boonStripsTime}}{{downed}} |"
+			elif stat in defense_hits:
+				header += " !{{"+f"{defense_hits[stat]}"+"}}"+"[img width=16 [Hits|hits.png]] |"
 			else:
 				header += " !{{"+f"{stat}"+"}} |"
 		header += "h"
