@@ -272,9 +272,13 @@ def build_tag_summary(top_stats):
 	tag_list = []
 	for fight, fight_data in top_stats["fight"].items():
 		commander = fight_data["commander"]
+		if commander in top_stats["player"]:
+			cmd_account = top_stats["player"][commander]["account"],
+		else:
+			cmd_account = "No Tag"
 		if commander not in tag_summary:
 			tag_summary[commander] = {
-				"account": top_stats["player"][commander]["account"],
+				"account": cmd_account,
 				"num_fights": 0,
 				"fight_time": 0,
 				"enemy_killed": 0,
@@ -284,7 +288,10 @@ def build_tag_summary(top_stats):
 			}
 		if commander.split("|")[0] not in tag_list:
 			tag_list.append(commander.split("|")[0])
-
+		if commander in top_stats["player"]:
+			tag_summary[commander]["account"] = top_stats["player"][commander]["account"]
+		else:
+			tag_summary[commander]["account"] = "No Tag"
 		tag_summary[commander]["num_fights"] += 1
 		tag_summary[commander]["fight_time"] += fight_data["fight_durationMS"]
 		tag_summary[commander]["enemy_killed"] += fight_data["enemy_killed"]
