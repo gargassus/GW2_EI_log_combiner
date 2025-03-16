@@ -33,7 +33,7 @@ Testing alpha releases with frequent changes.
  - You can run from source after installing required packages via cmd line: `python tw5_top_stats.py -i d:\path\to\logs`
 
 
-### Example Output of current state:[Log Summary](https://wvwlogs.com/#202411051122-Log-Summary)
+### Example Output of current state:  [Log Summary](https://wvwlogs.com/#202503052206-Log-Summary)
 
 ---
 
