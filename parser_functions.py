@@ -1309,9 +1309,14 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 		name_prof (str): The name of the profession.
 	"""
 	fight_healing = 0
+
 	if stat_category == 'extHealingStats' and 'extHealingStats' in player:
+		healer_name = player['name']
+		healer_group = player['group']
 		for index, heal_target in enumerate(player[stat_category]['outgoingHealingAllies']):
 			heal_target_name = players[index]['name']
+			heal_target_group = players[index]['group']
+			heal_target_notInSquad = players[index]['notInSquad']
 			heal_target_tag = players[index]['hasCommanderTag']
 			outgoing_healing = heal_target[0]['healing'] - heal_target[0]['downedHealing']
 			downed_healing = heal_target[0]['downedHealing']
@@ -1347,6 +1352,28 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 					top_stats['player'][name_prof][stat_category].get('outgoing_healing', 0) + outgoing_healing
 				)
 
+				print(heal_target_name, heal_target_group, outgoing_healing, heal_target_notInSquad, "notInSquadType", type(heal_target_notInSquad))
+				if heal_target_notInSquad:
+					top_stats['player'][name_prof][stat_category]['off_squad_healing'] = (
+						top_stats['player'][name_prof][stat_category].get('off_squad_healing', 0) + outgoing_healing
+					)
+				else:
+					top_stats['player'][name_prof][stat_category]['squad_healing'] = (
+						top_stats['player'][name_prof][stat_category].get('squad_healing', 0) + outgoing_healing
+					)
+
+				if heal_target_group == healer_group:
+
+					top_stats['player'][name_prof][stat_category]['group_healing'] = (
+						top_stats['player'][name_prof][stat_category].get('group_healing', 0) + outgoing_healing
+					)
+
+				if heal_target_name == healer_name:
+
+					top_stats['player'][name_prof][stat_category]['self_healing'] = (
+						top_stats['player'][name_prof][stat_category].get('self_healing', 0) + outgoing_healing
+					)
+
 				top_stats['player'][name_prof][stat_category]['heal_targets'][heal_target_name]['outgoing_healing'] = (
 					top_stats['player'][name_prof][stat_category]['heal_targets'][heal_target_name].get('outgoing_healing', 0) + outgoing_healing
 				)
@@ -1375,8 +1402,12 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 
 	fight_barrier = 0
 	if stat_category == 'extBarrierStats' and 'extBarrierStats' in player:
+		healer_name = player['name']
+		healer_group = player['group']		
 		for index, barrier_target in enumerate(player[stat_category]['outgoingBarrierAllies']):
 			barrier_target_name = players[index]['name']
+			barrier_target_group = players[index]['group']
+			barrier_target_notInSquad = players[index]['notInSquad']
 			heal_target_tag = players[index]['hasCommanderTag']
 			outgoing_barrier = barrier_target[0]['barrier']
 
@@ -1407,6 +1438,24 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 				top_stats['player'][name_prof][stat_category]['outgoing_barrier'] = (
 					top_stats['player'][name_prof][stat_category].get('outgoing_barrier', 0) + outgoing_barrier
 				)
+
+				if not barrier_target_notInSquad:
+
+					top_stats['player'][name_prof][stat_category]['squad_barrier'] = (
+						top_stats['player'][name_prof][stat_category].get('squad_barrier', 0) + outgoing_barrier
+					)
+
+				if barrier_target_group == healer_group:
+
+					top_stats['player'][name_prof][stat_category]['group_barrier'] = (
+						top_stats['player'][name_prof][stat_category].get('group_barrier', 0) + outgoing_barrier
+					)
+
+				if barrier_target_name == healer_name:
+
+					top_stats['player'][name_prof][stat_category]['self_barrier'] = (
+						top_stats['player'][name_prof][stat_category].get('self_barrier', 0) + outgoing_barrier
+					)
 
 				top_stats['player'][name_prof][stat_category]['barrier_targets'][barrier_target_name]['outgoing_barrier'] = (
 					top_stats['player'][name_prof][stat_category]['barrier_targets'][barrier_target_name].get('outgoing_barrier', 0) + outgoing_barrier
