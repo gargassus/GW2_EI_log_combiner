@@ -610,7 +610,7 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 	tid_text = "\n".join(rows)
 
 	append_tid_for_output(
-		create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ', '-')}", caption, tid_text, fields={"radio": "Total"}),
+		create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ', '-')}", caption, tid_text, fields={"category_radio": "Total"}),
 		tid_list
 		)
 
@@ -1004,7 +1004,7 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
 	
 	# Build the table header
 	for toggle in ["Total", "Squad", "Group", "Self", "OffSquad"]:
-		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="category_radio" type="match" text="{toggle}" animate="yes">\n')
+		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="category_heal" type="match" text="{toggle}" animate="yes">\n')
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += "|!Party |!Name | !Prof |!Account | !{{FightTime}} | !{{Healing}} | !{{HealingPS}} | !{{Barrier}} | !{{BarrierPS}} | !{{DownedHealing}} | !{{DownedHealingPS}} |h"
 		rows.append(header)
@@ -1036,7 +1036,7 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
 				rows.append(row)
 
 	# Add caption row and finalize table
-		rows.append(f'|<$radio field="category_radio" value="Total"> Total  </$radio> - <$radio field="category_radio" value="Squad"> Squad  </$radio> - <$radio field="category_radio" value="Group"> Group  </$radio> - <$radio field="category_radio" value="Self"> Self  </$radio>  - <$radio field="category_radio" value="OffSquad"> OffSquad  </$radio>- {caption} Table|c')
+		rows.append(f'|<$radio field="category_heal" value="Total"> Total  </$radio> - <$radio field="category_heal" value="Squad"> Squad  </$radio> - <$radio field="category_heal" value="Group"> Group  </$radio> - <$radio field="category_heal" value="Self"> Self  </$radio>  - <$radio field="category_heal" value="OffSquad"> OffSquad  </$radio>- {caption} Table|c')
 		rows.append("\n</$reveal>")
 	#rows.append(f"|{caption} Table|c")
 	rows.append("\n\n</div>")
@@ -1044,7 +1044,7 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
 	# Convert rows to text and append to output list
 	tid_text = "\n".join(rows)
 	append_tid_for_output(
-		create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ','-')}", caption, tid_text),
+		create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ','-')}", caption, tid_text, fields={"category_heal": "Group"}),
 		tid_list
 	)
 
@@ -1417,7 +1417,7 @@ def build_menu_tid(datetime: str) -> None:
 	)
 
 	append_tid_for_output(
-		create_new_tid_from_template(title, caption, text, tags, fields={'radio': 'Total', 'boon_radio': 'Total', "category_radio": "Total"}),
+		create_new_tid_from_template(title, caption, text, tags, fields={'radio': 'Total', 'boon_radio': 'Total', "category_radio": "Total", "category_heal": "Squad"}),
 		tid_list
 	)
 
@@ -2963,7 +2963,7 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: d
 
 	rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
 	rows.append(f"| Damage Mitigation based on Average Enemy Damage per `skillID` and Player defensive activity per `skillID` |c")
-	rows.append("|!Player | !Prof | !{{FightTime}} | !{{directHits}}| !{{evadedCount}}| !{{blockedCount}}| !{{glanceCount}}| !{{missedCount}}| !{{invulnedCount}}| !{{interruptedCount}}| !~Damage|!~Dmg/{{FightTime}}|h")
+	rows.append("|!Player | !Prof | !{{FightTime}} | !{{directHits}}| !{{evadedCount}}| !{{blockedCount}}| !{{glanceCount}}| !{{missedCount}}| !{{invulnedCount}}| !{{interruptedCount}}| !~AvgDmg|!~AvgDmg/{{FightTime}}| !~MinDmg| !~MinDmg/{{FightTime}}|h")
 
 	for name_prof, data in player_damage_mitigation.items():
 		player_name, player_profession = name_prof.split("|")
@@ -2986,6 +2986,7 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: d
 		total_glanced_dmg = 0
 		total_invulned_dmg = 0
 		total_interrupted_dmg = 0
+		total_min_mitigation = 0
 
 		for skill in data:
 			if data[skill]["avoided_damage"]:
@@ -3003,6 +3004,7 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: d
 				total_glanced_dmg += data[skill]["glanced_dmg"]
 				total_invulned_dmg += data[skill]["invulned_dmg"]
 				total_interrupted_dmg += data[skill]["interrupted_dmg"]
+				total_min_mitigation += data[skill]["min_avoided_damage"]
 
 		blocked_entry = f'<span data-tooltip="Dmg: {total_blocked_dmg:,.0f}">{total_blocked:,.0f}</span>'
 		evaded_entry = f'<span data-tooltip="Dmg: {total_evaded_dmg:,.0f}">{total_evaded:,.0f}</span>'
@@ -3011,7 +3013,8 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: d
 		invulned_entry = f'<span data-tooltip="Dmg: {total_invulned_dmg:,.0f}">{total_invulned:,.0f}</span>'
 		interrupted_entry = f'<span data-tooltip="Dmg: {total_interrupted_dmg:,.0f}">{total_interrupted:,.0f}</span>'
 		avg_damage = round(total_mitigation/active_time) if active_time > 0 else 0
-		rows.append(f"|{player_name}|{player_profession}| {active_time:,} | {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}| {avg_damage:,.0f}|")
+		min_avg_damage = round(total_min_mitigation/active_time) if active_time > 0 else 0
+		rows.append(f"|{player_name}|{player_profession}| {active_time:,} | {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}| {avg_damage:,.0f}| {total_min_mitigation:,.0f}| {min_avg_damage:,.0f}|h")
 
 	rows.append("\n\n")
 

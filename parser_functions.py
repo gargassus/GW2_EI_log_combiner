@@ -1352,7 +1352,6 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 					top_stats['player'][name_prof][stat_category].get('outgoing_healing', 0) + outgoing_healing
 				)
 
-				print(heal_target_name, heal_target_group, outgoing_healing, heal_target_notInSquad, "notInSquadType", type(heal_target_notInSquad))
 				if heal_target_notInSquad:
 					top_stats['player'][name_prof][stat_category]['off_squad_healing'] = (
 						top_stats['player'][name_prof][stat_category].get('off_squad_healing', 0) + outgoing_healing
@@ -1746,10 +1745,12 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 				if skill_name not in enemy_avg_damage_per_skill:
 					enemy_avg_damage_per_skill[skill_name] = {
 						'dmg': 0,
-						'hits': 0
+						'hits': 0,
+						'min': []
 					}
 				enemy_avg_damage_per_skill[skill_name]['dmg'] += skill['totalDamage']
 				enemy_avg_damage_per_skill[skill_name]['hits'] += skill['connectedHits']
+				enemy_avg_damage_per_skill[skill_name]['min'].append(skill['min'])
 
 	for player in players:
 		if player['notInSquad']:
@@ -1784,7 +1785,9 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 						'skill_hits': 0,
 						'total_hits': 0,
 						'avg_dmg': 0,
-						'avoided_damage': 0
+						'min_dmg': 0,
+						'avoided_damage': 0,
+						'min_avoided_damage': 0
 					}
 
 				player_damage_mitigation[name_prof][skill_name]['blocked'] += skill['blocked']
@@ -1798,6 +1801,7 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 				player_damage_mitigation[name_prof][skill_name]['total_hits'] = enemy_avg_damage_per_skill[skill_name]['hits'] if skill_name in enemy_avg_damage_per_skill else 0
 				if player_damage_mitigation[name_prof][skill_name]['total_hits'] > 0:
 					player_damage_mitigation[name_prof][skill_name]['avg_dmg'] = player_damage_mitigation[name_prof][skill_name]['total_dmg'] / player_damage_mitigation[name_prof][skill_name]['total_hits']
+					player_damage_mitigation[name_prof][skill_name]['min_dmg'] = sum(enemy_avg_damage_per_skill[skill_name]['min']) / len(enemy_avg_damage_per_skill[skill_name]['min'])
 					avoided_damage = (
 						player_damage_mitigation[name_prof][skill_name]['glanced'] * player_damage_mitigation[name_prof][skill_name]['avg_dmg'] / 2
 						+ (
@@ -1810,6 +1814,18 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 						) * player_damage_mitigation[name_prof][skill_name]['avg_dmg']
 						)
 					)
+					min_avoided_damage = (
+						player_damage_mitigation[name_prof][skill_name]['glanced'] * player_damage_mitigation[name_prof][skill_name]['min_dmg'] / 2
+						+ (
+							(
+							player_damage_mitigation[name_prof][skill_name]['blocked']
+							+ player_damage_mitigation[name_prof][skill_name]['evaded']
+							+ player_damage_mitigation[name_prof][skill_name]['missed']
+							+ player_damage_mitigation[name_prof][skill_name]['invulned']
+							+ player_damage_mitigation[name_prof][skill_name]['interrupted']
+						) * player_damage_mitigation[name_prof][skill_name]['min_dmg']
+						)
+					)
 					player_damage_mitigation[name_prof][skill_name]['blocked_dmg'] += player_damage_mitigation[name_prof][skill_name]['blocked'] * player_damage_mitigation[name_prof][skill_name]['avg_dmg']
 					player_damage_mitigation[name_prof][skill_name]['evaded_dmg'] += player_damage_mitigation[name_prof][skill_name]['evaded'] * player_damage_mitigation[name_prof][skill_name]['avg_dmg']
 					player_damage_mitigation[name_prof][skill_name]['glanced_dmg'] += player_damage_mitigation[name_prof][skill_name]['glanced'] * (player_damage_mitigation[name_prof][skill_name]['avg_dmg']/2)
@@ -1817,6 +1833,7 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 					player_damage_mitigation[name_prof][skill_name]['invulned_dmg'] += player_damage_mitigation[name_prof][skill_name]['invulned'] * player_damage_mitigation[name_prof][skill_name]['avg_dmg']
 					player_damage_mitigation[name_prof][skill_name]['interrupted_dmg'] += player_damage_mitigation[name_prof][skill_name]['interrupted'] * player_damage_mitigation[name_prof][skill_name]['avg_dmg']
 					player_damage_mitigation[name_prof][skill_name]['avoided_damage'] += avoided_damage
+					player_damage_mitigation[name_prof][skill_name]['min_avoided_damage'] += min_avoided_damage
 
 def get_minions_by_player(player_data: dict, player_name: str, profession: str) -> None:
 	"""
