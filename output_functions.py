@@ -978,10 +978,22 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
 		if 'extHealingStats' in top_stats['player'][healer]:
 			healing_stats[healer]['healing'] = top_stats['player'][healer]['extHealingStats'].get('outgoing_healing', 0)
 			healing_stats[healer]['downed_healing'] = top_stats['player'][healer]['extHealingStats'].get('downed_healing', 0)
+			healing_stats[healer]['squad_healing'] = top_stats['player'][healer]['extHealingStats'].get('squad_healing', 0)
+			healing_stats[healer]['group_healing'] = top_stats['player'][healer]['extHealingStats'].get('group_healing', 0)
+			healing_stats[healer]['self_healing'] = top_stats['player'][healer]['extHealingStats'].get('self_healing', 0)
+			healing_stats[healer]['off_squad_healing'] = top_stats['player'][healer]['extHealingStats'].get('off_squad_healing', 0)
+			healing_stats[healer]['squad_downed_healing'] = top_stats['player'][healer]['extHealingStats'].get('squad_downed_healing', 0)
+			healing_stats[healer]['group_downed_healing'] = top_stats['player'][healer]['extHealingStats'].get('group_downed_healing', 0)
+			healing_stats[healer]['self_downed_healing'] = top_stats['player'][healer]['extHealingStats'].get('self_downed_healing', 0)
+			healing_stats[healer]['off_squad_downed_healing'] = top_stats['player'][healer]['extHealingStats'].get('off_squad_downed_healing', 0)
 
 		# Get barrier stats if available
 		if 'extBarrierStats' in top_stats['player'][healer]:
 			healing_stats[healer]['barrier'] = top_stats['player'][healer]['extBarrierStats'].get('outgoing_barrier', 0)
+			healing_stats[healer]['squad_barrier'] = top_stats['player'][healer]['extBarrierStats'].get('squad_barrier', 0)
+			healing_stats[healer]['group_barrier'] = top_stats['player'][healer]['extBarrierStats'].get('group_barrier', 0)
+			healing_stats[healer]['self_barrier'] = top_stats['player'][healer]['extBarrierStats'].get('self_barrier', 0)
+			healing_stats[healer]['off_squad_barrier'] = top_stats['player'][healer]['extBarrierStats'].get('off_squad_barrier', 0)
 
 	# Sort healing stats by total healing amount in descending order
 	sorted_healing_stats = sorted(healing_stats.items(), key=lambda x: x[1]['healing'], reverse=True)
@@ -991,21 +1003,42 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	
 	# Build the table header
-	header = "|thead-dark table-caption-top table-hover sortable|k\n"
-	header += "|!Party |!Name | !Prof |!Account | !{{FightTime}} | !{{Healing}} | !{{HealingPS}} | !{{Barrier}} | !{{BarrierPS}} | !{{DownedHealing}} | !{{DownedHealingPS}} |h"
-	rows.append(header)
+	for toggle in ["Total", "Squad", "Group", "Self", "OffSquad"]:
+		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="category_radio" type="match" text="{toggle}" animate="yes">\n')
+		header = "|thead-dark table-caption-top table-hover sortable|k\n"
+		header += "|!Party |!Name | !Prof |!Account | !{{FightTime}} | !{{Healing}} | !{{HealingPS}} | !{{Barrier}} | !{{BarrierPS}} | !{{DownedHealing}} | !{{DownedHealingPS}} |h"
+		rows.append(header)
 
-	# Build the table body
-	for healer in sorted_healing_stats:
-		if (healer[1]['healing'] + healer[1]['downed_healing'] + healer[1]['barrier']):
-			fighttime = healer[1]['fight_time'] / 1000
-			row = f"| {healer[1]['last_party']} |{healer[0].split('|')[0]} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
-			row += f" {healer[1]['healing']:,}| {healer[1]['healing'] / fighttime:,.2f}| {healer[1]['barrier']:,}|"
-			row += f"{healer[1]['barrier'] / fighttime:,.2f}| {healer[1]['downed_healing']:,}| {healer[1]['downed_healing'] / fighttime:,.2f}|"
-			rows.append(row)
+		# Build the table body
+		for healer in sorted_healing_stats:
+			if (healer[1]['healing'] + healer[1]['downed_healing'] + healer[1]['barrier']):
+				fighttime = healer[1]['fight_time'] / 1000
+				if toggle == "Total":
+					row = f"| {healer[1]['last_party']} |{healer[0].split('|')[0]} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+					row += f" {healer[1]['healing']:,}| {healer[1]['healing'] / fighttime:,.2f}| {healer[1]['barrier']:,}|"
+					row += f"{healer[1]['barrier'] / fighttime:,.2f}| {healer[1]['downed_healing']:,}| {healer[1]['downed_healing'] / fighttime:,.2f}|"
+				elif toggle == "Squad":
+					row = f"| {healer[1]['last_party']} |{healer[0].split('|')[0]} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+					row += f" {healer[1]['squad_healing']:,}| {healer[1]['squad_healing'] / fighttime:,.2f}| {healer[1]['squad_barrier']:,}|"
+					row += f"{healer[1]['squad_barrier'] / fighttime:,.2f}| {healer[1]['squad_downed_healing']:,}| {healer[1]['squad_downed_healing'] / fighttime:,.2f}|"
+				elif toggle == "Group":
+					row = f"| {healer[1]['last_party']} |{healer[0].split('|')[0]} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+					row += f" {healer[1]['group_healing']:,}| {healer[1]['group_healing'] / fighttime:,.2f}| {healer[1]['group_barrier']:,}|"
+					row += f"{healer[1]['group_barrier'] / fighttime:,.2f}| {healer[1]['group_downed_healing']:,}| {healer[1]['group_downed_healing'] / fighttime:,.2f}|"
+				elif toggle == "Self":
+					row = f"| {healer[1]['last_party']} |{healer[0].split('|')[0]} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+					row += f" {healer[1]['self_healing']:,}| {healer[1]['self_healing'] / fighttime:,.2f}| {healer[1]['self_barrier']:,}|"
+					row += f"{healer[1]['self_barrier'] / fighttime:,.2f}| {healer[1]['self_downed_healing']:,}| {healer[1]['self_downed_healing'] / fighttime:,.2f}|"
+				elif toggle == "OffSquad":
+					row = f"| {healer[1]['last_party']} |{healer[0].split('|')[0]} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+					row += f" {healer[1]['off_squad_healing']:,}| {healer[1]['off_squad_healing'] / fighttime:,.2f}| {healer[1]['off_squad_barrier']:,}|"
+					row += f"{healer[1]['off_squad_barrier'] / fighttime:,.2f}| {healer[1]['off_squad_downed_healing']:,}| {healer[1]['off_squad_downed_healing'] / fighttime:,.2f}|"
+				rows.append(row)
 
 	# Add caption row and finalize table
-	rows.append(f"|{caption} Table|c")
+		rows.append(f'|<$radio field="category_radio" value="Total"> Total  </$radio> - <$radio field="category_radio" value="Squad"> Squad  </$radio> - <$radio field="category_radio" value="Group"> Group  </$radio> - <$radio field="category_radio" value="Self"> Self  </$radio>  - <$radio field="category_radio" value="OffSquad"> OffSquad  </$radio>- {caption} Table|c')
+		rows.append("\n</$reveal>")
+	#rows.append(f"|{caption} Table|c")
 	rows.append("\n\n</div>")
 	
 	# Convert rows to text and append to output list
