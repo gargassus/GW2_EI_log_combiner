@@ -3014,7 +3014,7 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: d
 		interrupted_entry = f'<span data-tooltip="Dmg: {total_interrupted_dmg:,.0f}">{total_interrupted:,.0f}</span>'
 		avg_damage = round(total_mitigation/active_time) if active_time > 0 else 0
 		min_avg_damage = round(total_min_mitigation/active_time) if active_time > 0 else 0
-		rows.append(f"|{player_name}|{player_profession}| {active_time:,} | {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}| {avg_damage:,.0f}| {total_min_mitigation:,.0f}| {min_avg_damage:,.0f}|h")
+		rows.append(f"|{player_name}|{player_profession}| {active_time:,} | {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}| {avg_damage:,.0f}| {total_min_mitigation:,.0f}| {min_avg_damage:,.0f}|")
 
 	rows.append("\n\n")
 
