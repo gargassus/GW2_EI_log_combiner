@@ -667,21 +667,21 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 					if category == "selfBuffs":
 						generation_ms = player[category][boon_id]["generation"]
 						if stacking:
-							uptime_percentage = round((generation_ms / player['active_time'] / num_fights), 3)
+							uptime_percentage = round((generation_ms / player['active_time']), 3)
 						else:
-							uptime_percentage = round((generation_ms / player['active_time'] / num_fights) * 100, 3)
+							uptime_percentage = round((generation_ms / player['active_time']) * 100, 3)
 					elif category == "groupBuffs":
 						generation_ms = player[category][boon_id]["generation"]
 						if stacking:
-							uptime_percentage = round((generation_ms / player['active_time']) / (group_supported - num_fights), 3)
+							uptime_percentage = round((generation_ms / player['active_time']) / ((group_supported - num_fights)/num_fights), 3)
 						else:
-							uptime_percentage = round((generation_ms / player['active_time']) / (group_supported - num_fights) * 100, 3)
+							uptime_percentage = round((generation_ms / player['active_time']) / ((group_supported - num_fights)/num_fights) * 100, 3)
 					elif category == "squadBuffs":
 						generation_ms = player[category][boon_id]["generation"]
 						if stacking:
-							uptime_percentage = round((generation_ms / player['active_time']) / (squad_supported - num_fights), 3)
+							uptime_percentage = round((generation_ms / player['active_time']) / ((squad_supported - num_fights)/num_fights), 3)
 						else:
-							uptime_percentage = round((generation_ms / player['active_time']) / (squad_supported - num_fights) * 100, 3)
+							uptime_percentage = round((generation_ms / player['active_time']) / ((squad_supported - num_fights)/num_fights) * 100, 3)
 					elif category == "totalBuffs":
 						generation_ms = 0
 						if boon_id in player["selfBuffs"]:
