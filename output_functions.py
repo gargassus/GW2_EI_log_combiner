@@ -405,8 +405,8 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 	total_damage_in = top_stats['overall']['defenses']['damageTaken']
 	total_barrier_damage = top_stats['overall']['defenses']['damageBarrier']
 	total_shield_damage = get_total_shield_damage(top_stats['overall'])
-	total_shield_damage_percent = (total_shield_damage / total_damage_out) * 100
-	total_barrier_damage_percent = (total_barrier_damage / total_damage_in) * 100
+	total_shield_damage_percent = (total_shield_damage / total_damage_out) * 100 if total_damage_out != 0 else 0
+	total_barrier_damage_percent = (total_barrier_damage / total_damage_in) * 100 if total_damage_in != 0 else 0
 
 	# Iterate over each fight and build the row
 	for fight_num, fight_data in top_stats["fight"].items():

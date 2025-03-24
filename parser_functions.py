@@ -455,7 +455,7 @@ def calculate_dps_stats(fight_json):
 
 	damage_ps = {}
 	for index, target in enumerate(fight_json['targets']):
-		if 'enemyPlayer' in target and target['enemyPlayer'] == True:
+		if 'enemyPlayer' in target:	#and target['enemyPlayer'] == True
 			for player in fight_json['players']:
 				if player['notInSquad']:
 					continue
