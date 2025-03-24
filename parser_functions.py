@@ -654,9 +654,10 @@ def calculate_dps_stats(fight_json):
 					DPSStats[player_prof_name]["ch5CaBurstDamage"][i] = max(dmg, DPSStats[player_prof_name]["ch5CaBurstDamage"][i])
 
 def get_player_stats_targets(statsTargets: dict, name: str, profession: str, fight_num: int, fight_time: int) -> None:
-	fight_stat_value= 0
+	#fight_stat_value= 0
 	fight_stats = ["killed", "downed", "downContribution", "appliedCrowdControl"]
 	for stat in fight_stats:
+		fight_stat_value= 0
 		for target in statsTargets:
 			if target[0] and stat in target[0]:
 				fight_stat_value += target[0][stat]
