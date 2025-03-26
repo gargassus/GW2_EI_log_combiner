@@ -103,7 +103,8 @@ if __name__ == '__main__':
 		if section == "Condition_Weights":
 			weights[section] = dict(config_ini[section])
 
-	input_directory = config_ini.get('TopStatsCfg', 'input_directory', fallback='./')
+	if args.input_directory is None:
+		input_directory = config_ini.get('TopStatsCfg', 'input_directory', fallback='./')
 	guild_name = config_ini.get('TopStatsCfg', 'guild_name', fallback=None)
 	guild_id = config_ini.get('TopStatsCfg', 'guild_id', fallback=None)
 	api_key = config_ini.get('TopStatsCfg', 'api_key', fallback=None)
