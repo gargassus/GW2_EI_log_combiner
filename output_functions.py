@@ -426,8 +426,8 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 		
 		# Build the row
 		damage_taken = fight_data['defenses'].get('damageTaken', 0)
-		downed = fight_data['statsTargets'].get('downed', 0)
-		killed = fight_data['statsTargets'].get('killed', 0)
+		downed = fight_data.get('enemy_downed', 0)
+		killed = fight_data.get('enemy_killed', 0)
 		def_down = fight_data['defenses'].get('downCount', 0)
 		def_dead = fight_data['defenses'].get('deadCount', 0)
 		dmg_out = fight_data['dpsTargets'].get('damage', 0)
