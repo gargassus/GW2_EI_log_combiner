@@ -329,7 +329,7 @@ if __name__ == '__main__':
 	write_tid_list_to_json(tid_list, args.output_filename)
 
 	if write_all_data_to_json:
-		output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, personal_buff_data, fb_pages, mechanics, minions, mesmer_clone_usage, death_on_tag, DPSStats, commander_summary_data, player_damage_mitigation, args.json_output_filename)
+		output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, personal_buff_data, fb_pages, mechanics, minions, mesmer_clone_usage, death_on_tag, DPSStats, commander_summary_data, player_damage_mitigation, stacking_uptime_Table, args.json_output_filename)
 
 	if db_update:
 		write_data_to_db(top_stats, top_stats['overall']['last_fight'])

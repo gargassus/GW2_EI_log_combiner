@@ -55,6 +55,7 @@ commander_tag_positions = {}
 commander_summary_data = {}
 
 DPSStats = {}
+stacking_uptime_Table = {}
 
 def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 	"""
@@ -448,6 +449,154 @@ def sum_breakpoints(breakpoints):
 		combat_time += end - start
 	return combat_time
 
+# States array is formatted: [start, stack_count]
+# Reformat as: [start, end, stack_count]
+def split_boon_states(states, duration):
+	split_states = []
+	num_states = len(states) - 1
+	for index, [start, stacks] in enumerate(states):
+		if index == num_states:
+			if start < duration:
+				split_states.append([start, duration, stacks])
+		else:
+			split_states.append([start, min(states[index + 1][0], duration), stacks])
+	return split_states
+
+
+# Take state array and combat breakpoints, filter down states to only include those when in combat
+def split_boon_states_by_combat_breakpoints(states, breakpoints, duration):
+	if not breakpoints:
+		return []
+
+	breakpoints_copy = breakpoints[:]
+	split_states = split_boon_states(states, duration)
+	new_states = []
+
+	while(len(breakpoints_copy) > 0 and len(split_states) > 0):
+		[combat_start, combat_end] = breakpoints_copy.pop(0)
+		[start_state, end_state, stacks] = split_states.pop(0)
+
+		while(end_state < combat_start):
+			if len(split_states) == 0:
+				break
+			[start_state, end_state, stacks] = split_states.pop(0)
+
+		if end_state < combat_start:
+			break
+
+		new_start = combat_start if combat_start > start_state else start_state
+		new_end = combat_end if combat_end < end_state else end_state
+		if new_end > new_start:
+			new_states.append([new_start, new_end, stacks])
+
+		while(len(split_states) > 0 and split_states[0][1] <= combat_end):
+			[start_state, end_state, stacks] = split_states.pop(0)
+
+			new_start = combat_start if combat_start > start_state else start_state
+			new_end = combat_end if combat_end < end_state else end_state
+
+			if new_end > new_start:
+				new_states.append([
+					combat_start if combat_start > start_state else start_state,
+					combat_end if combat_end < end_state else end_state,
+					stacks
+				])
+
+	return new_states
+
+def get_stacking_uptime_data(player, damagePS, duration, fight_ticks):
+	# Track Stacking Buff Uptimes
+	boons = {
+		'b740': "Might", 'b725': "Fury", 'b1187': "Quickness", 'b30328': "Alacrity", 
+		'b717': "Protection", 'b718': "Regeneration", 'b726': "Vigor", 'b743': "Aegis",
+		'b1122': "Stability", 'b719': "Swiftness", 'b26980': "Resistance", 'b873': "Resolution"
+	}
+
+	player_prof_name = "{{"+player['profession']+"}} "+player['name']
+
+	if player_prof_name not in stacking_uptime_Table:
+		stacking_uptime_Table[player_prof_name] = {}
+		stacking_uptime_Table[player_prof_name]["account"] = player['account']
+		stacking_uptime_Table[player_prof_name]["name"] = player['name']
+		stacking_uptime_Table[player_prof_name]["profession"] = player['profession']
+
+		stacking_uptime_Table[player_prof_name]["duration_Might"] = 0
+		stacking_uptime_Table[player_prof_name]["duration_Stability"] = 0
+		stacking_uptime_Table[player_prof_name]["Might"] = [0] * 26
+		stacking_uptime_Table[player_prof_name]["Stability"] = [0] * 26
+		for buff_id in boons:
+			buff_name = boons[buff_id]
+			stacking_uptime_Table[player_prof_name]["damage_with_"+buff_name] = [0] * 26 if buff_name == 'Might' else [0] * 2
+		
+	player_damage = damagePS
+	player_damage_per_tick = [player_damage[0]]
+	for fight_tick in range(fight_ticks - 1):
+		player_damage_per_tick.append(player_damage[fight_tick + 1] - player_damage[fight_tick])
+
+	player_combat_breakpoints = get_combat_time_breakpoints(player)
+
+	for item in player['buffUptimesActive']:
+		buffId = "b"+str(item['id'])	
+		if buffId not in boons:
+			continue
+
+		buff_name = boons[buffId]
+
+		states = split_boon_states_by_combat_breakpoints(item['states'], player_combat_breakpoints, duration*1000)
+
+		total_time = 0
+		for idx, [state_start, state_end, stacks] in enumerate(states):
+			if buff_name in ['Stability', 'Might']:
+				uptime = state_end - state_start
+				total_time += uptime
+				stacking_uptime_Table[player_prof_name][buff_name][min(stacks, 25)] += uptime
+
+			start_sec = state_start / 1000
+			end_sec = state_end / 1000
+
+			start_sec_int = int(start_sec)
+			start_sec_rem = start_sec - start_sec_int
+
+			end_sec_int = int(end_sec)
+			end_sec_rem = end_sec - end_sec_int
+
+			damage_with_stacks = 0
+			if start_sec_int == end_sec_int:
+				damage_with_stacks = player_damage_per_tick[start_sec_int] * (end_sec - start_sec)
+			else:
+				damage_with_stacks = player_damage_per_tick[start_sec_int] * (1.0 - start_sec_rem)
+				damage_with_stacks += sum(player_damage_per_tick[start_sec_int + s] for s in range(1, end_sec_int - start_sec_int))
+				damage_with_stacks += player_damage_per_tick[end_sec_int] * end_sec_rem
+
+			if idx == 0:
+				# Get any damage before we have boon states
+				damage_with_stacks += player_damage_per_tick[start_sec_int] * (start_sec_rem)
+				damage_with_stacks += sum(player_damage_per_tick[s] for s in range(0, start_sec_int))
+			if idx == len(states) - 1:
+				# leave this as if, not elif, since we can have 1 state which is both the first and last
+				# Get any damage after we have boon states
+				damage_with_stacks += player_damage_per_tick[end_sec_int] * (1.0 - end_sec_rem)
+				damage_with_stacks += sum(player_damage_per_tick[s] for s in range(end_sec_int + 1, len(player_damage_per_tick)))
+			elif len(states) > 1 and state_end != states[idx + 1][0]:
+				# Get any damage between deaths, this is usually a small amount of condis that are still ticking after death
+				next_state_start = states[idx + 1][0]
+				next_state_sec = next_state_start / 1000
+				next_start_sec_int = int(next_state_sec)
+				next_start_sec_rem = next_state_sec - next_start_sec_int
+
+				damage_with_stacks += player_damage_per_tick[end_sec_int] * (1.0 - end_sec_rem)
+				damage_with_stacks += sum(player_damage_per_tick[s] for s in range(end_sec_int + 1, next_start_sec_int))
+				damage_with_stacks += player_damage_per_tick[next_start_sec_int] * (next_start_sec_rem)
+
+			if buff_name == 'Might':
+				stacking_uptime_Table[player_prof_name]["damage_with_"+buff_name][min(stacks, 25)] += damage_with_stacks
+			else:
+				stacking_uptime_Table[player_prof_name]["damage_with_"+buff_name][min(stacks, 1)] += damage_with_stacks
+
+		if buff_name in ['Stability', 'Might']:
+			stacking_uptime_Table[player_prof_name]["duration_"+buff_name] += total_time
+
+
 def calculate_dps_stats(fight_json):
 
 	fight_ticks = len(fight_json['players'][0]["damage1S"][0])
@@ -545,6 +694,9 @@ def calculate_dps_stats(fight_json):
 				squad_damage_percent = squad_damage_on_tick / squad_damage_ma_total
 
 				DPSStats[player_prof_name]["coordinationDamage"] += player_damage_on_tick * squad_damage_percent * duration
+			
+			get_stacking_uptime_data(player, player_damage, duration, fight_ticks)
+
 
 	# Chunk damage: Damage done within X seconds of target down
 	for index, target in enumerate(fight_json['targets']):
