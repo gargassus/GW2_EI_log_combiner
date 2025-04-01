@@ -41,6 +41,8 @@ if __name__ == '__main__':
 	parser.add_argument('-x', '--xls_output', dest="xls_output_filename", help="Not required. Override .xls file to write the computed summary")    
 	parser.add_argument('-j', '--json_output', dest="json_output_filename", help="Not required. Override .json file to write the computed stats data")    
 	parser.add_argument('-c', '--config_file', dest="config_file", help="Not required. Select a specific config file. Otherwise uses top_stats_config.ini")
+	parser.add_argument('-d', '--description_append', dest="description_append", help="Not required. Appended to the description of the summary caption.")
+
 	args = parser.parse_args()
 
 	parse_date = datetime.datetime.now()
@@ -57,7 +59,8 @@ if __name__ == '__main__':
 		args.json_output_filename = args.input_directory+"/TW5_top_stats_"+tid_date_time+".json"                
 	if args.config_file is None:
 		args.config_file = "top_stats_config.ini"
-
+	if args.description_append is None:
+		args.description_append = False
 	# Change input_directory to match json log location
 	input_directory = args.input_directory
 
@@ -153,7 +156,7 @@ if __name__ == '__main__':
 	tag_data, tag_list = build_tag_summary(top_stats)
 
 	#create the main tiddler and append to tid_list
-	build_main_tid(tid_date_time, tag_list, guild_name)
+	build_main_tid(tid_date_time, tag_list, guild_name, args.description_append)
 
 	output_tag_summary(tag_data, tid_date_time)
 

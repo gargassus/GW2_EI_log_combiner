@@ -1363,7 +1363,7 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 		tid_list
 	)
 
-def build_main_tid(datetime, tag_list, guild_name):
+def build_main_tid(datetime, tag_list, guild_name, description_append):
 	tag_str = ""
 	for tag in tag_list:
 		if tag == "":
@@ -1385,7 +1385,10 @@ def build_main_tid(datetime, tag_list, guild_name):
 	main_tags = f"{datetime} Logs"
 	main_title = f"{datetime}-Log-Summary"
 	
-	main_caption = f"{datetime} - {guild_name} - Log Summary {tag_str}"
+	if description_append:
+		main_caption = f"{datetime} - {guild_name} - Log Summary {tag_str} - {description_append}"
+	else:
+		main_caption = f"{datetime} - {guild_name} - Log Summary {tag_str}"
 	main_creator = f"Drevarr@github.com"
 
 	main_text = "{{"+datetime+"-Tag_Stats}}\n\n{{"+datetime+"-Menu}}"
@@ -2930,6 +2933,12 @@ def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff
 			create_new_tid_from_template(tid_title, tid_caption, text, tid_tags),
 			tid_list
 		)
+
+def build_damge_with_bufss(stacking_uptime_Table: dict, top_stats: dict, tid_date_time: str, tid_list: list) -> None:
+	pass
+
+def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_time: str, tid_list: list) -> None:
+	pass
 
 def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: dict, tid_date_time: str, tid_list: list) -> None:
 	"""
