@@ -48,15 +48,7 @@ if __name__ == '__main__':
 	parse_date = datetime.datetime.now()
 	tid_date_time = parse_date.strftime("%Y%m%d%H%M")
 
-	if args.input_directory is None:
-		args.input_directory = input_directory
-	if not os.path.isdir(args.input_directory):
-		print("Directory ",args.input_directory," is not a directory or does not exist!")
-		sys.exit()
-	if args.xls_output_filename is None:
-		args.xls_output_filename = args.input_directory+"/TW5_top_stats_"+tid_date_time+".xls"
-	if args.json_output_filename is None:
-		args.json_output_filename = args.input_directory+"/TW5_top_stats_"+tid_date_time+".json"                
+             
 	if args.config_file is None:
 		args.config_file = "top_stats_config.ini"
 	if args.description_append is None:
@@ -107,7 +99,17 @@ if __name__ == '__main__':
 			weights[section] = dict(config_ini[section])
 
 	if args.input_directory is None:
-		input_directory = config_ini.get('TopStatsCfg', 'input_directory', fallback='./')
+		args.input_directory = config_ini.get('TopStatsCfg', 'input_directory', fallback='./')
+	if not os.path.isdir(args.input_directory):
+		print("Directory ",args.input_directory," is not a directory or does not exist!")
+		sys.exit()
+	# Change input_directory to match json log location
+	input_directory = args.input_directory
+	if args.xls_output_filename is None:
+		args.xls_output_filename = args.input_directory+"/TW5_top_stats_"+tid_date_time+".xls"
+	if args.json_output_filename is None:
+		args.json_output_filename = args.input_directory+"/TW5_top_stats_"+tid_date_time+".json"   
+
 	guild_name = config_ini.get('TopStatsCfg', 'guild_name', fallback=None)
 	guild_id = config_ini.get('TopStatsCfg', 'guild_id', fallback=None)
 	api_key = config_ini.get('TopStatsCfg', 'api_key', fallback=None)
@@ -126,7 +128,7 @@ if __name__ == '__main__':
 
 	fight_num = 0
 
-	print_string = "Using input directory "+args.input_directory+", writing output to "+args.output_filename
+	print_string = "Using input directory "+input_directory+", writing output to "+args.output_filename
 	print(print_string)
 
 	guild_data = None
@@ -324,6 +326,8 @@ if __name__ == '__main__':
 
 	build_defense_damage_mitigation(player_damage_mitigation, top_stats, tid_date_time, tid_list)
 	
+	#build_stacking_buffs(stacking_uptime_Table, top_stats, tid_date_time, tid_list)
+
 	#commander Tag summary
 	if build_commander_summary_menu:
 		build_commander_summary(commander_summary_data, skill_data, buff_data, tid_date_time, tid_list)

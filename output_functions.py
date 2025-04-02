@@ -2938,7 +2938,134 @@ def build_damge_with_bufss(stacking_uptime_Table: dict, top_stats: dict, tid_dat
 	pass
 
 def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_time: str, tid_list: list) -> None:
-	pass
+	rows = []
+	max_fightTime = 0
+	for squadDps_prof_name in stacking_uptime_Table:
+		max_fightTime = max(top_stats['player'][squadDps_prof_name]['active_time'], max_fightTime)
+
+	#start Stacking Buff Uptime Table insert
+	stacking_buff_Order = ['might', 'stability']
+	max_stacking_buff_fight_time = 0
+	for uptime_prof_name in stacking_uptime_Table:
+		max_stacking_buff_fight_time = max(stacking_uptime_Table[uptime_prof_name]['duration_Might'], max_stacking_buff_fight_time)
+
+	rows.append('\n<<alert dark "Stacking Buffs" width:60%>>\n\n')
+	for stacking_buff in stacking_buff_Order:
+		rows.append('<$button setTitle="$:/state/curStackingBuffs" setTo="'+stacking_buff+'" selectedClass="" class="btn btn-sm btn-dark" style="">'+stacking_buff+'</$button>')
+	
+	rows.append('\n---\n')
+
+	# Might stack table
+	rows.append('<$reveal type="match" state="$:/state/curStackingBuffs" text="might">\n')
+	rows.append('\n---\n')
+	rows.append("|table-caption-top|k")
+	rows.append("|{{Might}} uptime by stack|c")
+	rows.append('|thead-dark table-hover sortable|k')
+	output_header =  '|!Name | !Class'
+	output_header += ' | ! <span data-tooltip="Number of seconds player was in squad logs">Seconds</span>'
+	output_header += '| !Avg| !1+ %| !5+ %| !10+ %| !15+ %| !20+ %| !25 %'
+	output_header += '|h'
+	rows.append(output_header)
+	
+	might_sorted_stacking_uptime_Table = []
+	for uptime_prof_name in stacking_uptime_Table:
+		fight_time = (stacking_uptime_Table[uptime_prof_name]['duration_Might'] / 1000) or 1
+		might_stacks = stacking_uptime_Table[uptime_prof_name]['Might']
+
+		if (top_stats['player'][uptime_prof_name]['active_time'] * 100) / max_fightTime < 1:
+			continue
+
+		avg_might = sum(stack_num * might_stacks[stack_num] for stack_num in range(1, 26)) / (fight_time * 1000)
+		might_sorted_stacking_uptime_Table.append([uptime_prof_name, avg_might])
+	might_sorted_stacking_uptime_Table = sorted(might_sorted_stacking_uptime_Table, key=lambda x: x[1], reverse=True)
+	might_sorted_stacking_uptime_Table = list(map(lambda x: x[0], might_sorted_stacking_uptime_Table))
+	
+	for uptime_prof_name in might_sorted_stacking_uptime_Table:
+		name = stacking_uptime_Table[uptime_prof_name]['name']
+		prof = stacking_uptime_Table[uptime_prof_name]['profession']
+		fight_time = (stacking_uptime_Table[uptime_prof_name]['duration_Might'] / 1000) or 1
+		might_stacks = stacking_uptime_Table[uptime_prof_name]['Might']
+
+		avg_might = sum(stack_num * might_stacks[stack_num] for stack_num in range(1, 26)) / (fight_time * 1000)
+		might_uptime = 1.0 - (might_stacks[0] / (fight_time * 1000))
+		might_5_uptime = sum(might_stacks[i] for i in range(5,26)) / (fight_time * 1000)
+		might_10_uptime = sum(might_stacks[i] for i in range(10,26)) / (fight_time * 1000)
+		might_15_uptime = sum(might_stacks[i] for i in range(15,26)) / (fight_time * 1000)
+		might_20_uptime = sum(might_stacks[i] for i in range(20,26)) / (fight_time * 1000)
+		might_25_uptime = might_stacks[25] / (fight_time * 1000)
+
+		output_string = '|'+name+' |'+' {{'+prof+'}} | '+"{:,}".format(round(fight_time))
+		output_string += '|'+"{:.2f}".format(avg_might)
+		output_string += "| "+"{:.2f}".format(round((might_uptime * 100), 4))+"%"
+		output_string += "| "+"{:.2f}".format(round((might_5_uptime * 100), 4))+"%"
+		output_string += "| "+"{:.2f}".format(round((might_10_uptime * 100), 4))+"%"
+		output_string += "| "+"{:.2f}".format(round((might_15_uptime * 100), 4))+"%"
+		output_string += "| "+"{:.2f}".format(round((might_20_uptime * 100), 4))+"%"
+		output_string += "| "+"{:.2f}".format(round((might_25_uptime * 100), 4))+"%"
+		output_string += '|'
+
+		rows.append(output_string)
+
+	rows.append("</$reveal>\n")
+	
+	# Stability stack table
+	rows.append('<$reveal type="match" state="$:/state/curStackingBuffs" text="stability">\n')
+	rows.append('\n---\n')
+	rows.append("|table-caption-top|k")
+	rows.append("|{{Stability}} uptime by stack|c")
+	rows.append('|thead-dark table-hover sortable|k')
+	output_header =  '|!Name | !Class'
+	output_header += ' | ! <span data-tooltip="Number of seconds player was in squad logs">Seconds</span>'
+	output_header += '| !Avg| !1+ %| !2+ %| !5+ %'
+	output_header += '|h'
+	rows.append(output_header)
+	
+	stability_sorted_stacking_uptime_Table = []
+	for uptime_prof_name in stacking_uptime_Table:
+		fight_time = (stacking_uptime_Table[uptime_prof_name]['duration_Stability'] / 1000) or 1
+		stability_stacks = stacking_uptime_Table[uptime_prof_name]['Stability']
+
+		if (top_stats['player'][uptime_prof_name]['active_time'] * 100) / max_fightTime < 1:
+			continue
+
+		avg_stab = sum(stack_num * stability_stacks[stack_num] for stack_num in range(1, 26)) / (fight_time * 1000)
+		stability_sorted_stacking_uptime_Table.append([uptime_prof_name, avg_stab])
+	stability_sorted_stacking_uptime_Table = sorted(stability_sorted_stacking_uptime_Table, key=lambda x: x[1], reverse=True)
+	stability_sorted_stacking_uptime_Table = list(map(lambda x: x[0], stability_sorted_stacking_uptime_Table))
+	
+	for uptime_prof_name in stability_sorted_stacking_uptime_Table:
+		name = stacking_uptime_Table[uptime_prof_name]['name']
+		prof = stacking_uptime_Table[uptime_prof_name]['profession']
+		fight_time = (stacking_uptime_Table[uptime_prof_name]['duration_Stability'] / 1000) or 1
+		stability_stacks = stacking_uptime_Table[uptime_prof_name]['Stability']
+
+		avg_stab = sum(stack_num * stability_stacks[stack_num] for stack_num in range(1, 26)) / (fight_time * 1000)
+		stab_uptime = 1.0 - (stability_stacks[0] / (fight_time * 1000))
+		stab_2_uptime = sum(stability_stacks[i] for i in range(2,26)) / (fight_time * 1000)
+		stab_5_uptime = sum(stability_stacks[i] for i in range(5,26)) / (fight_time * 1000)
+
+		output_string = '|'+name+' |'+' {{'+prof+'}} | '+"{:,}".format(round(fight_time))
+		output_string += '|'+"{:.2f}".format(avg_stab)
+		output_string += "| "+"{:.2f}".format(round((stab_uptime * 100), 4))+"%"
+		output_string += "| "+"{:.2f}".format(round((stab_2_uptime * 100), 4))+"%"
+		output_string += "| "+"{:.2f}".format(round((stab_5_uptime * 100), 4))+"%"
+		output_string += '|'
+
+		rows.append(output_string)
+
+	rows.append("</$reveal>\n")
+
+
+	text = "\n".join(rows)
+	tags = f"{tid_date_time}"
+	title = f"{tid_date_time}-Stacking-Buffs"
+	caption = "Stacking Buffs"
+
+	append_tid_for_output(
+		create_new_tid_from_template(title, caption, text, tags),
+		tid_list	
+	)
+	
 
 def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: dict, tid_date_time: str, tid_list: list) -> None:
 	"""

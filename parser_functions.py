@@ -512,14 +512,13 @@ def get_stacking_uptime_data(player, damagePS, duration, fight_ticks):
 		'b1122': "Stability", 'b719': "Swiftness", 'b26980': "Resistance", 'b873': "Resolution"
 	}
 
-	player_prof_name = "{{"+player['profession']+"}} "+player['name']
+	player_prof_name = f"{player['name']}|{player['profession']}"
 
 	if player_prof_name not in stacking_uptime_Table:
 		stacking_uptime_Table[player_prof_name] = {}
 		stacking_uptime_Table[player_prof_name]["account"] = player['account']
 		stacking_uptime_Table[player_prof_name]["name"] = player['name']
 		stacking_uptime_Table[player_prof_name]["profession"] = player['profession']
-
 		stacking_uptime_Table[player_prof_name]["duration_Might"] = 0
 		stacking_uptime_Table[player_prof_name]["duration_Stability"] = 0
 		stacking_uptime_Table[player_prof_name]["Might"] = [0] * 26
