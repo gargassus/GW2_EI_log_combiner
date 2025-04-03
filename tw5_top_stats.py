@@ -326,7 +326,7 @@ if __name__ == '__main__':
 
 	build_defense_damage_mitigation(player_damage_mitigation, top_stats, tid_date_time, tid_list)
 	
-	#build_stacking_buffs(stacking_uptime_Table, top_stats, tid_date_time, tid_list)
+	build_stacking_buffs(stacking_uptime_Table, top_stats, tid_date_time, tid_list)
 
 	#commander Tag summary
 	if build_commander_summary_menu:

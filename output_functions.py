@@ -1420,7 +1420,7 @@ def build_menu_tid(datetime: str) -> None:
 	)
 
 	append_tid_for_output(
-		create_new_tid_from_template(title, caption, text, tags, fields={'radio': 'Total', 'boon_radio': 'Total', "category_radio": "Total", "category_heal": "Squad"}),
+		create_new_tid_from_template(title, caption, text, tags, fields={'radio': 'Total', 'boon_radio': 'Total', "category_radio": "Total", "category_heal": "Squad", "stacking_item": "might"}),
 		tid_list
 	)
 
@@ -1486,7 +1486,7 @@ def build_buffs_stats_tid(datetime):
 	caption = "Buffs"
 	creator = "Drevarr@github.com"
 
-	text = (f"<<tabs '[[{datetime}-Boons]] [[{datetime}-Personal-Buffs]] [[{datetime}-Offensive-Buffs]] [[{datetime}-Support-Buffs]] [[{datetime}-Defensive-Buffs]]"
+	text = (f"<<tabs '[[{datetime}-Boons]] [[{datetime}-Stacking-Buffs]] [[{datetime}-Personal-Buffs]] [[{datetime}-Offensive-Buffs]] [[{datetime}-Support-Buffs]] [[{datetime}-Defensive-Buffs]]"
 			f" [[{datetime}-Gear-Buff-Uptimes]] [[{datetime}-Gear-Skill-Damage]]"
 			f"[[{datetime}-Conditions-In]] [[{datetime}-Debuffs-In]] [[{datetime}-Conditions-Out]] [[{datetime}-Debuffs-Out]]' "
 			f"'{datetime}-Boons' '$:/temp/tab1'>>")
@@ -2956,17 +2956,11 @@ def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_
 		max_stacking_buff_fight_time = max(stacking_uptime_Table[uptime_prof_name]['duration_Might'], max_stacking_buff_fight_time)
 
 	rows.append('\n<<alert dark "Stacking Buffs" width:60%>>\n\n')
-	for stacking_buff in stacking_buff_Order:
-		rows.append('<$button setTitle="$:/state/curStackingBuffs" setTo="'+stacking_buff+'" selectedClass="" class="btn btn-sm btn-dark" style="">'+stacking_buff+'</$button>')
 	
-	rows.append('\n---\n')
-
 	# Might stack table
-	rows.append('<$reveal type="match" state="$:/state/curStackingBuffs" text="might">\n')
-	rows.append('\n---\n')
-	rows.append("|table-caption-top|k")
-	rows.append("|{{Might}} uptime by stack|c")
-	rows.append('|thead-dark table-hover sortable|k')
+	rows.append('<$reveal stateTitle=<<currentTiddler>> stateField="stacking_item" type="match" text="might" animate="yes">\n')
+	rows.append('|<$radio field="stacking_item" value="might"> Might </$radio> - <$radio field="stacking_item" value="stability"> Stability  </$radio> - {{Might}} uptime by stack|c')
+	rows.append('|thead-dark table-hover table-caption-top sortable|k')
 	output_header =  '|!Name | !Class'
 	output_header += ' | ! <span data-tooltip="Number of seconds player was in squad logs">Seconds</span>'
 	output_header += '| !Avg| !1+ %| !5+ %| !10+ %| !15+ %| !20+ %| !25 %'
@@ -3015,11 +3009,9 @@ def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_
 	rows.append("</$reveal>\n")
 	
 	# Stability stack table
-	rows.append('<$reveal type="match" state="$:/state/curStackingBuffs" text="stability">\n')
-	rows.append('\n---\n')
-	rows.append("|table-caption-top|k")
-	rows.append("|{{Stability}} uptime by stack|c")
-	rows.append('|thead-dark table-hover sortable|k')
+	rows.append('<$reveal stateTitle=<<currentTiddler>> stateField="stacking_item" type="match" text="stability" animate="yes">\n')
+	rows.append('|<$radio field="stacking_item" value="might"> Might </$radio> - <$radio field="stacking_item" value="stability"> Stability  </$radio> - {{Stability}} uptime by stack|c')
+	rows.append('|thead-dark table-hover table-caption-top sortable|k')
 	output_header =  '|!Name | !Class'
 	output_header += ' | ! <span data-tooltip="Number of seconds player was in squad logs">Seconds</span>'
 	output_header += '| !Avg| !1+ %| !2+ %| !5+ %'
@@ -3068,7 +3060,7 @@ def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_
 	caption = "Stacking Buffs"
 
 	append_tid_for_output(
-		create_new_tid_from_template(title, caption, text, tags),
+		create_new_tid_from_template(title, caption, text, tags, fields={"stacking_item": "might"}),
 		tid_list	
 	)
 	
