@@ -2540,6 +2540,8 @@ def build_utility_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_
 		name = player_data["name"]
 		profession = player_data["profession"]
 		fight_time = round(player_data["active_time"]/1000)
+		if fight_time == 0:
+			continue
 		xdata = round(player_data["support"].get("boonStrips", 0)/fight_time,2)
 
 		cps=0
@@ -2623,6 +2625,8 @@ def build_support_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_
 		name = player_data["name"]
 		profession = player_data["profession"]
 		fight_time = round(player_data["active_time"]/1000)
+		if fight_time == 0:
+			continue
 		hpt = player_data["extHealingStats"].get("outgoing_healing", 0)
 		bpt = player_data["extBarrierStats"].get("outgoing_barrier", 0)
 		hps_bps = round((hpt+bpt)/fight_time)
@@ -2691,6 +2695,8 @@ def build_DPS_bubble_chart(top_stats: dict, tid_date_time: str, tid_list: list, 
 		name = player_data["name"]
 		profession = player_data["profession"]
 		fight_time = round(player_data["active_time"]/1000)
+		if fight_time == 0:
+			continue
 		Dps = round(player_data["statsTargets"].get("totalDmg", 0)/fight_time)
 		DCps = 0.00
 		DDps = 0.00
