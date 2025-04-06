@@ -328,6 +328,8 @@ if __name__ == '__main__':
 	
 	build_stacking_buffs(stacking_uptime_Table, top_stats, tid_date_time, tid_list)
 
+	build_damage_with_buffs(stacking_uptime_Table, DPSStats, top_stats, tid_date_time, tid_list)
+
 	#commander Tag summary
 	if build_commander_summary_menu:
 		build_commander_summary(commander_summary_data, skill_data, buff_data, tid_date_time, tid_list)

@@ -1308,6 +1308,7 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 				if 'downedHealing' in player_data['extHealingStats']['skills'][skill]:
 					if player_data['extHealingStats']['skills'][skill]['downedHealing'] > 0:
 						downed_healing = player_data['extHealingStats']['skills'][skill]['downedHealing']
+						total_hits = player_data['extHealingStats']['skills'][skill]['hits']
 
 						if skill not in combat_resurrect['res_skills']:
 							combat_resurrect['res_skills'][skill] = combat_resurrect['res_skills'].get(skill, 0) + downed_healing
@@ -1315,7 +1316,14 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 						if prof_name not in combat_resurrect['players']:
 							combat_resurrect['players'][prof_name] = {}
 
-						combat_resurrect['players'][prof_name][skill] = combat_resurrect['players'].get(skill, 0) + downed_healing
+						if skill not in combat_resurrect['players'][prof_name]:
+							combat_resurrect['players'][prof_name][skill] = {
+								'total': 0,
+								'hits': 0
+							}
+
+						combat_resurrect['players'][prof_name][skill]['total'] = combat_resurrect['players'][prof_name][skill].get('total', 0) + downed_healing
+						combat_resurrect['players'][prof_name][skill]['hits'] = combat_resurrect['players'][prof_name][skill].get('hits', 0) + total_hits
 
 	sorted_res_skills = sorted(combat_resurrect['res_skills'], key=combat_resurrect['res_skills'].get, reverse=True)
 
@@ -1325,6 +1333,7 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 	combat_resurrect_text = ""
 
 	rows = []
+	rows.append('Tooltip for `Total hits` may be overstated if the skill does more than just downed healing\n\n')
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += "|!@@display:block;width:150px;Name@@ | !Prof | !{{FightTime}} |"
@@ -1352,8 +1361,13 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 
 		row = f"|{name} | {profession} {abbrv} | {time_secs:,.1f}|"
 		for skill in sorted_res_skills:
-			row += f" {combat_resurrect['players'][player].get(skill, 0):,.0f}|"
-
+			if skill in combat_resurrect['players'][player]:
+				total = f"{combat_resurrect['players'][player][skill].get('total', 0):,.0f}"
+				hits = f"{combat_resurrect['players'][player][skill].get('hits', 0):,.0f}"
+				row += f' <span data-tooltip="{hits} Total hits"> {total} </span>|'
+			else:
+				row += f' |'
+			#f' <span data-tooltip="{hits} casts / minute"> {total} </span>|'
 		rows.append(row)
 	rows.append(f"| {caption} |c")
 	rows.append('\n\n</div>\n\n')
@@ -1420,7 +1434,7 @@ def build_menu_tid(datetime: str) -> None:
 	)
 
 	append_tid_for_output(
-		create_new_tid_from_template(title, caption, text, tags, fields={'radio': 'Total', 'boon_radio': 'Total', "category_radio": "Total", "category_heal": "Squad", "stacking_item": "might"}),
+		create_new_tid_from_template(title, caption, text, tags, fields={'radio': 'Total', 'boon_radio': 'Total', "category_radio": "Total", "category_heal": "Squad", "stacking_item": "might", 'damage_with_buff': 'might'}),
 		tid_list
 	)
 
@@ -1432,12 +1446,12 @@ def build_general_stats_tid(datetime):
 	title = f"{datetime}-General-Stats"
 	caption = "General Stats"
 	creator = "Drevarr@github.com"
-	text = (f"<<tabs '[[{datetime}-Damage]] [[{datetime}-Offensive]] "
+	text = (f"<<tabs '[[{datetime}-Damage]] [[{datetime}-Damage-With-Buffs]] [[{datetime}-Offensive]] "
 			f"[[{datetime}-Defenses]] [[{datetime}-Support]] [[{datetime}-Heal-Stats]] [[{datetime}-Healers]] [[{datetime}-Combat-Resurrect]] [[{datetime}-FB-Pages]] [[{datetime}-Mesmer-Clone-Usage]]' "
 			f"'{datetime}-Offensive' '$:/temp/tab1'>>")
 
 	append_tid_for_output(
-		create_new_tid_from_template(title, caption, text, tags, creator=creator, fields={'radio': 'Total'}),
+		create_new_tid_from_template(title, caption, text, tags, creator=creator, fields={'radio': 'Total', 'damage_with_buff': 'might'}),
 		tid_list
 	)
 
@@ -2940,8 +2954,162 @@ def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff
 			tid_list
 		)
 
-def build_damge_with_bufss(stacking_uptime_Table: dict, top_stats: dict, tid_date_time: str, tid_list: list) -> None:
-	pass
+def build_damage_with_buffs(stacking_uptime_Table: dict, DPSStats: dict, top_stats: dict, tid_date_time: str, tid_list: list) -> None:
+	rows = []
+
+	#start Stacking Buff Uptime Table insert
+	rows.append('\n<<alert dark "Damage with Buffs" width:60%>>\n\n')
+	rows.append('\n---\n')
+	rows.append('!!! `Damage with buff %` \n')
+	rows.append('!!! Percentage of damage done with a buff, similar to uptime %, but based on damage dealt \n')
+	rows.append('!!! `Damage % - Uptime %` \n')
+	rows.append('!!! The difference in `damage with buff %` and `uptime %` \n')
+	
+
+	max_stacking_buff_fight_time = 0
+	for uptime_prof_name in stacking_uptime_Table:
+		max_stacking_buff_fight_time = max(stacking_uptime_Table[uptime_prof_name]['duration_Might'], max_stacking_buff_fight_time)
+
+	dps_sorted_stacking_uptime_Table = []
+	for uptime_prof_name in stacking_uptime_Table:
+		dps_prof_name = f"{stacking_uptime_Table[uptime_prof_name]['profession']} {stacking_uptime_Table[uptime_prof_name]['name']}"
+		dps_sorted_stacking_uptime_Table.append([uptime_prof_name, DPSStats[dps_prof_name]['damageTotal'] / DPSStats[dps_prof_name]['duration']])
+	dps_sorted_stacking_uptime_Table = sorted(dps_sorted_stacking_uptime_Table, key=lambda x: x[1], reverse=True)
+	dps_sorted_stacking_uptime_Table = list(map(lambda x: x[0], dps_sorted_stacking_uptime_Table))
+
+	# Might with damage table
+	rows.append('<$reveal stateTitle=<<currentTiddler>> stateField="damage_with_buff" type="match" text="might" animate="yes">\n')
+	rows.append('|<$radio field="damage_with_buff" value="might"> Might </$radio> - <$radio field="damage_with_buff" value="other"> Other Buffs  </$radio> - Sortable table|c')
+	rows.append('|thead-dark table-hover table-caption-top sortable|k')
+	output_header =  '|!Name | !Class | !DPS' 
+	output_header += ' | ! <span data-tooltip="Number of seconds player was in squad logs">Seconds</span>'
+	output_header += '| !Avg| !1+ %| !5+ %| !10+ %| !15+ %| !20+ %| !25 %'
+	output_header += '|h'
+	rows.append(output_header)
+	
+	for uptime_prof_name in dps_sorted_stacking_uptime_Table:
+		name = stacking_uptime_Table[uptime_prof_name]['name']
+		prof = stacking_uptime_Table[uptime_prof_name]['profession']
+		fight_time = (stacking_uptime_Table[uptime_prof_name]['duration_Might'] / 1000) or 1
+		damage_with_might = stacking_uptime_Table[uptime_prof_name]['damage_with_Might']
+		might_stacks = stacking_uptime_Table[uptime_prof_name]['Might']
+
+		if stacking_uptime_Table[uptime_prof_name]['duration_Might'] * 10 < max_stacking_buff_fight_time:
+			continue
+		dps_prof_name = f"{prof} {name}"
+		total_damage = DPSStats[dps_prof_name]["damageTotal"] or 1
+		playerDPS = total_damage/DPSStats[dps_prof_name]['duration']
+
+		damage_with_avg_might = sum(stack_num * damage_with_might[stack_num] for stack_num in range(1, 26)) / total_damage
+		damage_with_might_uptime = 1.0 - (damage_with_might[0] / total_damage)
+		damage_with_might_5_uptime = sum(damage_with_might[i] for i in range(5,26)) / total_damage
+		damage_with_might_10_uptime = sum(damage_with_might[i] for i in range(10,26)) / total_damage
+		damage_with_might_15_uptime = sum(damage_with_might[i] for i in range(15,26)) / total_damage
+		damage_with_might_20_uptime = sum(damage_with_might[i] for i in range(20,26)) / total_damage
+		damage_with_might_25_uptime = damage_with_might[25] / total_damage
+		
+		avg_might = sum(stack_num * might_stacks[stack_num] for stack_num in range(1, 26)) / (fight_time * 1000)
+		might_uptime = 1.0 - (might_stacks[0] / (fight_time * 1000))
+		might_5_uptime = sum(might_stacks[i] for i in range(5,26)) / (fight_time * 1000)
+		might_10_uptime = sum(might_stacks[i] for i in range(10,26)) / (fight_time * 1000)
+		might_15_uptime = sum(might_stacks[i] for i in range(15,26)) / (fight_time * 1000)
+		might_20_uptime = sum(might_stacks[i] for i in range(20,26)) / (fight_time * 1000)
+		might_25_uptime = might_stacks[25] / (fight_time * 1000)
+
+		#"{:,}".format(round(fight_time))
+		output_string = '|'+name+' |'+' {{'+prof+'}} | '+"{:,}".format(round(playerDPS))+'| '+"{:,}".format(round(fight_time))
+
+		output_string += '| <span data-tooltip="'+"{:.2f}".format(round(damage_with_avg_might, 4))+'% dmg - '+"{:.2f}".format(round(avg_might, 4))+'% uptime">'
+		output_string += "{:.2f}".format(round((damage_with_avg_might), 4))+'</span>'
+
+		output_string += '| <span data-tooltip="'+"{:.2f}".format(round(damage_with_might_uptime * 100, 4))+'% dmg - '+"{:.2f}".format(round(might_uptime * 100, 4))+'% uptime">'
+		output_string += "{:.2f}".format(round((damage_with_might_uptime * 100), 4))+'</span>'
+
+		output_string += '| <span data-tooltip="'+"{:.2f}".format(round(damage_with_might_5_uptime * 100, 4))+'% dmg - '+"{:.2f}".format(round(might_5_uptime * 100, 4))+'% uptime">'
+		output_string += "{:.2f}".format(round((damage_with_might_5_uptime * 100), 4))+'</span>'
+
+		output_string += '| <span data-tooltip="'+"{:.2f}".format(round(damage_with_might_10_uptime * 100, 4))+'% dmg - '+"{:.2f}".format(round(might_10_uptime * 100, 4))+'% uptime">'
+		output_string += "{:.2f}".format(round((damage_with_might_10_uptime * 100), 4))+'</span>'
+
+		output_string += '| <span data-tooltip="'+"{:.2f}".format(round(damage_with_might_15_uptime * 100, 4))+'% dmg - '+"{:.2f}".format(round(might_15_uptime * 100, 4))+'% uptime">'
+		output_string += "{:.2f}".format(round((damage_with_might_15_uptime * 100), 4))+'</span>'
+
+		output_string += '| <span data-tooltip="'+"{:.2f}".format(round(damage_with_might_20_uptime * 100, 4))+'% dmg - '+"{:.2f}".format(round(might_20_uptime * 100, 4))+'% uptime">'
+		output_string += "{:.2f}".format(round((damage_with_might_20_uptime * 100), 4))+'</span>'
+
+		output_string += '| <span data-tooltip="'+"{:.2f}".format(round(damage_with_might_25_uptime * 100, 4))+'% dmg - '+"{:.2f}".format(round(might_25_uptime * 100, 4))+'% uptime">'
+		output_string += "{:.2f}".format(round((damage_with_might_25_uptime * 100), 4))+'</span>'
+		
+		output_string += '|'
+
+		rows.append(output_string)
+
+	rows.append("</$reveal>\n")
+
+	# Other buffs with damage table
+	other_buffs_with_damage = {
+		'b740': "Might", 'b725': "Fury", 'b1187': "Quickness", 'b30328': "Alacrity", 'b717': "Protection",
+		'b718': "Regeneration", 'b726': "Vigor", 'b743': "Aegis", 'b1122': "Stability",
+		'b719': "Swiftness", 'b26980': "Resistance", 'b873': "Resolution"
+	}
+	rows.append('<$reveal stateTitle=<<currentTiddler>> stateField="damage_with_buff" type="match" text="other" animate="yes">\n')
+	rows.append('|<$radio field="damage_with_buff" value="might"> Might </$radio> - <$radio field="damage_with_buff" value="other"> Other Buffs  </$radio> - Sortable table|c')
+	rows.append('|thead-dark table-hover table-caption-top sortable|k')
+	output_header =  '|!Name | !Class | !DPS '
+	output_header += ' | ! <span data-tooltip="Number of seconds player was in squad logs">Seconds</span>'
+	for damage_buffID in other_buffs_with_damage:
+		damage_buff = other_buffs_with_damage[damage_buffID]
+		output_header += '| !{{'+damage_buff.capitalize()+'}}'
+	output_header += '|h'
+	rows.append(output_header)
+	
+	for uptime_prof_name in dps_sorted_stacking_uptime_Table:
+		name = stacking_uptime_Table[uptime_prof_name]['name']
+		prof = stacking_uptime_Table[uptime_prof_name]['profession']
+		uptime_table_prof_name = name+"|"+prof
+		dps_prof_name = f"{prof} {name}"
+		if uptime_table_prof_name in top_stats['player']:
+			uptime_fight_time = top_stats['player'][uptime_table_prof_name]['active_time'] or 1
+		else:
+			uptime_fight_time = 1
+		dps_fight_time = DPSStats[dps_prof_name]['duration'] or 1
+		fight_time = (stacking_uptime_Table[uptime_prof_name]['duration_Might'] / 1000) or 1
+
+		if stacking_uptime_Table[uptime_prof_name]['duration_Might'] * 10 < max_stacking_buff_fight_time:
+			continue
+
+		total_damage = DPSStats[dps_prof_name]["damageTotal"] or 1
+		playerDPS = total_damage/dps_fight_time
+		output_string = '|'+name+' |'+' {{'+prof+'}} | '+"{:,}".format(round(playerDPS))+'| '+"{:,}".format(round(fight_time))+'|'
+
+		for damage_buffID in other_buffs_with_damage:
+			damage_buff = other_buffs_with_damage[damage_buffID]
+			damage_with_buff = stacking_uptime_Table[uptime_prof_name]['damage_with_'+damage_buff]
+			damage_with_buff_uptime = damage_with_buff[1] / total_damage			
+
+			if damage_buff in top_stats['player'][uptime_table_prof_name]['buffUptimesActive']:
+				buff_uptime = top_stats['player'][uptime_table_prof_name]['buffUptimesActive'][damage_buffID]['uptime_ms'] / uptime_fight_time
+			else:
+				buff_uptime = 0
+
+			output_string += ' <span data-tooltip="'+"{:.2f}".format(round(damage_with_buff_uptime * 100, 4))+'% dmg - '+"{:.2f}".format(round(buff_uptime * 100, 4))+'% uptime">'
+			output_string += "{:.2f}".format(round((damage_with_buff_uptime * 100), 4))+'</span>|'
+
+		rows.append(output_string)
+
+	rows.append("</$reveal>\n")
+
+	#rows.append("</$reveal>\n")
+
+	text = "\n".join(rows)
+	tags = f"{tid_date_time}"
+	title = f"{tid_date_time}-Damage-With-Buffs"
+	caption = "Damage with Buffs"
+
+	append_tid_for_output(
+		create_new_tid_from_template(title, caption, text, tags, fields={"damage_with_buff": "might"}),
+		tid_list	
+	)
 
 def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_time: str, tid_list: list) -> None:
 	rows = []
