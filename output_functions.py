@@ -1274,7 +1274,7 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 			tid_list
 		)
 
-def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
+def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_data: dict, IOL_revive: dict,  caption: str, tid_date_time: str) -> None:
 	"""Build a table of combat resurrection stats for all players in the log running the extension.
 
 	This function iterates over the top_stats dictionary and builds a dictionary with the following structure:
@@ -1298,10 +1298,8 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 		}
 
 	for player, player_data in top_stats['player'].items():
-
+		prof_name = player_data['profession'] + '|' + player_data['name'] + '|' + str(player_data['active_time'])
 		if 'skills' in player_data['extHealingStats']:
-
-			prof_name = player_data['profession'] + '|' + player_data['name'] + '|' + str(player_data['active_time'])
 
 			for skill in player_data['extHealingStats']['skills']:
 
@@ -1324,6 +1322,23 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 
 						combat_resurrect['players'][prof_name][skill]['total'] = combat_resurrect['players'][prof_name][skill].get('total', 0) + downed_healing
 						combat_resurrect['players'][prof_name][skill]['hits'] = combat_resurrect['players'][prof_name][skill].get('hits', 0) + total_hits
+
+		if player_data['name'] in IOL_revive:
+			if 's10244' not in combat_resurrect['res_skills']:
+				combat_resurrect['res_skills']['s10244'] = IOL_revive[player_data['name']]['casts']
+			else:
+				combat_resurrect['res_skills']['s10244'] = combat_resurrect['res_skills']['s10244'] + IOL_revive[player_data['name']]['casts']
+
+			if prof_name not in combat_resurrect['players']:
+				combat_resurrect['players'][prof_name] = {
+					's10244': {
+						'total': IOL_revive[player_data['name']]['hits'],
+						'hits': IOL_revive[player_data['name']]['casts']
+					}
+				}
+			else:
+				combat_resurrect['players'][prof_name]['s10244']['total']  = IOL_revive[player_data['name']]['hits']
+				combat_resurrect['players'][prof_name]['s10244']['hits']  = IOL_revive[player_data['name']]['casts']
 
 	sorted_res_skills = sorted(combat_resurrect['res_skills'], key=combat_resurrect['res_skills'].get, reverse=True)
 
@@ -1364,10 +1379,13 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 			if skill in combat_resurrect['players'][player]:
 				total = f"{combat_resurrect['players'][player][skill].get('total', 0):,.0f}"
 				hits = f"{combat_resurrect['players'][player][skill].get('hits', 0):,.0f}"
-				row += f' <span data-tooltip="{hits} Total hits"> {total} </span>|'
+				if skill == 's10244':
+					row += f' <span data-tooltip="{hits} Casts"> {total} </span>|'
+				else:
+					row += f' <span data-tooltip="{hits} Total hits"> {total} </span>|'
 			else:
 				row += f' |'
-			#f' <span data-tooltip="{hits} casts / minute"> {total} </span>|'
+
 		rows.append(row)
 	rows.append(f"| {caption} |c")
 	rows.append('\n\n</div>\n\n')
@@ -3429,7 +3447,7 @@ def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	conn.close()
 	print("Database updated.")
 
-def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, personal_buff_data: dict, fb_pages: dict, mechanics: dict, minions: dict, mesmer_clone_usage: dict, death_on_tag: dict, DPSStats: dict, commander_summary_data: dict, player_damage_mitigation: dict, stacking_uptime_Table: dict, outfile: str) -> None:
+def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, personal_buff_data: dict, fb_pages: dict, mechanics: dict, minions: dict, mesmer_clone_usage: dict, death_on_tag: dict, DPSStats: dict, commander_summary_data: dict, player_damage_mitigation: dict, stacking_uptime_Table: dict, IOL_revive: dict, outfile: str) -> None:
 	"""Print the top_stats dictionary as a JSON object to the console."""
 
 	json_dict = {}
@@ -3455,6 +3473,9 @@ def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, da
 	json_dict["commander_summary_data"] = {key: value for key, value in commander_summary_data.items()}
 	json_dict["player_damage_mitigation"] = {key: value for key, value in player_damage_mitigation.items()}
 	json_dict["stacking_uptime_Table"] = {key: value for key, value in stacking_uptime_Table.items()}
+	json_dict["IOL_revive"] = {key: value for key, value in IOL_revive.items()}
+
+
 	#stacking_uptime_Table
 	with open(outfile, 'w') as json_file:
 		json.dump(json_dict, json_file, indent=4)

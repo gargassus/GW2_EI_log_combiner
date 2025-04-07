@@ -56,6 +56,7 @@ commander_summary_data = {}
 
 DPSStats = {}
 stacking_uptime_Table = {}
+IOL_revive = {}
 
 def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 	"""
@@ -85,7 +86,6 @@ def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 		# PVE log
 		log_type = "PVE"
 	return log_type, fight_name
-
 
 def calculate_resist_offset(resist_data: dict, state_data: dict) -> int:
 	"""
@@ -155,7 +155,6 @@ def get_buff_states(buff_states: list) -> dict:
 
 	return dict(zip(start_times, end_times))
 
-
 def calculate_moving_average(data: list, window_size: int) -> list:
 	"""
 	Calculate the moving average of a list of numbers with a specified window size.
@@ -175,22 +174,21 @@ def calculate_moving_average(data: list, window_size: int) -> list:
 		ma.append(sum(sub_data) / len(sub_data))
 	return ma
 
-
 def find_lowest(dict):
-    temp = min(dict.values())
-    res = []
-    for key, value in dict.items():
-        if(value == temp):
-            res.append(key)
-            res.append(value)
-    return res
+	temp = min(dict.values())
+	res = []
+	for key, value in dict.items():
+		if(value == temp):
+			res.append(key)
+			res.append(value)
+	return res
 
 def find_smallest_value(my_dict):
-    if not my_dict:
-        return "Dictionary is empty"
-    
-    min_key = min(my_dict, key=my_dict.get)
-    return min_key
+	if not my_dict:
+		return "Dictionary is empty"
+	
+	min_key = min(my_dict, key=my_dict.get)
+	return min_key
 
 def update_high_score(stat_name: str, key: str, value: float) -> None:
 	"""
@@ -416,48 +414,48 @@ def get_combat_start_from_player_json(initial_time, player_json):
 	return start_combat
 
 def get_combat_time_breakpoints(player_json):
-    """
-    Calculate combat time breakpoints for a player based on their combat replay data.
+	"""
+	Calculate combat time breakpoints for a player based on their combat replay data.
 
-    Args:
-        player_json (dict): The player's JSON data.
+	Args:
+		player_json (dict): The player's JSON data.
 
-    Returns:
-        list: A list of [start, end] tuples representing combat time breakpoints.
-    """
-    # Get the initial combat start time
-    start_combat = get_combat_start_from_player_json(0, player_json)
+	Returns:
+		list: A list of [start, end] tuples representing combat time breakpoints.
+	"""
+	# Get the initial combat start time
+	start_combat = get_combat_start_from_player_json(0, player_json)
 
-    # Check if 'combatReplayData' is available, use 'activeTimes' if not
-    if 'combatReplayData' not in player_json:
-        print("WARNING: combatReplayData not in json, using activeTimes as time in combat")
-        return [[start_combat, player_json.get('activeTimes', 0)]]
+	# Check if 'combatReplayData' is available, use 'activeTimes' if not
+	if 'combatReplayData' not in player_json:
+		print("WARNING: combatReplayData not in json, using activeTimes as time in combat")
+		return [[start_combat, player_json.get('activeTimes', 0)]]
 
-    replay = player_json['combatReplayData']
+	replay = player_json['combatReplayData']
 
-    # Check if 'dead' data is available in replay, use 'activeTimes' if not
-    if 'dead' not in replay:
-        return [[start_combat, player_json.get('activeTimes', 0)]]
+	# Check if 'dead' data is available in replay, use 'activeTimes' if not
+	if 'dead' not in replay:
+		return [[start_combat, player_json.get('activeTimes', 0)]]
 
-    breakpoints = []
-    player_deaths = dict(replay['dead'])
-    player_downs = dict(replay['down'])
+	breakpoints = []
+	player_deaths = dict(replay['dead'])
+	player_downs = dict(replay['down'])
 
-    # Iterate over player deaths and downs to calculate breakpoints
-    for death_key, death_value in player_deaths.items():
-        for down_key, down_value in player_downs.items():
-            if death_key == down_value:
-                if start_combat != -1:
-                    breakpoints.append([start_combat, death_key])
-                start_combat = get_combat_start_from_player_json(death_value + 1000, player_json)
-                break
+	# Iterate over player deaths and downs to calculate breakpoints
+	for death_key, death_value in player_deaths.items():
+		for down_key, down_value in player_downs.items():
+			if death_key == down_value:
+				if start_combat != -1:
+					breakpoints.append([start_combat, death_key])
+				start_combat = get_combat_start_from_player_json(death_value + 1000, player_json)
+				break
 
-    # Determine the end of combat based on damage data
-    end_combat = len(player_json['damage1S'][0]) * 1000
-    if start_combat != -1:
-        breakpoints.append([start_combat, end_combat])
+	# Determine the end of combat based on damage data
+	end_combat = len(player_json['damage1S'][0]) * 1000
+	if start_combat != -1:
+		breakpoints.append([start_combat, end_combat])
 
-    return breakpoints
+	return breakpoints
 
 def sum_breakpoints(breakpoints):
 	combat_time = 0
@@ -1741,92 +1739,92 @@ def get_barrier_skill_data(player: dict, stat_category: str, name_prof: str) -> 
 				)
 
 def get_damage_mod_by_player(fight_num: int, player: dict, name_prof: str) -> None:
-    """
-    Collect and update damage modifier statistics for a player.
+	"""
+	Collect and update damage modifier statistics for a player.
 
-    This function iterates through various categories of damage modifiers for a given player and updates
-    the statistics in the top_stats dictionary for individual players, specific fights, and overall stats.
-    It also updates the commander summary if the player has a commander tag.
+	This function iterates through various categories of damage modifiers for a given player and updates
+	the statistics in the top_stats dictionary for individual players, specific fights, and overall stats.
+	It also updates the commander summary if the player has a commander tag.
 
-    Args:
-        fight_num (int): The fight number.
-        player (dict): The player dictionary containing player-specific data.
-        name_prof (str): The player's name and profession identifier.
-    """
-    mod_list = ["damageModifiers", "damageModifiersTarget", "incomingDamageModifiers", "incomingDamageModifiersTarget"]
-    commander_tag = player['hasCommanderTag']
+	Args:
+		fight_num (int): The fight number.
+		player (dict): The player dictionary containing player-specific data.
+		name_prof (str): The player's name and profession identifier.
+	"""
+	mod_list = ["damageModifiers", "damageModifiersTarget", "incomingDamageModifiers", "incomingDamageModifiersTarget"]
+	commander_tag = player['hasCommanderTag']
 
-    for mod_cat in mod_list:
-        if mod_cat in player:
-            for modifier in player[mod_cat]:
-                if "id" not in modifier:
-                    continue
+	for mod_cat in mod_list:
+		if mod_cat in player:
+			for modifier in player[mod_cat]:
+				if "id" not in modifier:
+					continue
 
-                mod_id = "d" + str(modifier['id'])
-                mod_hit_count = modifier["damageModifiers"][0]['hitCount']
-                mod_total_hit_count = modifier["damageModifiers"][0]['totalHitCount']
-                mod_damage_gain = modifier["damageModifiers"][0]['damageGain']
-                mod_total_damage = modifier["damageModifiers"][0]['totalDamage']
+				mod_id = "d" + str(modifier['id'])
+				mod_hit_count = modifier["damageModifiers"][0]['hitCount']
+				mod_total_hit_count = modifier["damageModifiers"][0]['totalHitCount']
+				mod_damage_gain = modifier["damageModifiers"][0]['damageGain']
+				mod_total_damage = modifier["damageModifiers"][0]['totalDamage']
 
-                # Update commander summary data if the player has a commander tag
-                if commander_tag:
-                    commander_name = f"{player['name']}|{player['profession']}"
-                    if mod_id == 'd-58':
-                        commander_summary_data[commander_name]['prot_mods']['hitCount'] += mod_hit_count
-                        commander_summary_data[commander_name]['prot_mods']['totalHitCount'] += mod_total_hit_count
-                        commander_summary_data[commander_name]['prot_mods']['damageGain'] += mod_damage_gain
-                        commander_summary_data[commander_name]['prot_mods']['totalDamage'] += mod_total_damage
+				# Update commander summary data if the player has a commander tag
+				if commander_tag:
+					commander_name = f"{player['name']}|{player['profession']}"
+					if mod_id == 'd-58':
+						commander_summary_data[commander_name]['prot_mods']['hitCount'] += mod_hit_count
+						commander_summary_data[commander_name]['prot_mods']['totalHitCount'] += mod_total_hit_count
+						commander_summary_data[commander_name]['prot_mods']['damageGain'] += mod_damage_gain
+						commander_summary_data[commander_name]['prot_mods']['totalDamage'] += mod_total_damage
 
-                # Update player's damage modifier statistics
-                if mod_id not in top_stats['player'][name_prof]['damageModifiers']:
-                    top_stats['player'][name_prof]['damageModifiers'][mod_id] = {}
+				# Update player's damage modifier statistics
+				if mod_id not in top_stats['player'][name_prof]['damageModifiers']:
+					top_stats['player'][name_prof]['damageModifiers'][mod_id] = {}
 
-                top_stats['player'][name_prof]['damageModifiers'][mod_id]['hitCount'] = (
-                    top_stats['player'][name_prof]['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
-                )
-                top_stats['player'][name_prof]['damageModifiers'][mod_id]['totalHitCount'] = (
-                    top_stats['player'][name_prof]['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
-                )
-                top_stats['player'][name_prof]['damageModifiers'][mod_id]['damageGain'] = (
-                    top_stats['player'][name_prof]['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
-                )
-                top_stats['player'][name_prof]['damageModifiers'][mod_id]['totalDamage'] = (
-                    top_stats['player'][name_prof]['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
-                )
+				top_stats['player'][name_prof]['damageModifiers'][mod_id]['hitCount'] = (
+					top_stats['player'][name_prof]['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
+				)
+				top_stats['player'][name_prof]['damageModifiers'][mod_id]['totalHitCount'] = (
+					top_stats['player'][name_prof]['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
+				)
+				top_stats['player'][name_prof]['damageModifiers'][mod_id]['damageGain'] = (
+					top_stats['player'][name_prof]['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
+				)
+				top_stats['player'][name_prof]['damageModifiers'][mod_id]['totalDamage'] = (
+					top_stats['player'][name_prof]['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
+				)
 
-                # Update fight-specific damage modifier statistics
-                if mod_id not in top_stats['fight'][fight_num]['damageModifiers']:
-                    top_stats['fight'][fight_num]['damageModifiers'][mod_id] = {}
+				# Update fight-specific damage modifier statistics
+				if mod_id not in top_stats['fight'][fight_num]['damageModifiers']:
+					top_stats['fight'][fight_num]['damageModifiers'][mod_id] = {}
 
-                top_stats['fight'][fight_num]['damageModifiers'][mod_id]['hitCount'] = (
-                    top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
-                )
-                top_stats['fight'][fight_num]['damageModifiers'][mod_id]['totalHitCount'] = (
-                    top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
-                )
-                top_stats['fight'][fight_num]['damageModifiers'][mod_id]['damageGain'] = (
-                    top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
-                )
-                top_stats['fight'][fight_num]['damageModifiers'][mod_id]['totalDamage'] = (
-                    top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
-                )
+				top_stats['fight'][fight_num]['damageModifiers'][mod_id]['hitCount'] = (
+					top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
+				)
+				top_stats['fight'][fight_num]['damageModifiers'][mod_id]['totalHitCount'] = (
+					top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
+				)
+				top_stats['fight'][fight_num]['damageModifiers'][mod_id]['damageGain'] = (
+					top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
+				)
+				top_stats['fight'][fight_num]['damageModifiers'][mod_id]['totalDamage'] = (
+					top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
+				)
 
-                # Update overall damage modifier statistics
-                if mod_id not in top_stats['overall']['damageModifiers']:
-                    top_stats['overall']['damageModifiers'][mod_id] = {}
+				# Update overall damage modifier statistics
+				if mod_id not in top_stats['overall']['damageModifiers']:
+					top_stats['overall']['damageModifiers'][mod_id] = {}
 
-                top_stats['overall']['damageModifiers'][mod_id]['hitCount'] = (
-                    top_stats['overall']['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
-                )
-                top_stats['overall']['damageModifiers'][mod_id]['totalHitCount'] = (
-                    top_stats['overall']['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
-                )
-                top_stats['overall']['damageModifiers'][mod_id]['damageGain'] = (
-                    top_stats['overall']['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
-                )
-                top_stats['overall']['damageModifiers'][mod_id]['totalDamage'] = (
-                    top_stats['overall']['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
-                )
+				top_stats['overall']['damageModifiers'][mod_id]['hitCount'] = (
+					top_stats['overall']['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
+				)
+				top_stats['overall']['damageModifiers'][mod_id]['totalHitCount'] = (
+					top_stats['overall']['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
+				)
+				top_stats['overall']['damageModifiers'][mod_id]['damageGain'] = (
+					top_stats['overall']['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
+				)
+				top_stats['overall']['damageModifiers'][mod_id]['totalDamage'] = (
+					top_stats['overall']['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
+				)
 
 def get_firebrand_pages(player, name_prof, name, account, fight_duration_ms):
 	"""
@@ -2104,6 +2102,57 @@ def find_member(guild_data: list, member_account: str) -> str:
 			return guild_member["rank"]
 	return "--==Non Member==--"
 
+def get_illusion_of_life_data(players: dict, durationMS: int) -> None:
+	"""
+	Collects data about the "Illusion of Life" skill used by Mesmers and their specializations.
+
+	Args:
+		players (dict): A dictionary containing the player data.
+		durationMS (int): The duration of the encounter in milliseconds.
+
+	Returns:
+		None
+	"""
+	for player in players:
+		playerName = player['name']
+		playerProf = player['profession']
+
+		if 'buffUptimes' in player:
+			for item in player['buffUptimes']:
+				if item['id'] in [10244, 10346]:
+					for caster in item['buffData'][0]['generated']:
+						caster_name = caster
+						caster_generated = item['buffData'][0]['generated'][caster]
+						caster_wasted = item['buffData'][0]['wasted'][caster_name]
+					
+						if caster_name not in IOL_revive:
+							IOL_revive[caster_name] = {
+								'prof': "",
+								'casts': 0,
+								'hits': 0,
+								'generated': 0,
+								'wasted': 0,
+								'gen_plus_wasted':0
+							}
+						generated = ((caster_generated/100)*durationMS)/1000
+						wasted = ((caster_wasted/100)*durationMS)/1000
+						total_gen_wasted = round((generated+wasted), 0)
+						hits = math.ceil(total_gen_wasted/15)
+						IOL_revive[caster_name]['hits'] = IOL_revive[caster_name].get('hits',0) + hits
+						IOL_revive[caster_name]['generated'] = IOL_revive[caster_name].get('generated',0) + round(generated,0)
+						IOL_revive[caster_name]['wasted'] = IOL_revive[caster_name].get('wasted',0) + round(wasted,0)
+						IOL_revive[caster_name]['gen_plus_wasted'] = IOL_revive[caster_name].get('gen_plus_wasted',0) + round(total_gen_wasted,0)
+			
+		if 'rotation' in player and playerProf in ['Mesmer', 'Mirage', 'Chronomancer','Virtuoso']:
+			
+			for item in player['rotation']:
+				if item['id'] in [10244, 10346]:
+					rotationCasts = len(item['skills'])
+
+					if playerName not in IOL_revive:
+						IOL_revive[playerName] = {}
+					IOL_revive[playerName]['casts'] = IOL_revive[playerName].get('casts', 0) + rotationCasts
+					IOL_revive[playerName]['prof'] = playerProf
 
 def parse_file(file_path, fight_num, guild_data):
 	json_stats = config.json_stats
@@ -2207,6 +2256,9 @@ def parse_file(file_path, fight_num, guild_data):
 	get_mechanics_by_fight(fight_num, mechanics_map, players, log_type)
 
 	get_damage_mitigation_data(fight_num, players, targets, skill_map, buff_map)
+
+	get_illusion_of_life_data(players, fight_duration_ms)
+	
 	#process each player in the fight
 	for player in players:
 		# skip players not in squad

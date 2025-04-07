@@ -284,7 +284,7 @@ if __name__ == '__main__':
 	build_fight_summary(top_stats, "Overview", tid_date_time)
 
 	#get combat resurrection stats found and output table
-	build_combat_resurrection_stats_tid(top_stats, skill_data, buff_data, "Combat Resurrect", tid_date_time)
+	build_combat_resurrection_stats_tid(top_stats, skill_data, buff_data, IOL_revive, "Combat Resurrect", tid_date_time)
 
 	#get FB Pages and output table
 	build_fb_pages_tid(fb_pages, "FB Pages", tid_date_time)
@@ -338,7 +338,7 @@ if __name__ == '__main__':
 	write_tid_list_to_json(tid_list, args.output_filename)
 
 	if write_all_data_to_json:
-		output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, personal_buff_data, fb_pages, mechanics, minions, mesmer_clone_usage, death_on_tag, DPSStats, commander_summary_data, player_damage_mitigation, stacking_uptime_Table, args.json_output_filename)
+		output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, personal_buff_data, fb_pages, mechanics, minions, mesmer_clone_usage, death_on_tag, DPSStats, commander_summary_data, player_damage_mitigation, stacking_uptime_Table, IOL_revive, args.json_output_filename)
 
 	if db_update:
 		write_data_to_db(top_stats, top_stats['overall']['last_fight'])
