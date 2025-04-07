@@ -2520,7 +2520,6 @@ def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> 
 		)
 
 def build_utility_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
-	# ["Name", "Profession", "Cleanses", "Heals", "Boon Score", "color"]
 	"""
 	Build a bubble chart of utility stats for all players in the log running the extension.
 
@@ -2597,7 +2596,6 @@ def build_utility_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_
 	)
 
 def build_support_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
-	# ["Name", "Profession", "Cleanses", "Heals", "Boon Score", "color"]
 	"""
 	Build a bubble chart of support stats for all players in the log.
 
@@ -2673,7 +2671,6 @@ def build_support_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_
 	)
 	
 def build_DPS_bubble_chart(top_stats: dict, tid_date_time: str, tid_list: list, profession_colors: dict) -> None:
-	# ["Name", "Profession", "Damage/Sec", "Down_Contr/Sec", "Dmg_to_Down/Sec", "color"]
 	"""
 	Build a bubble chart of DPS stats for all players in the log running the extension.
 
@@ -2955,6 +2952,19 @@ def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff
 		)
 
 def build_damage_with_buffs(stacking_uptime_Table: dict, DPSStats: dict, top_stats: dict, tid_date_time: str, tid_list: list) -> None:
+	"""
+	Builds the Damage with Buffs tables.
+
+	Args:
+		stacking_uptime_Table (dict): A dictionary of stacking uptime data.
+		DPSStats (dict): A dictionary of DPS data.
+		top_stats (dict): A dictionary of top stats data.
+		tid_date_time (str): A string to use as the date and time for the table id.
+		tid_list (list): The list of tables to append the new table to.
+
+	Returns:
+		None
+	"""
 	rows = []
 
 	#start Stacking Buff Uptime Table insert
@@ -3112,6 +3122,23 @@ def build_damage_with_buffs(stacking_uptime_Table: dict, DPSStats: dict, top_sta
 	)
 
 def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_time: str, tid_list: list) -> None:
+	"""
+	Builds tables displaying stacking buff uptimes for players.
+
+	This function generates tables for stacking buffs, specifically "Might" and "Stability", 
+	using the provided stacking uptime data and player statistics. It calculates and displays 
+	various statistics like average stack uptime and percentage uptime for different stack thresholds.
+
+	Args:
+		stacking_uptime_Table (dict): A dictionary containing stacking uptime data for players.
+		top_stats (dict): A dictionary of player statistics, including active time.
+		tid_date_time (str): A string representing the date and time for table identification.
+		tid_list (list): A list to append the generated tables for output.
+
+	Returns:
+		None
+	"""
+
 	rows = []
 	max_fightTime = 0
 	for squadDps_prof_name in stacking_uptime_Table:
@@ -3232,7 +3259,6 @@ def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_
 		tid_list	
 	)
 	
-
 def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: dict, tid_date_time: str, tid_list: list) -> None:
 	"""
 	Build a table of defense damage mitigation for each player in the log running the extension.
@@ -3328,7 +3354,18 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: d
 	)
 
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
-	
+		
+	"""
+	Write the top_stats dictionary to the database.
+
+	Parameters
+	----------
+	top_stats : dict
+		The top_stats dictionary containing all the data to be written to the database.
+	last_fight : str
+		The date and time of the last fight in the format "Year-Month-Day-Hour-Minute-Second".
+	"""
+
 	print("Writing raid stats to database")
 	"""Write the top_stats dictionary to the database."""
 	conn = sqlite3.connect('Top_Stats.db')

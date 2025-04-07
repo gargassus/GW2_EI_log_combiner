@@ -297,7 +297,6 @@ def get_commander_tag_data(fight_json):
 
 	return commander_tag_positions, earliest_death_time, has_died
 
-
 def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead_tag, inch_to_pixel, polling_rate):
 		name_prof = player['name'] + "|" + player['profession'] 
 		if name_prof not in death_on_tag:
@@ -416,32 +415,49 @@ def get_combat_start_from_player_json(initial_time, player_json):
 			break
 	return start_combat
 
-
 def get_combat_time_breakpoints(player_json):
-	start_combat = get_combat_start_from_player_json(0, player_json)
-	if 'combatReplayData' not in player_json:
-		print("WARNING: combatReplayData not in json, using activeTimes as time in combat")
-		return [start_combat, player_json.get('activeTimes', 0)]
-	replay = player_json['combatReplayData']
-	if 'dead' not in replay:
-		return [start_combat, player_json.get('activeTimes', 0)]
+    """
+    Calculate combat time breakpoints for a player based on their combat replay data.
 
-	breakpoints = []
-	playerDeaths = dict(replay['dead'])
-	playerDowns = dict(replay['down'])
-	for deathKey, deathValue in playerDeaths.items():
-		for downKey, downValue in playerDowns.items():
-			if deathKey == downValue:
-				if start_combat != -1:
-					breakpoints.append([start_combat, deathKey])
-				start_combat = get_combat_start_from_player_json(deathValue + 1000, player_json)
-				break
-	end_combat = (len(player_json['damage1S'][0]))*1000
-	if start_combat != -1:
-		breakpoints.append([start_combat, end_combat])
+    Args:
+        player_json (dict): The player's JSON data.
 
-	return breakpoints
+    Returns:
+        list: A list of [start, end] tuples representing combat time breakpoints.
+    """
+    # Get the initial combat start time
+    start_combat = get_combat_start_from_player_json(0, player_json)
 
+    # Check if 'combatReplayData' is available, use 'activeTimes' if not
+    if 'combatReplayData' not in player_json:
+        print("WARNING: combatReplayData not in json, using activeTimes as time in combat")
+        return [[start_combat, player_json.get('activeTimes', 0)]]
+
+    replay = player_json['combatReplayData']
+
+    # Check if 'dead' data is available in replay, use 'activeTimes' if not
+    if 'dead' not in replay:
+        return [[start_combat, player_json.get('activeTimes', 0)]]
+
+    breakpoints = []
+    player_deaths = dict(replay['dead'])
+    player_downs = dict(replay['down'])
+
+    # Iterate over player deaths and downs to calculate breakpoints
+    for death_key, death_value in player_deaths.items():
+        for down_key, down_value in player_downs.items():
+            if death_key == down_value:
+                if start_combat != -1:
+                    breakpoints.append([start_combat, death_key])
+                start_combat = get_combat_start_from_player_json(death_value + 1000, player_json)
+                break
+
+    # Determine the end of combat based on damage data
+    end_combat = len(player_json['damage1S'][0]) * 1000
+    if start_combat != -1:
+        breakpoints.append([start_combat, end_combat])
+
+    return breakpoints
 
 def sum_breakpoints(breakpoints):
 	combat_time = 0
@@ -452,16 +468,27 @@ def sum_breakpoints(breakpoints):
 # States array is formatted: [start, stack_count]
 # Reformat as: [start, end, stack_count]
 def split_boon_states(states, duration):
+	"""
+	Split boon states into individual start/end times and stack counts.
+
+	Args:
+		states (list): List of (start, stack_count) tuples
+		duration (int): Duration of the fight in milliseconds
+
+	Returns:
+		list: List of (start, end, stack_count) tuples
+	"""
 	split_states = []
 	num_states = len(states) - 1
-	for index, [start, stacks] in enumerate(states):
+	for index, (start, stacks) in enumerate(states):
+		# If this is the last state, end at the duration
 		if index == num_states:
 			if start < duration:
 				split_states.append([start, duration, stacks])
 		else:
+			# Otherwise, end at the next state's start time
 			split_states.append([start, min(states[index + 1][0], duration), stacks])
 	return split_states
-
 
 # Take state array and combat breakpoints, filter down states to only include those when in combat
 def split_boon_states_by_combat_breakpoints(states, breakpoints, duration):
@@ -505,6 +532,9 @@ def split_boon_states_by_combat_breakpoints(states, breakpoints, duration):
 	return new_states
 
 def get_stacking_uptime_data(player, damagePS, duration, fight_ticks):
+	"""
+	Get uptime and damage data for stacking buffs like might and stability
+	"""
 	# Track Stacking Buff Uptimes
 	boons = {
 		'b740': "Might", 'b725': "Fury", 'b1187': "Quickness", 'b30328': "Alacrity", 
@@ -594,7 +624,6 @@ def get_stacking_uptime_data(player, damagePS, duration, fight_ticks):
 
 		if buff_name in ['Stability', 'Might']:
 			stacking_uptime_Table[player_prof_name]["duration_"+buff_name] += total_time
-
 
 def calculate_dps_stats(fight_json):
 
@@ -695,7 +724,6 @@ def calculate_dps_stats(fight_json):
 				DPSStats[player_prof_name]["coordinationDamage"] += player_damage_on_tick * squad_damage_percent * duration
 			
 			get_stacking_uptime_data(player, player_damage, duration, fight_ticks)
-
 
 	# Chunk damage: Damage done within X seconds of target down
 	for index, target in enumerate(fight_json['targets']):
@@ -817,7 +845,6 @@ def get_player_stats_targets(statsTargets: dict, name: str, profession: str, fig
 
 		update_high_score(f"statTarget_{stat}", "{{"+profession+"}}"+name+"-"+str(fight_num)+" | "+stat, fight_stat_value)	
 
-
 def get_total_shield_damage(fight_data: dict) -> int:
 	"""
 	Extract the total shield damage from the fight data.
@@ -832,7 +859,6 @@ def get_total_shield_damage(fight_data: dict) -> int:
 	for skill in fight_data["targetDamageDist"]:
 		total_shield_damage += skill["shieldDamage"]
 	return total_shield_damage
-
 
 def get_buffs_data(buff_map: dict) -> None:
 	"""
@@ -856,7 +882,6 @@ def get_buffs_data(buff_map: dict) -> None:
 				'icon': icon
 			}
 		
-
 def get_skills_data(skill_map: dict) -> None:
 	"""
 	Collect skill data across all fights.
@@ -878,7 +903,6 @@ def get_skills_data(skill_map: dict) -> None:
 				'auto': auto_attack,
 				'icon': icon
 			}
-
 
 def get_damage_mods_data(damage_mod_map: dict, personal_damage_mod_data: dict) -> None:
 	"""
@@ -909,7 +933,6 @@ def get_damage_mods_data(damage_mod_map: dict, personal_damage_mod_data: dict) -
 				'incoming': incoming
 			}
 
-
 def get_personal_mod_data(personal_damage_mods: dict) -> None:
 	"""
 	Populate the personal_damage_mod_data dictionary with modifiers from personal_damage_mods.
@@ -925,7 +948,6 @@ def get_personal_mod_data(personal_damage_mods: dict) -> None:
 			if mod_id not in personal_damage_mod_data[profession]:
 				personal_damage_mod_data[profession].append(mod_id)
 				personal_damage_mod_data['total'].append(mod_id)
-
 
 def get_personal_buff_data(personal_buffs: dict) -> None:
 	"""
@@ -944,7 +966,6 @@ def get_personal_buff_data(personal_buffs: dict) -> None:
 				personal_buff_data[profession].append(buff_id)
 				# Add the buff to the total list
 				personal_buff_data['total'].append(buff_id)
-
 
 def get_enemies_by_fight(fight_num: int, targets: dict) -> None:
 	"""
@@ -986,7 +1007,6 @@ def get_enemies_by_fight(fight_num: int, targets: dict) -> None:
 		top_stats["fight"][fight_num]["enemy_count"] += 1
 		top_stats['overall']['enemy_count'] = top_stats['overall'].get('enemy_count', 0) + 1
 
-
 def get_enemy_downed_and_killed_by_fight(fight_num: int, targets: dict, players: dict, log_type: str) -> None:
 	"""
 	Count enemy downed and killed for a fight.
@@ -1020,7 +1040,6 @@ def get_enemy_downed_and_killed_by_fight(fight_num: int, targets: dict, players:
 	top_stats['overall']['enemy_downed'] = top_stats['overall'].get('enemy_downed', 0) + enemy_downed
 	top_stats['overall']['enemy_killed'] = top_stats['overall'].get('enemy_killed', 0) + enemy_killed
 
-
 def get_parties_by_fight(fight_num: int, players: list) -> None:
 	"""
 	Organize players by party for a fight.
@@ -1048,7 +1067,6 @@ def get_parties_by_fight(fight_num: int, players: list) -> None:
 		if prof_name not in top_stats["parties_by_fight"][fight_num][group]:
 			# Add the player to the group
 			top_stats["parties_by_fight"][fight_num][group].append(prof_name)
-
 
 def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof: str) -> None:
 	"""
@@ -1130,7 +1148,6 @@ def get_stat_by_target_and_skill(fight_num: int, player: dict, stat_category: st
 							stat, 0) + value
 						top_stats['overall'][stat_category][skill_id][stat] = top_stats['overall'][stat_category][skill_id].get(stat, 0) + value
 
-
 def get_stat_by_target(fight_num: int, player: dict, stat_category: str, name_prof: str) -> None:
 	"""
 	Add player stats by target to top_stats dictionary
@@ -1150,7 +1167,6 @@ def get_stat_by_target(fight_num: int, player: dict, stat_category: str, name_pr
 				top_stats['player'][name_prof][stat_category][stat] = top_stats['player'][name_prof][stat_category].get(stat, 0) + value
 				top_stats['fight'][fight_num][stat_category][stat] = top_stats['fight'][fight_num][stat_category].get(stat, 0) + value
 				top_stats['overall'][stat_category][stat] = top_stats['overall'][stat_category].get(stat, 0) + value
-
 
 def get_stat_by_skill(fight_num: int, player: dict, stat_category: str, name_prof: str) -> None:
 	"""
@@ -1189,7 +1205,6 @@ def get_stat_by_skill(fight_num: int, player: dict, stat_category: str, name_pro
 
 						commander_summary_data[commander_name][stat_category][skill_id][stat] += value
 						#commander_summary_data[name_prof][stat_category][skill_id].get(stat, 0) + value	 
-
 
 def get_buff_uptimes(fight_num: int, player: dict, group: str, stat_category: str, name_prof: str, fight_duration: int, active_time: int) -> None:
 	"""
@@ -1265,8 +1280,6 @@ def get_buff_uptimes(fight_num: int, player: dict, group: str, stat_category: st
 		top_stats['overall'][stat_category][buff_id]['resist_reduction'] = top_stats['overall'][stat_category][buff_id].get('resist_reduction', 0) + resist_offset
 		top_stats['overall'][stat_category]["group"][group][buff_id]['resist_reduction'] = top_stats['overall'][stat_category]["group"][group][buff_id].get('resist_reduction', 0) + resist_offset
 
-
-
 def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_category: str, name_prof: str) -> None:
 	"""
 	Calculate buff uptime stats for a target caused by squad player
@@ -1335,7 +1348,6 @@ def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_categ
 					top_stats['overall'][stat_category][buff_id]['uptime_ms'] += conditionTime
 					top_stats['overall'][stat_category][buff_id]['applied_counts'] += appliedCounts
 
-
 def get_buff_generation(fight_num: int, player: dict, stat_category: str, name_prof: str, duration: int, buff_data: dict, squad_count: int, group_count: int) -> None:
 	"""
 	Calculate buff generation stats for a player
@@ -1396,7 +1408,6 @@ def get_buff_generation(fight_num: int, player: dict, stat_category: str, name_p
 		top_stats['overall'][stat_category][buff_id]['generation'] = top_stats['overall'][stat_category][buff_id].get('generation', 0) + buff_generation
 		top_stats['overall'][stat_category][buff_id]['wasted'] = top_stats['overall'][stat_category][buff_id].get('wasted', 0) + buff_wasted
 
-
 def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: str, name_prof: str) -> None:
 	"""
 	Add player skill casts by profession and role to top_stats dictionary
@@ -1447,7 +1458,6 @@ def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: s
 
 		top_stats['skill_casts_by_role'][profession]['total'][skill_id] += cast_count
 		top_stats['skill_casts_by_role'][profession][name_prof]['Skills'][skill_id] = top_stats['skill_casts_by_role'][profession][name_prof]['Skills'].get(skill_id, 0) + cast_count
-
 
 def get_healStats_data(fight_num: int, player: dict, players: dict, stat_category: str, name_prof: str, fight_time: int) -> None:
 	"""
@@ -1638,7 +1648,6 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 				)
 		update_high_score(f"{stat_category}_Barrier", "{{"+player["profession"]+"}}"+player["name"]+"-"+str(fight_num)+" | Barrier", round(fight_barrier/(fight_time/1000), 2))
 
-
 def get_healing_skill_data(player: dict, stat_category: str, name_prof: str) -> None:
 	"""
 	Collect data for extHealingStats and extBarrierStats
@@ -1690,7 +1699,6 @@ def get_healing_skill_data(player: dict, stat_category: str, name_prof: str) -> 
 					top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('healing', 0) + healing
 				)
 
-
 def get_barrier_skill_data(player: dict, stat_category: str, name_prof: str) -> None:
 	"""
 	Collect data for extHealingStats and extBarrierStats
@@ -1732,115 +1740,149 @@ def get_barrier_skill_data(player: dict, stat_category: str, name_prof: str) -> 
 					top_stats['player'][name_prof][stat_category]['skills'][skill_id].get('totalBarrier', 0) + total_barrier
 				)
 
-
 def get_damage_mod_by_player(fight_num: int, player: dict, name_prof: str) -> None:
-	mod_list = ["damageModifiers", "damageModifiersTarget", "incomingDamageModifiers", "incomingDamageModifiersTarget"]
-	commander_tag = player['hasCommanderTag']
-	for mod_cat in mod_list:
-		if mod_cat in player:
+    """
+    Collect and update damage modifier statistics for a player.
 
-			for modifier in player[mod_cat]:
-				if "id" not in modifier:
-					continue
-				mod_id = "d" + str(modifier['id'])
-				mod_hit_count = modifier["damageModifiers"][0]['hitCount']
-				mod_total_hit_count = modifier["damageModifiers"][0]['totalHitCount']
-				mod_damage_gain = modifier["damageModifiers"][0]['damageGain']
-				mod_total_damage = modifier["damageModifiers"][0]['totalDamage']
+    This function iterates through various categories of damage modifiers for a given player and updates
+    the statistics in the top_stats dictionary for individual players, specific fights, and overall stats.
+    It also updates the commander summary if the player has a commander tag.
 
-				if commander_tag:
-					commander_name = f"{player['name']}|{player['profession']}"
-					if mod_id == 'd-58':
-						commander_summary_data[commander_name]['prot_mods']['hitCount'] += mod_hit_count
-						commander_summary_data[commander_name]['prot_mods']['totalHitCount'] += mod_total_hit_count
-						commander_summary_data[commander_name]['prot_mods']['damageGain'] += mod_damage_gain
-						commander_summary_data[commander_name]['prot_mods']['totalDamage'] += mod_total_damage
+    Args:
+        fight_num (int): The fight number.
+        player (dict): The player dictionary containing player-specific data.
+        name_prof (str): The player's name and profession identifier.
+    """
+    mod_list = ["damageModifiers", "damageModifiersTarget", "incomingDamageModifiers", "incomingDamageModifiersTarget"]
+    commander_tag = player['hasCommanderTag']
 
+    for mod_cat in mod_list:
+        if mod_cat in player:
+            for modifier in player[mod_cat]:
+                if "id" not in modifier:
+                    continue
 
-				if mod_id not in top_stats['player'][name_prof]['damageModifiers']:
-					top_stats['player'][name_prof]['damageModifiers'][mod_id] = {}
+                mod_id = "d" + str(modifier['id'])
+                mod_hit_count = modifier["damageModifiers"][0]['hitCount']
+                mod_total_hit_count = modifier["damageModifiers"][0]['totalHitCount']
+                mod_damage_gain = modifier["damageModifiers"][0]['damageGain']
+                mod_total_damage = modifier["damageModifiers"][0]['totalDamage']
 
-				top_stats['player'][name_prof]['damageModifiers'][mod_id]['hitCount'] = (
-					top_stats['player'][name_prof]['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
-				)
-				top_stats['player'][name_prof]['damageModifiers'][mod_id]['totalHitCount'] = (
-					top_stats['player'][name_prof]['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
-				)
-				top_stats['player'][name_prof]['damageModifiers'][mod_id]['damageGain'] = (
-					top_stats['player'][name_prof]['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
-				)
-				top_stats['player'][name_prof]['damageModifiers'][mod_id]['totalDamage'] = (
-					top_stats['player'][name_prof]['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
-				)
+                # Update commander summary data if the player has a commander tag
+                if commander_tag:
+                    commander_name = f"{player['name']}|{player['profession']}"
+                    if mod_id == 'd-58':
+                        commander_summary_data[commander_name]['prot_mods']['hitCount'] += mod_hit_count
+                        commander_summary_data[commander_name]['prot_mods']['totalHitCount'] += mod_total_hit_count
+                        commander_summary_data[commander_name]['prot_mods']['damageGain'] += mod_damage_gain
+                        commander_summary_data[commander_name]['prot_mods']['totalDamage'] += mod_total_damage
 
-				if mod_id not in top_stats['fight'][fight_num]['damageModifiers']:
-					top_stats['fight'][fight_num]['damageModifiers'][mod_id] = {}
+                # Update player's damage modifier statistics
+                if mod_id not in top_stats['player'][name_prof]['damageModifiers']:
+                    top_stats['player'][name_prof]['damageModifiers'][mod_id] = {}
 
-				top_stats['fight'][fight_num]['damageModifiers'][mod_id]['hitCount'] = (
-					top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
-				)
-				top_stats['fight'][fight_num]['damageModifiers'][mod_id]['totalHitCount'] = (
-					top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
-				)
-				top_stats['fight'][fight_num]['damageModifiers'][mod_id]['damageGain'] = (
-					top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
-				)
-				top_stats['fight'][fight_num]['damageModifiers'][mod_id]['totalDamage'] = (
-					top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
-				)
+                top_stats['player'][name_prof]['damageModifiers'][mod_id]['hitCount'] = (
+                    top_stats['player'][name_prof]['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
+                )
+                top_stats['player'][name_prof]['damageModifiers'][mod_id]['totalHitCount'] = (
+                    top_stats['player'][name_prof]['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
+                )
+                top_stats['player'][name_prof]['damageModifiers'][mod_id]['damageGain'] = (
+                    top_stats['player'][name_prof]['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
+                )
+                top_stats['player'][name_prof]['damageModifiers'][mod_id]['totalDamage'] = (
+                    top_stats['player'][name_prof]['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
+                )
 
-				if mod_id not in top_stats['overall']['damageModifiers']:
-					top_stats['overall']['damageModifiers'][mod_id] = {}
+                # Update fight-specific damage modifier statistics
+                if mod_id not in top_stats['fight'][fight_num]['damageModifiers']:
+                    top_stats['fight'][fight_num]['damageModifiers'][mod_id] = {}
 
-				top_stats['overall']['damageModifiers'][mod_id]['hitCount'] = (
-					top_stats['overall']['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
-				)
-				top_stats['overall']['damageModifiers'][mod_id]['totalHitCount'] = (
-					top_stats['overall']['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
-				)
-				top_stats['overall']['damageModifiers'][mod_id]['damageGain'] = (
-					top_stats['overall']['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
-				)
-				top_stats['overall']['damageModifiers'][mod_id]['totalDamage'] = (
-					top_stats['overall']['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
-				)
+                top_stats['fight'][fight_num]['damageModifiers'][mod_id]['hitCount'] = (
+                    top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
+                )
+                top_stats['fight'][fight_num]['damageModifiers'][mod_id]['totalHitCount'] = (
+                    top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
+                )
+                top_stats['fight'][fight_num]['damageModifiers'][mod_id]['damageGain'] = (
+                    top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
+                )
+                top_stats['fight'][fight_num]['damageModifiers'][mod_id]['totalDamage'] = (
+                    top_stats['fight'][fight_num]['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
+                )
 
+                # Update overall damage modifier statistics
+                if mod_id not in top_stats['overall']['damageModifiers']:
+                    top_stats['overall']['damageModifiers'][mod_id] = {}
+
+                top_stats['overall']['damageModifiers'][mod_id]['hitCount'] = (
+                    top_stats['overall']['damageModifiers'][mod_id].get('hitCount', 0) + mod_hit_count
+                )
+                top_stats['overall']['damageModifiers'][mod_id]['totalHitCount'] = (
+                    top_stats['overall']['damageModifiers'][mod_id].get('totalHitCount', 0) + mod_total_hit_count
+                )
+                top_stats['overall']['damageModifiers'][mod_id]['damageGain'] = (
+                    top_stats['overall']['damageModifiers'][mod_id].get('damageGain', 0) + mod_damage_gain
+                )
+                top_stats['overall']['damageModifiers'][mod_id]['totalDamage'] = (
+                    top_stats['overall']['damageModifiers'][mod_id].get('totalDamage', 0) + mod_total_damage
+                )
 
 def get_firebrand_pages(player, name_prof, name, account, fight_duration_ms):
-		if player['profession'] == "Firebrand" and "rotation" in player:
-			if name_prof not in fb_pages:
-				fb_pages[name_prof] = {}
-				fb_pages[name_prof]["account"] = account
-				fb_pages[name_prof]["name"] = name
-				fb_pages[name_prof]["fightTime"] = 0
-				fb_pages[name_prof]["firebrand_pages"] = {}
-					
-			# Track Firebrand Buffs
-			tome1_skill_ids = ["41258", "40635", "42449", "40015", "42898"]
-			tome2_skill_ids = ["45022", "40679", "45128", "42008", "42925"]
-			tome3_skill_ids = ["42986", "41968", "41836", "40988", "44455"]
-			tome_skill_ids = [
-				*tome1_skill_ids,
-				*tome2_skill_ids,
-				*tome3_skill_ids,
-			]
+	"""
+	Collects data for firebrand pages (skills).
 
-			fb_pages[name_prof]["fightTime"] += fight_duration_ms
-			for rotation_skill in player['rotation']:
-				skill_id = str(rotation_skill['id'])
-				if skill_id in tome_skill_ids:
-					pages_data = fb_pages[name_prof]["firebrand_pages"]
-					pages_data[skill_id] = pages_data.get(skill_id, 0) + len(rotation_skill['skills'])
+	Args:
+		player (dict): The player dictionary.
+		name_prof (str): The name and profession of the player.
+		name (str): The name of the player.
+		account (str): The account of the player.
+		fight_duration_ms (int): The duration of the fight in milliseconds.
+	"""
+	if player['profession'] == "Firebrand" and "rotation" in player:
+		if name_prof not in fb_pages:
+			fb_pages[name_prof] = {}
+			fb_pages[name_prof]["account"] = account
+			fb_pages[name_prof]["name"] = name
+			fb_pages[name_prof]["fightTime"] = 0
+			fb_pages[name_prof]["firebrand_pages"] = {}
+		
+		# Track Firebrand Buffs
+		tome1_skill_ids = ["41258", "40635", "42449", "40015", "42898"]
+		tome2_skill_ids = ["45022", "40679", "45128", "42008", "42925"]
+		tome3_skill_ids = ["42986", "41968", "41836", "40988", "44455"]
+		tome_skill_ids = [
+			*tome1_skill_ids,
+			*tome2_skill_ids,
+			*tome3_skill_ids,
+		]
 
-def get_mechanics_by_fight(fight_number, mechanics_map, players, log_type):
-	"""Collects mechanics data from a fight and stores it in a dictionary."""
+		fb_pages[name_prof]["fightTime"] += fight_duration_ms
+		for rotation_skill in player['rotation']:
+			skill_id = str(rotation_skill['id'])
+			if skill_id in tome_skill_ids:
+				pages_data = fb_pages[name_prof]["firebrand_pages"]
+				pages_data[skill_id] = pages_data.get(skill_id, 0) + len(rotation_skill['skills'])
+
+def get_mechanics_by_fight(fight_number: int, mechanics_map: dict, players: dict, log_type: str) -> None:
+	"""
+	Collects mechanics data from a fight and stores it in a dictionary.
+
+	Args:
+		fight_number (int): The fight number for the data.
+		mechanics_map (dict): The dictionary of mechanics data.
+		players (dict): The players data.
+		log_type (str): The type of log, either PVE or WVW.
+	"""
 	if log_type == "PVE":
+		# Initialize the mechanics dictionary for a PVE fight
 		if fight_number not in mechanics:
 			mechanics[fight_number] = {
 				"player_list": [],
 				"enemy_list": [],
 				}
 	else:
+		# Initialize the mechanics dictionary for a WVW fight
 		fight_number = "WVW"
 		if fight_number not in mechanics:
 			mechanics[fight_number] = {
@@ -1848,11 +1890,13 @@ def get_mechanics_by_fight(fight_number, mechanics_map, players, log_type):
 				"enemy_list": [],
 				}
 
+	# Loop through each mechanic in the fight
 	for mechanic_data in mechanics_map:
 		mechanic_name = mechanic_data['name']
 		description = mechanic_data['description']
 		is_eligible = mechanic_data['isAchievementEligibility']
 
+		# Initialize the mechanics dictionary for the mechanic if it doesn't exist
 		if mechanic_name not in mechanics[fight_number]:
 			mechanics[fight_number][mechanic_name] = {
 				'tip': description,
@@ -1861,29 +1905,46 @@ def get_mechanics_by_fight(fight_number, mechanics_map, players, log_type):
 				'enemy_data': {}
 			}
 
+		# Loop through each data item for the mechanic
 		for data_item in mechanic_data['mechanicsData']:
 			actor = data_item['actor']
 			prof_name = None
+			# Loop through each player in the fight
 			for player in players:
 				if player['name'] == actor:
+					# Get the player's profession and name
 					prof_name = "{{" + player['profession'] + "}} " + player['name']
+
+			# If the actor is a player, add it to the player list
 			if prof_name:
 				if prof_name not in mechanics[fight_number]['player_list']:
 					mechanics[fight_number]['player_list'].append(prof_name)
+				# Increment the player's data for the mechanic
 				if prof_name not in mechanics[fight_number][mechanic_name]['data']:
 					mechanics[fight_number][mechanic_name]['data'][prof_name] = 1
 				else:
 					mechanics[fight_number][mechanic_name]['data'][prof_name] += 1
 			else:
+				# If the actor is an enemy, add it to the enemy list
 				if actor not in mechanics[fight_number]['enemy_list']:
 					mechanics[fight_number]['enemy_list'].append(actor)
+				# Increment the enemy's data for the mechanic
 				if actor not in mechanics[fight_number][mechanic_name]['enemy_data']:
 					mechanics[fight_number][mechanic_name]['enemy_data'][actor] = 1
 				else:
 					mechanics[fight_number][mechanic_name]['enemy_data'][actor] += 1
 
 def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, skill_data: dict, buff_data: dict) -> None:
-	"""Collects damage mitigation data from a fight and stores it in a dictionary."""
+	"""
+	Collects damage mitigation data from a fight and stores it in a dictionary.
+
+	Args:
+		fight_num (int): The fight number for the data.
+		players (dict): The players data.
+		targets (dict): The targets data.
+		skill_data (dict): The skill data.
+		buff_data (dict): The buff data.
+	"""
 	for target in targets:
 		if 'totalDamageDist' in target:
 			for skill in target['totalDamageDist'][0]:
@@ -1947,7 +2008,7 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 				player_damage_mitigation[name_prof][skill_name]['glanced'] += skill['glance']
 				player_damage_mitigation[name_prof][skill_name]['missed'] += skill['missed']
 				player_damage_mitigation[name_prof][skill_name]['invulned'] += skill['invulned']
-				player_damage_mitigation[name_prof][skill_name]['interrupted'] += skill['interrupted']				
+				player_damage_mitigation[name_prof][skill_name]['interrupted'] += skill['interrupted']
 				player_damage_mitigation[name_prof][skill_name]['total_dmg'] = enemy_avg_damage_per_skill[skill_name]['dmg'] if skill_name in enemy_avg_damage_per_skill else 0
 				player_damage_mitigation[name_prof][skill_name]['skill_hits'] += skill['hits']
 				player_damage_mitigation[name_prof][skill_name]['total_hits'] = enemy_avg_damage_per_skill[skill_name]['hits'] if skill_name in enemy_avg_damage_per_skill else 0
@@ -2017,7 +2078,6 @@ def get_minions_by_player(player_data: dict, player_name: str, profession: str) 
 				minions[profession]["player"][player_name][minion_name] = minion_count
 			else:
 				minions[profession]["player"][player_name][minion_name] += minion_count
-
 
 def fetch_guild_data(guild_id: str, api_key: str) -> dict:
 	"""
