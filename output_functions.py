@@ -1337,7 +1337,8 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 						total_hits = player_data['extHealingStats']['skills'][skill]['hits']
 
 						if skill not in combat_resurrect['res_skills']:
-							combat_resurrect['res_skills'][skill] = combat_resurrect['res_skills'].get(skill, 0) + downed_healing
+							combat_resurrect['res_skills'][skill] = 0
+						combat_resurrect['res_skills'][skill] = combat_resurrect['res_skills'].get(skill, 0) + downed_healing
 
 						if prof_name not in combat_resurrect['players']:
 							combat_resurrect['players'][prof_name] = {}
