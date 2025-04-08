@@ -160,7 +160,7 @@ def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dic
 	rows = []
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
-	header += "|!Name | !Prof |!Account | !{{FightTime}} |"
+	header += "|!Name | !Prof | !{{FightTime}} |"
 	for buff_id in gear_buff_ids:
 		buff_icon = buff_data[buff_id]["icon"]
 		buff_name = buff_data[buff_id]["name"]
@@ -170,8 +170,11 @@ def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dic
 
 	for player in top_stats["player"].values():
 		fight_time = player["active_time"]
+		account = player["account"]
+		name = player["name"]
+		tt_name = f'<span data-tooltip="{account}">{name}</span>'
 		profession = "{{"+player["profession"]+"}}"
-		row = f"|{player['name']} | {profession} |{player['account'][:30]} | {fight_time/1000:.1f}|"
+		row = f"|{tt_name} | {profession} | {fight_time/1000:.1f}|"
 
 		for buff_id in gear_buff_ids:
 			if buff_id in player["buffUptimes"]:
@@ -197,7 +200,7 @@ def build_gear_skill_summary(top_stats: dict, gear_skill_ids: list, skill_data: 
 	rows = []
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
-	header += "|!Name | !Prof |!Account | !{{FightTime}} |"
+	header += "|!Name | !Prof | !{{FightTime}} |"
 	
 	for skill_id in gear_skill_ids:
 		skill_icon = skill_data[skill_id]["icon"]
@@ -208,8 +211,11 @@ def build_gear_skill_summary(top_stats: dict, gear_skill_ids: list, skill_data: 
 
 	for player in top_stats["player"].values():
 		fight_time = player["active_time"]
+		account = player["account"]
+		name = player["name"]
+		tt_name = f'<span data-tooltip="{account}">{name}</span>'
 		profession = "{{"+player["profession"]+"}}"
-		row = f"|{player['name']} | {profession} |{player['account'][:30]} | {fight_time/1000:.1f}|"
+		row = f"|{tt_name} | {profession} | {fight_time/1000:.1f}|"
 
 		for skill in gear_skill_ids:
 			_skill = int(skill[1:])
@@ -308,10 +314,10 @@ def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
 	rows.append("|thead-dark table-caption-top table-hover sortable|k")
 	rows.append("| Summary by Command Tag |c")
 	rows.append(
-		"| | | | | Enemy |<| Squad|<| |h"
+		"| | | | Enemy |<| Squad|<| |h"
 	)	
 	rows.append(
-		"|Name |Account | Prof | Fights | {{DownedEnemy}} | {{killed}} | {{DownedAlly}} | {{DeadAlly}} | KDR |h"
+		"|Name | Prof | Fights | {{DownedEnemy}} | {{killed}} | {{DownedAlly}} | {{DeadAlly}} | KDR |h"
 	)
 	for tag, tag_data in tag_summary.items():
 		name = tag.split("|")[0]
@@ -325,9 +331,10 @@ def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
 		kills = tag_data["enemy_killed"]
 		downed = tag_data["squad_downed"]
 		deaths = tag_data["squad_deaths"]
+		tt_name = f'<span data-tooltip="{account}">{name}</span>'
 		kdr = kills / deaths if deaths else kills
 		rows.append(
-			f"|{name} |{account} | {profession} | {fights} | {downs} | {kills} | {downed} | {deaths} | {kdr:.2f}|"
+			f"|{tt_name} | {profession} | {fights} | {downs} | {kills} | {downed} | {deaths} | {kdr:.2f}|"
 		)
 
 		# Sum all tags
@@ -339,7 +346,7 @@ def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
 		total_kdr = total_kills / total_deaths if total_deaths else total_kills
 
 	rows.append(
-		f"|Totals |<|<| {total_fights} | {total_downs} | {total_kills} | {total_downed} | {total_deaths} | {total_kdr:.2f}|f"
+		f"|Totals |<| {total_fights} | {total_downs} | {total_kills} | {total_downed} | {total_deaths} | {total_kdr:.2f}|f"
 	)
 	rows.append("\n\n</div>")
 
@@ -477,7 +484,7 @@ def build_damage_summary_table(top_stats: dict, caption: str, tid_date_time: str
 	# Build the table header
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += f"| {caption} |c\n"
-	header += "|!Party |!Name | !Prof |!Account | !{{FightTime}} |"
+	header += "|!Party |!Name | !Prof | !{{FightTime}} |"
 	header += " !{{Target_Damage}} | !{{Target_Damage_PS}} | !{{Target_Power}} | !{{Target_Power_PS}} | !{{Target_Condition}} | !{{Target_Condition_PS}} | !{{Target_Breakbar_Damage}} | !{{All_Damage}}| !{{All_Power}} | !{{All_Condition}} | !{{All_Breakbar_Damage}} |h"
 
 	rows.append(header)
@@ -485,7 +492,10 @@ def build_damage_summary_table(top_stats: dict, caption: str, tid_date_time: str
 	# Build the table body
 	for player, player_data in top_stats["player"].items():
 		fighttime = player_data["active_time"] / 1000
-		row = f"| {player_data['last_party']} |{player_data['name']} |"+" {{"+f"{player_data['profession']}"+"}}"+f" {player_data['profession'][:3]} "+f"|{player_data['account'][:30]} | {fighttime:.1f}|"
+		account = player_data["account"]
+		name = player_data["name"]
+		tt_name = f'<span data-tooltip="{account}">{name}</span>'
+		row = f"| {player_data['last_party']} |{tt_name} |"+" {{"+f"{player_data['profession']}"+"}}"+f" {player_data['profession'][:3]} "+f"| {fighttime:.1f}|"
 		row += " {:,}| {:,.0f}| {:,}| {:,.0f}| {:,}| {:,.0f}| {:,}| {:,}| {:,}| {:,}| {:,}|".format(
 			player_data["dpsTargets"]["damage"],
 			player_data["dpsTargets"]["damage"]/fighttime,
@@ -533,7 +543,7 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="category_radio" type="match" text="{toggle}" animate="yes">\n')
 		# Build the table header
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
-		header += "|!Party |!Name | !Prof |!Account | !{{FightTime}} |"
+		header += "|!Party |!Name | !Prof | !{{FightTime}} |"
 		for stat in category_stats:
 			if stat =="damage":
 				header += " !{{totalDmg}} |"
@@ -560,7 +570,10 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 		# Build the table body
 		for player in top_stats["player"].values():
 			fight_time = player["active_time"] / 1000
-			row = f"| { player['last_party']} |{player['name']} | {{{{{player['profession']}}}}} {player['profession'][:3]} |{player['account'][:30]} | {fight_time:.0f}|"
+			account = player["account"]
+			name = player["name"]
+			tt_name = f'<span data-tooltip="{account}">{name}</span>'
+			row = f"| { player['last_party']} |{tt_name} | {{{{{player['profession']}}}}} {player['profession'][:3]} | {fight_time:.0f}|"
 			
 			for stat, category in category_stats.items():
 				stat_value = player[category].get(stat, 0)
@@ -628,7 +641,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 
 		# Create table header
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
-		header += "|!Party |!Name | !Prof |!Account | !{{FightTime}} |"
+		header += "|!Party |!Name | !Prof | !{{FightTime}} |"
 		# Add a column for each boon
 		for boon_id, boon_name in boons.items():
 			header += "!{{"+f"{boon_name}"+"}}|"
@@ -648,8 +661,11 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 
 		# Build the table body by iterating over each player
 		for player in top_stats["player"].values():
+			account = player["account"]
+			name = player["name"]
+			tt_name = f'<span data-tooltip="{account}">{name}</span>'
 			# Create a row for the player with basic info
-			row = f"| { player['last_party']} |{player['name']} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"|{player['account'][:30]} | {player['active_time'] / 1000:.1f}|"
+			row = f"| { player['last_party']} |{tt_name} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"| {player['active_time'] / 1000:.1f}|"
 
 			# Iterate over each boon
 			for boon_id in boons:
@@ -753,7 +769,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	# Build the player table header
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
-	header += "|!Party |!Name | !Prof |!Account | !{{FightTime}} |"
+	header += "|!Party |!Name | !Prof | !{{FightTime}} |"
 	for boon_id, boon_name in boons.items():
 		if boon_id not in buff_data:
 			continue
@@ -773,7 +789,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 		'b27705' #Taunt
 		]
 	# Build the Squad table rows
-	header2 = f"|Squad Average Uptime |<|<|<|<|"
+	header2 = f"|Squad Average Uptime |<|<|<|"
 	for boon_id in boons:
 		if boon_id not in buff_data:
 			continue
@@ -802,7 +818,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 	
 	#footer, moved to header 
 	for group in top_stats["overall"]["buffUptimes"]['group']:
-		footer = f"|Party-{group} Average Uptime |<|<|<|<|"
+		footer = f"|Party-{group} Average Uptime |<|<|<|"
 		for boon_id in boons:
 			if boon_id not in buff_data:
 				continue
@@ -828,7 +844,10 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 
 	# Build the table body
 	for player in top_stats["player"].values():
-		row = f"| {player['last_party']} |{player['name']} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"|{player['account'][:30]} | {player['active_time'] / 1000:.2f}|"
+		account = player["account"]
+		name = player["name"]
+		tt_name = f'<span data-tooltip="{account}">{name}</span>'
+		row = f"| {player['last_party']} |{tt_name} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"| {player['active_time'] / 1000:.2f}|"
 		for boon_id in boons:
 			if boon_id not in buff_data:
 				continue
@@ -886,7 +905,7 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	# Build the player table header
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
-	header += "|!Party |!Name | !Prof |!Account | !{{FightTime}} |"
+	header += "|!Party |!Name | !Prof | !{{FightTime}} |"
 	for boon_id, boon_name in boons.items():
 		if boon_id not in buff_data:
 			continue
@@ -897,7 +916,7 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 	header += "h"
 
 	# Build the Squad table rows
-	header2 = f"|Total Generated |<|<|<|<|"
+	header2 = f"|Total Generated |<|<|<|"
 	applied_counts = 0
 	for boon_id in boons:
 		if boon_id not in buff_data:
@@ -918,7 +937,10 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 
 	# Build the table body
 	for player in top_stats["player"].values():
-		row = f"| {player['last_party']} |{player['name']} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"|{player['account'][:32]} | {player['active_time'] / 1000:.2f}|"
+		account = player["account"]
+		name = player["name"]
+		tt_name = f'<span data-tooltip="{account}">{name}</span>'
+		row = f"| {player['last_party']} |{tt_name} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"| {player['active_time'] / 1000:.2f}|"
 		applied_counts = 0
 		for boon_id in boons:
 			if boon_id not in buff_data:
@@ -1006,31 +1028,34 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
 	for toggle in ["Total", "Squad", "Group", "Self", "OffSquad"]:
 		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="category_heal" type="match" text="{toggle}" animate="yes">\n')
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
-		header += "|!Party |!Name | !Prof |!Account | !{{FightTime}} | !{{Healing}} | !{{HealingPS}} | !{{Barrier}} | !{{BarrierPS}} | !{{DownedHealing}} | !{{DownedHealingPS}} |h"
+		header += "|!Party |!Name | !Prof | !{{FightTime}} | !{{Healing}} | !{{HealingPS}} | !{{Barrier}} | !{{BarrierPS}} | !{{DownedHealing}} | !{{DownedHealingPS}} |h"
 		rows.append(header)
 
 		# Build the table body
 		for healer in sorted_healing_stats:
+			name = healer[0].split('|')[0]
+			account = healer[1]['account']
+			tt_name = f'<span data-tooltip="{account}">{name}</span>'
 			if (healer[1]['healing'] + healer[1]['downed_healing'] + healer[1]['barrier']):
 				fighttime = healer[1]['fight_time'] / 1000
 				if toggle == "Total":
-					row = f"| {healer[1]['last_party']} |{healer[0].split('|')[0]} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+					row = f"| {healer[1]['last_party']} |{tt_name} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"| {fighttime:.2f}|"
 					row += f" {healer[1]['healing']:,}| {healer[1]['healing'] / fighttime:,.2f}| {healer[1]['barrier']:,}|"
 					row += f"{healer[1]['barrier'] / fighttime:,.2f}| {healer[1]['downed_healing']:,}| {healer[1]['downed_healing'] / fighttime:,.2f}|"
 				elif toggle == "Squad":
-					row = f"| {healer[1]['last_party']} |{healer[0].split('|')[0]} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+					row = f"| {healer[1]['last_party']} |{tt_name} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"| {fighttime:.2f}|"
 					row += f" {healer[1]['squad_healing']:,}| {healer[1]['squad_healing'] / fighttime:,.2f}| {healer[1]['squad_barrier']:,}|"
 					row += f"{healer[1]['squad_barrier'] / fighttime:,.2f}| {healer[1]['squad_downed_healing']:,}| {healer[1]['squad_downed_healing'] / fighttime:,.2f}|"
 				elif toggle == "Group":
-					row = f"| {healer[1]['last_party']} |{healer[0].split('|')[0]} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+					row = f"| {healer[1]['last_party']} |{tt_name} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"| {fighttime:.2f}|"
 					row += f" {healer[1]['group_healing']:,}| {healer[1]['group_healing'] / fighttime:,.2f}| {healer[1]['group_barrier']:,}|"
 					row += f"{healer[1]['group_barrier'] / fighttime:,.2f}| {healer[1]['group_downed_healing']:,}| {healer[1]['group_downed_healing'] / fighttime:,.2f}|"
 				elif toggle == "Self":
-					row = f"| {healer[1]['last_party']} |{healer[0].split('|')[0]} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+					row = f"| {healer[1]['last_party']} |{tt_name} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"| {fighttime:.2f}|"
 					row += f" {healer[1]['self_healing']:,}| {healer[1]['self_healing'] / fighttime:,.2f}| {healer[1]['self_barrier']:,}|"
 					row += f"{healer[1]['self_barrier'] / fighttime:,.2f}| {healer[1]['self_downed_healing']:,}| {healer[1]['self_downed_healing'] / fighttime:,.2f}|"
 				elif toggle == "OffSquad":
-					row = f"| {healer[1]['last_party']} |{healer[0].split('|')[0]} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"|{healer[1]['account'][:32]} | {fighttime:.2f}|"
+					row = f"| {healer[1]['last_party']} |{tt_name} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"| {fighttime:.2f}|"
 					row += f" {healer[1]['off_squad_healing']:,}| {healer[1]['off_squad_healing'] / fighttime:,.2f}| {healer[1]['off_squad_barrier']:,}|"
 					row += f"{healer[1]['off_squad_barrier'] / fighttime:,.2f}| {healer[1]['off_squad_downed_healing']:,}| {healer[1]['off_squad_downed_healing'] / fighttime:,.2f}|"
 				rows.append(row)
@@ -1075,7 +1100,7 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
 		# Add the caption to the header
 		header += f"| {caption} |c\n"
 		# Add the columns to the header
-		header += "|!Party |!Name | !Prof |!Account | !{{FightTime}} |"
+		header += "|!Party |!Name | !Prof | !{{FightTime}} |"
 		
 		for mod_id in prof_mod_list:
 			# Get the icon and name of the modifier
@@ -1092,8 +1117,11 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
 		for player_name, player_data in top_stats['player'].items():
 			# Check if the player is running the extension
 			if player_data['profession'] == profession:
+				account = player_data['account']
+				name = player_data['name']
+				tt_name = f'<span data-tooltip="{account}">{name}</span>'
 				# Build the row
-				row = f"| {player_data['last_party']} |{player_data['name']} | {player_data['profession']} |{player_data['account'][:32]} | {player_data['active_time'] / 1000:.2f}|"
+				row = f"| {player_data['last_party']} |{tt_name} | {player_data['profession']} | {player_data['active_time'] / 1000:.2f}|"
 				# Iterate over each modifier and add the details to the row
 				for mod in prof_mod_list:
 					if mod in player_data['damageModifiers']:
@@ -1373,7 +1401,6 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 		time_secs = int(active_time) / 1000
 		abbrv = profession[:3]
 		profession = "{{" + profession + "}}"
-
 		row = f"|{name} | {profession} {abbrv} | {time_secs:,.1f}|"
 		for skill in sorted_res_skills:
 			if skill in combat_resurrect['players'][player]:
@@ -1912,7 +1939,7 @@ def build_personal_buff_summary(top_stats: dict, buff_data: dict, personal_buff_
 		rows.append('<div style="overflow-x:auto;">\n\n')
 		# Build the table header
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
-		header += "|!Party |!Name | !Prof |!Account | !{{FightTime}} |"
+		header += "|!Party |!Name | !Prof | !{{FightTime}} |"
 		for buff_id in prof_buff_list:
 			if buff_id not in buff_data:
 				continue
@@ -1924,9 +1951,12 @@ def build_personal_buff_summary(top_stats: dict, buff_data: dict, personal_buff_
 		# Build the table body	
 		for player, player_data in top_stats['player'].items():
 			if player_data['profession'] == profession:
+				account = player_data['account']
+				name = player_data['name']
+				tt_name = f'<span data-tooltip="{account}">{name}</span>'
 
 				# Build the row
-				row = f"| {player_data['last_party']} |{player_data['name']} | {{{{{player_data['profession']}}}}} |{player_data['account'][:32]} | {player_data['active_time'] / 1000:.2f}|"
+				row = f"| {player_data['last_party']} |{tt_name} | {{{{{player_data['profession']}}}}} | {player_data['active_time'] / 1000:.2f}|"
 
 				for buff_id in prof_buff_list:
 					if buff_id in player_data['buffUptimes']:
