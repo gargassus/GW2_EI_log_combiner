@@ -1363,12 +1363,11 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 
 			if 's10244' not in combat_resurrect['players'][prof_name]:
 				combat_resurrect['players'][prof_name]['s10244'] = {
-					'total': IOL_revive[player_data['name']]['hits'],
-					'hits': IOL_revive[player_data['name']]['casts']
+					'total': 0,
+					'hits': 0
 				}
-			else:
-				combat_resurrect['players'][prof_name]['s10244']['total']  = IOL_revive[player_data['name']]['hits']
-				combat_resurrect['players'][prof_name]['s10244']['hits']  = IOL_revive[player_data['name']]['casts']
+				combat_resurrect['players'][prof_name]['s10244']['total']  = IOL_revive[player_data['name']].get('hits', 0)
+				combat_resurrect['players'][prof_name]['s10244']['hits']  = IOL_revive[player_data['name']].get('casts', 0)	
 
 	sorted_res_skills = sorted(combat_resurrect['res_skills'], key=combat_resurrect['res_skills'].get, reverse=True)
 
