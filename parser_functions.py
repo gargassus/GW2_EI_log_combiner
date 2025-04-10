@@ -57,6 +57,7 @@ commander_summary_data = {}
 DPSStats = {}
 stacking_uptime_Table = {}
 IOL_revive = {}
+debuff_damage = {}
 
 def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 	"""
@@ -189,6 +190,40 @@ def find_smallest_value(my_dict):
 	
 	min_key = min(my_dict, key=my_dict.get)
 	return min_key
+
+def calculate_damage_during_buff(players, target_idx, player_name, buff_start, buff_end):
+    start_idx = math.floor(buff_start / 1000)
+    end_idx = math.ceil(buff_end / 1000)
+    total_damage = 0
+    profession_name = None
+
+    for player in players:
+        if player['name'] == player_name:
+            profession_name = f"{player_name}|{player['profession']}"
+            total_damage = player['targetDamage1S'][target_idx][0][end_idx] - player['targetDamage1S'][target_idx][0][start_idx]
+            
+    return total_damage, profession_name
+
+def check_target_for_buff_start_end(targets, players, damage_buff_ids):
+    for target in targets:
+        if "buffs" in target:
+            for buff in target["buffs"]:
+                if buff['id'] in damage_buff_ids:
+                    for player, phases in buff['statsPerSource'].items():
+                        buff_start_time = None
+                        total_damage = 0
+                        for phase in phases:
+                            if phase[1] != 0 and buff_start_time is None:
+                                buff_start_time = phase[0]
+                            elif phase[1] == 0 and buff_start_time is not None:
+                                buff_end_time = phase[0]
+                                damage, name_prof = calculate_damage_during_buff(players, target, player, buff_start_time, buff_end_time)
+                                total_damage += damage
+                                buff_start_time = None
+                        if total_damage > 0:
+                            if name_prof not in debuff_damage:
+                                debuff_damage[name_prof] = {}
+                            debuff_damage[name_prof][buff['id']] = debuff_damage[name_prof].get(buff['id'], 0) + total_damage
 
 def update_high_score(stat_name: str, key: str, value: float) -> None:
 	"""

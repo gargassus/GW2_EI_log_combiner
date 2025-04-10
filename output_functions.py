@@ -682,55 +682,67 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 					# Calculate generation and uptime percentage based on category
 					if category == "selfBuffs":
 						generation_ms = player[category][boon_id]["generation"]
+						wasted_ms = player[category][boon_id]["wasted"]
 						if stacking:
 							uptime_percentage = round((generation_ms / player['active_time']), 3)
+							wasted_percentage = round((wasted_ms / player['active_time']), 3)
 						else:
 							uptime_percentage = round((generation_ms / player['active_time']) * 100, 3)
+							wasted_percentage = round((wasted_ms / player['active_time']) * 100, 3)
 					elif category == "groupBuffs":
 						generation_ms = player[category][boon_id]["generation"]
+						wasted_ms = player[category][boon_id]["wasted"]
 						if stacking:
 							uptime_percentage = round((generation_ms / player['active_time']) / ((group_supported - num_fights)/num_fights), 3)
+							wasted_percentage = round((wasted_ms / player['active_time']) / ((group_supported - num_fights)/num_fights), 3)
 						else:
 							uptime_percentage = round((generation_ms / player['active_time']) / ((group_supported - num_fights)/num_fights) * 100, 3)
+							wasted_percentage = round((wasted_ms / player['active_time']) / ((group_supported - num_fights)/num_fights) * 100, 3)
 					elif category == "squadBuffs":
 						generation_ms = player[category][boon_id]["generation"]
+						wasted_ms = player[category][boon_id]["wasted"]
 						if stacking:
 							uptime_percentage = round((generation_ms / player['active_time']) / ((squad_supported - num_fights)/num_fights), 3)
+							wasted_percentage = round((wasted_ms / player['active_time']) / ((squad_supported - num_fights)/num_fights), 3)
 						else:
 							uptime_percentage = round((generation_ms / player['active_time']) / ((squad_supported - num_fights)/num_fights) * 100, 3)
+							wasted_percentage = round((wasted_ms / player['active_time']) / ((squad_supported - num_fights)/num_fights) * 100, 3)
 					elif category == "totalBuffs":
 						generation_ms = 0
+						wasted_ms = 0
 						if boon_id in player["selfBuffs"]:
-							generation_ms += player["selfBuffs"][boon_id]["generation"] 
+							generation_ms += player["selfBuffs"][boon_id]["generation"]
+							wasted_ms += player["selfBuffs"][boon_id]["wasted"] 
 						if boon_id in player["squadBuffs"]:
 							generation_ms += player["squadBuffs"][boon_id]["generation"]
+							wasted_ms += player["squadBuffs"][boon_id]["wasted"]
 						if stacking:
 							uptime_percentage = round((generation_ms / player['active_time']) / (squad_supported), 3)
+							wasted_percentage = round((wasted_ms / player['active_time']) / (squad_supported), 3)
 						else:
 							uptime_percentage = round((generation_ms / player['active_time']) / (squad_supported) * 100, 3)
+							wasted_percentage = round((wasted_ms / player['active_time']) / (squad_supported) * 100, 3)
 					else:
 						raise ValueError(f"Invalid category: {category}")
 					
-					# Format uptime percentage
-					if stacking:
-						if uptime_percentage:
-							uptime_percentage = f"{uptime_percentage:.2f}"
-						else:
-							uptime_percentage = " - "
-					else:
-						if uptime_percentage:
-							uptime_percentage = f"{uptime_percentage:.2f}%"
-						else:
-							uptime_percentage = " - "
-					
 					# Determine entry based on toggle
-					if toggle == "Total":
-						entry = f"{generation_ms/1000:,.1f}"
-					elif toggle == "Average":
-						entry = f"{generation_ms/player['active_time']:,.1f}"
-					else:
-						entry = uptime_percentage
 
+					if toggle == "Total":
+						#entry = f"{generation_ms/1000:,.1f}"
+						entry = f'<span data-tooltip="{(int(wasted_ms)/1000):,.2f} Wasted">{(int(generation_ms)/1000):,.1f}</span>'
+					elif toggle == "Average":
+						#entry = f"{generation_ms/player['active_time']:,.1f}"
+						active_time = player['active_time']
+						entry = f'<span data-tooltip="{(int(wasted_ms)/active_time):,.2f} Wasted">{(int(generation_ms)/active_time):,.1f}</span>'
+					else:
+						if stacking:
+							uptime_percentage = f"{uptime_percentage:.2f}"
+							wasted_percentage = f"{wasted_percentage:.2f}"
+							entry = f'<span data-tooltip="{wasted_percentage} Wasted">{uptime_percentage}</span>'					
+						else:
+							uptime_percentage = f"{uptime_percentage:.2f}%"
+							wasted_percentage = f"{wasted_percentage:.2f}%"							
+							entry = f'<span data-tooltip="{wasted_percentage} Wasted">{uptime_percentage}</span>'
 				# Append entry to the row
 				row += f" {entry}|"
 			
