@@ -191,18 +191,14 @@ def find_smallest_value(my_dict):
 	min_key = min(my_dict, key=my_dict.get)
 	return min_key
 
-def calculate_damage_during_buff(players, target_idx, player_name, buff_start, buff_end):
+def calculate_damage_during_buff(player, target_idx, buff_start, buff_end, damage_type):
+
     start_idx = math.floor(buff_start / 1000)
     end_idx = math.ceil(buff_end / 1000)
-    total_damage = 0
-    profession_name = None
 
-    for player in players:
-        if player['name'] == player_name:
-            profession_name = f"{player_name}|{player['profession']}"
-            total_damage = player['targetDamage1S'][target_idx][0][end_idx] - player['targetDamage1S'][target_idx][0][start_idx]
+    current_damage = player[damage_type][target_idx][0][end_idx] - player[damage_type][target_idx][0][start_idx]
             
-    return total_damage, profession_name
+    return current_damage
 
 def check_target_for_buff_start_end(targets, players, damage_buff_ids):
     for target in targets:
@@ -1328,6 +1324,12 @@ def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_categ
 	Returns:
 		None
 	"""
+	x =  {"b70350": 0.10, "b70806": 0.10}
+	debuff_data = {
+        "b70350": [0.10,'targetDamage1S'], #Dragonhunter Relic
+        "b70806": [0.10,'targetPowerDamage1S'] #Isgarren Relic
+    }
+	target_idx = 0
 	for target in targets:
 		if 'buffs' in target:
 			for buff in target['buffs']:
@@ -1340,6 +1342,7 @@ def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_categ
 					firstTime = 0
 					conditionTime = 0
 					appliedCounts = 0
+					damage_with_buff = 0
 					for stateChange in buff['statesPerSource'][name]:
 						if stateChange[0] == 0:
 							continue
@@ -1353,6 +1356,8 @@ def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_categ
 							buffOn = 0
 							secondTime = stateChange[0]
 							buffTime = secondTime - firstTime
+							if buff_id in debuff_data:
+								damage_with_buff = calculate_damage_during_buff(player, target_idx, firstTime, secondTime, debuff_data[buff_id][1])
 					conditionTime += buffTime
 
 					#if buff_id not in top_stats['player'][name_prof][stat_category]:
@@ -1361,6 +1366,8 @@ def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_categ
 							'uptime_ms': 0,
 							'applied_counts': 0,
 						}
+						if buff_id in debuff_data:
+							top_stats['player'][name_prof][stat_category][buff_id]['damage_gained'] = 0
 					if buff_id not in top_stats['fight'][fight_num][stat_category]:
 						top_stats['fight'][fight_num][stat_category][buff_id] = {
 							'uptime_ms': 0,
@@ -1374,6 +1381,8 @@ def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_categ
 
 					top_stats['player'][name_prof][stat_category][buff_id]['uptime_ms'] += conditionTime
 					top_stats['player'][name_prof][stat_category][buff_id]['applied_counts'] += appliedCounts
+					if buff_id in debuff_data:
+						top_stats['player'][name_prof][stat_category][buff_id]['damage_gained'] += damage_with_buff * debuff_data[buff_id][0]
 
 					top_stats['fight'][fight_num][stat_category][buff_id]['uptime_ms'] += conditionTime
 					top_stats['fight'][fight_num][stat_category][buff_id]['applied_counts'] += appliedCounts
@@ -1381,6 +1390,7 @@ def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_categ
 					top_stats['overall'][stat_category][buff_id]['uptime_ms'] += conditionTime
 					top_stats['overall'][stat_category][buff_id]['applied_counts'] += appliedCounts
 
+		target_idx += 1
 def get_buff_generation(fight_num: int, player: dict, stat_category: str, name_prof: str, duration: int, buff_data: dict, squad_count: int, group_count: int) -> None:
 	"""
 	Calculate buff generation stats for a player

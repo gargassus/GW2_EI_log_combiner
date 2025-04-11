@@ -949,12 +949,14 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 
 	# Build the table body
 	for player in top_stats["player"].values():
+		debuff_data = {"b70350": [0.10,'targetDamage1S'], "b70806": [0.10,'targetPowerDamage1S']}
 		account = player["account"]
 		name = player["name"]
 		tt_name = f'<span data-tooltip="{account}">{name}</span>'
 		row = f"| {player['last_party']} |{tt_name} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"| {player['active_time'] / 1000:.2f}|"
 		applied_counts = 0
 		for boon_id in boons:
+			entry = ""
 			if boon_id not in buff_data:
 				continue
 
@@ -965,8 +967,13 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 				uptime_ms = player["targetBuffs"][boon_id]["uptime_ms"]
 				uptime_percentage = round((uptime_ms / 1000), 3)				
 				uptime_percentage = f"{uptime_percentage:,.0f}"
+				if boon_id in debuff_data:
+					damage_gained = player['targetBuffs'][boon_id]['damage_gained']
+					entry = f'<span data-tooltip="Damage Gained: {damage_gained:,.0f}">{uptime_percentage}</span>'
+				else:
+					entry = uptime_percentage
 
-			row += f" {uptime_percentage}|"
+			row += f" {entry}|"
 		row += f" {applied_counts:,.0f}|"
 
 		rows.append(row)
