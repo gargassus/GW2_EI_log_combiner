@@ -1277,7 +1277,11 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 			if i < 35:
 				skill_icon = skill_data[skill]['icon']
 				skill_name = skill_data[skill]['name']
-				header += f"![img width=24 [{skill_name}|{skill_icon}]]|"
+				skill_auto = skill_data[skill]['auto']
+				if skill_auto:
+					header += f'![img width=24 class="tc-test-case-wrapper" [{skill_name}|{skill_icon}]]|'				
+				else:
+					header += f"![img width=24 [{skill_name}|{skill_icon}]]|"
 			i+=1
 		header += "h"
 
