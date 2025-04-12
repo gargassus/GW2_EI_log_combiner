@@ -2547,6 +2547,7 @@ def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> 
 	for player_prof in DPSStats:
 		player = DPSStats[player_prof]['name']
 		profession = DPSStats[player_prof]['profession']
+		account = DPSStats[player_prof]['account']
 		fightTime = DPSStats[player_prof]['duration']
 
 		if DPSStats[player_prof]['damageTotal'] / fightTime < 250:
@@ -2574,9 +2575,10 @@ def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> 
 		for player_prof in sorted_DPSStats:
 			player = DPSStats[player_prof]["name"]
 			profession = DPSStats[player_prof]["profession"]
+			account = DPSStats[player_prof]["account"]
 			fightTime = DPSStats[player_prof]['duration']
 			DPS = '<span data-tooltip="'+f"{DPSStats[player_prof]['damageTotal']:,.0f}"+' total damage">'+f"{round(DPSStats[player_prof]['damageTotal'] / fightTime):,.0f}</span>" 
-			row = f"|{player} | {{{{{profession}}}}} | {fightTime} | {DPS} |"
+			row = f"|<span data-tooltip='{account}'>{player}</span> | {{{{{profession}}}}} {profession[:3]}| {fightTime} | {DPS} |"
 			for i in range(1, 11):
 				if exp_dps_stat == "chunkDamage":
 					row += ' <span data-tooltip="'+f"{DPSStats[player_prof][exp_dps_stat][i]:,.0f}"+f' chunk({i}) damage">'+f"{round(DPSStats[player_prof][exp_dps_stat][i] / fightTime):,.0f}</span>|"
@@ -3055,7 +3057,7 @@ def build_damage_with_buffs(stacking_uptime_Table: dict, DPSStats: dict, top_sta
 
 	dps_sorted_stacking_uptime_Table = []
 	for uptime_prof_name in stacking_uptime_Table:
-		dps_prof_name = f"{stacking_uptime_Table[uptime_prof_name]['profession']} {stacking_uptime_Table[uptime_prof_name]['name']}"
+		dps_prof_name = f"{stacking_uptime_Table[uptime_prof_name]['profession']} {stacking_uptime_Table[uptime_prof_name]['name']} {stacking_uptime_Table[uptime_prof_name]['account']}"
 		dps_sorted_stacking_uptime_Table.append([uptime_prof_name, DPSStats[dps_prof_name]['damageTotal'] / DPSStats[dps_prof_name]['duration']])
 	dps_sorted_stacking_uptime_Table = sorted(dps_sorted_stacking_uptime_Table, key=lambda x: x[1], reverse=True)
 	dps_sorted_stacking_uptime_Table = list(map(lambda x: x[0], dps_sorted_stacking_uptime_Table))
@@ -3073,13 +3075,14 @@ def build_damage_with_buffs(stacking_uptime_Table: dict, DPSStats: dict, top_sta
 	for uptime_prof_name in dps_sorted_stacking_uptime_Table:
 		name = stacking_uptime_Table[uptime_prof_name]['name']
 		prof = stacking_uptime_Table[uptime_prof_name]['profession']
+		account = stacking_uptime_Table[uptime_prof_name]['account']
 		fight_time = (stacking_uptime_Table[uptime_prof_name]['duration_Might'] / 1000) or 1
 		damage_with_might = stacking_uptime_Table[uptime_prof_name]['damage_with_Might']
 		might_stacks = stacking_uptime_Table[uptime_prof_name]['Might']
 
 		if stacking_uptime_Table[uptime_prof_name]['duration_Might'] * 10 < max_stacking_buff_fight_time:
 			continue
-		dps_prof_name = f"{prof} {name}"
+		dps_prof_name = f"{prof} {name} {account}"
 		total_damage = DPSStats[dps_prof_name]["damageTotal"] or 1
 		playerDPS = total_damage/DPSStats[dps_prof_name]['duration']
 
@@ -3151,7 +3154,7 @@ def build_damage_with_buffs(stacking_uptime_Table: dict, DPSStats: dict, top_sta
 		prof = stacking_uptime_Table[uptime_prof_name]['profession']
 		account = stacking_uptime_Table[uptime_prof_name]['account']
 		uptime_table_prof_name = name+"|"+prof+"|"+account
-		dps_prof_name = f"{prof} {name}"
+		dps_prof_name = f"{prof} {name} {account}"
 		if uptime_table_prof_name in top_stats['player']:
 			uptime_fight_time = top_stats['player'][uptime_table_prof_name]['active_time'] or 1
 		else:

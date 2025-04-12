@@ -666,7 +666,7 @@ def calculate_dps_stats(fight_json):
 			for player in fight_json['players']:
 				if player['notInSquad']:
 					continue
-				player_prof_name = player['profession'] + " " + player['name']
+				player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']
 				if player_prof_name not in damage_ps:
 					damage_ps[player_prof_name] = [0] * fight_ticks
 
@@ -682,7 +682,7 @@ def calculate_dps_stats(fight_json):
 				continue
 			combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 			if combat_time:
-				player_prof_name = player['profession'] + " " + player['name']
+				player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']
 				player_damage = damage_ps[player_prof_name]
 				squad_damage_on_tick += player_damage[fight_tick + 1] - player_damage[fight_tick]
 		squad_damage_per_tick.append(squad_damage_on_tick)
@@ -697,7 +697,7 @@ def calculate_dps_stats(fight_json):
 	for player in fight_json['players']:
 		if player['notInSquad']:
 			continue
-		player_prof_name = player['profession'] + " " + player['name']
+		player_prof_name = player['profession'] + " " + player['name']+ " " + player['account']
 		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 		if combat_time:
 			if player_prof_name not in DPSStats:
@@ -777,7 +777,7 @@ def calculate_dps_stats(fight_json):
 							continue
 						combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 						if combat_time:
-							player_prof_name = player['profession'] + " " + player['name']	
+							player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']	
 							damage_on_target = player["targetDamage1S"][index][0]
 							player_damage = damage_on_target[downIndex] - damage_on_target[startIndex]
 
@@ -793,7 +793,7 @@ def calculate_dps_stats(fight_json):
 							continue
 						combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 						if combat_time:
-							player_prof_name = player['profession'] + " " + player['name']
+							player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']
 
 							DPSStats[player_prof_name]["chunkDamageTotal"][chunk_damage_seconds] += squad_damage_on_target
 
@@ -814,7 +814,7 @@ def calculate_dps_stats(fight_json):
 								continue
 							combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 							if combat_time:
-								player_prof_name = player['profession'] + " " + player['name']
+								player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']
 								damage_on_target = player["targetDamage1S"][index][0]
 								carrion_damage = damage_on_target[dmgEnd] - damage_on_target[dmgStart]
 
@@ -829,7 +829,7 @@ def calculate_dps_stats(fight_json):
 								continue
 							combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 							if combat_time:
-								player_prof_name = player['profession'] + " " + player['name']
+								player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']
 								DPSStats[player_prof_name]["carrionDamageTotal"] += total_carrion_damage
 
 	# Burst damage: max damage done in n seconds
@@ -838,7 +838,7 @@ def calculate_dps_stats(fight_json):
 			continue
 		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 		if combat_time:
-			player_prof_name = player['profession'] + " " + player['name']
+			player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']
 			player_damage = damage_ps[player_prof_name]
 			for i in range(1, CHUNK_DAMAGE_SECONDS):
 				for fight_tick in range(i, fight_ticks):
@@ -851,7 +851,7 @@ def calculate_dps_stats(fight_json):
 			continue
 		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 		if combat_time:
-			player_prof_name = player['profession'] + " " + player['name']
+			player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']
 			player_damage_ps = ch5_ca_damage_1s[player_prof_name]
 			player_damage = [0] * len(player_damage_ps)
 			player_damage[0] = player_damage_ps[0]
