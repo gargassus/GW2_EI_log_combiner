@@ -2504,6 +2504,7 @@ def build_on_tag_review(death_on_tag, tid_date_time):
 	for name_prof in death_on_tag:
 		player = death_on_tag[name_prof]['name']
 		profession = death_on_tag[name_prof]['profession']
+		account = death_on_tag[name_prof]['account']
 		if len(death_on_tag[name_prof]['distToTag']):
 			avg_dist = round(sum(death_on_tag[name_prof]['distToTag']) / len(death_on_tag[name_prof]['distToTag']))
 		else:
@@ -2514,7 +2515,7 @@ def build_on_tag_review(death_on_tag, tid_date_time):
 		run_back = death_on_tag[name_prof]['Run_Back']
 		total = death_on_tag[name_prof]['Total']
 		off_tag_ranges = death_on_tag[name_prof]['Ranges']
-		row = f"|{player} | {{{{{profession}}}}} {profession[:3]} | {avg_dist} | {on_tag} | {off_tag} | {after_tag} | {run_back} | {total} |{off_tag_ranges} |"
+		row = f"|<span data-tooltip='{account}'>{player}</span> | {{{{{profession}}}}} {profession[:3]} | {avg_dist} | {on_tag} | {off_tag} | {after_tag} | {run_back} | {total} |{off_tag_ranges} |"
 		rows.append(row)	
 
 	text = "\n".join(rows)

@@ -327,11 +327,12 @@ def get_commander_tag_data(fight_json):
 	return commander_tag_positions, earliest_death_time, has_died
 
 def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead_tag, inch_to_pixel, polling_rate):
-		name_prof = player['name'] + "|" + player['profession'] 
+		name_prof = player['name'] + "|" + player['profession'] + "|" + player['account']
 		if name_prof not in death_on_tag:
 			death_on_tag[name_prof] = {
 			"name": player['name'],
 			"profession": player['profession'],
+			"account": player['account'],
 			"distToTag": [],
 			"On_Tag": 0,
 			"Off_Tag": 0,
