@@ -1292,9 +1292,9 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 			if player == 'total':
 				continue
 
-			name, profession = player.split("|")
+			name, profession, account = player.split("|")
 			profession = "{{" + profession + "}}"
-			account = player_data['account']
+			#account = player_data['account']
 			time_secs = player_data['ActiveTime']
 			time_mins = time_secs / 60
 			apm = round(player_data['total']/time_mins)
@@ -2050,8 +2050,8 @@ def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time:
 		for player in minions[profession]['player']:
 			name_prof = f"{player}|{profession}"
 			prof_name = "{{"+profession+"}}"+player
-			fights = players[name_prof]['num_fights']
-			fight_time = f"{players[name_prof]['active_time']/1000:,.1f}"
+			fights = players[player]['num_fights']
+			fight_time = f"{players[player]['active_time']/1000:,.1f}"
 
 			row = f"|{prof_name} | {fights}| {fight_time}|"
 			for minion in minions[profession]['pets_list']:
@@ -2360,7 +2360,7 @@ def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict
 
 		# Initialize the HTML components
 		rows = []
-		name, profession = player.split("|")
+		name, profession, account = player.split("|")
 
 		# Build the table header
 		header = "|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
@@ -2988,7 +2988,7 @@ def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff
 		rows.append(f"| {commander} - Incoming Heal Stats Summary |c")
 		rows.append("|!Healer | !Healing | !Barrier | !Downed Healing |h")
 		for healer, data in cmd_data["heal_stats"].items():
-			healer_name, healer_profession = healer.split("|")
+			healer_name, healer_profession, healer_account = healer.split("|")
 			healer_profession = "{{"+healer_profession+"}}"
 			healing = int(data["outgoing_healing"])
 			barrier = int(data["outgoing_barrier"])
@@ -3148,7 +3148,8 @@ def build_damage_with_buffs(stacking_uptime_Table: dict, DPSStats: dict, top_sta
 	for uptime_prof_name in dps_sorted_stacking_uptime_Table:
 		name = stacking_uptime_Table[uptime_prof_name]['name']
 		prof = stacking_uptime_Table[uptime_prof_name]['profession']
-		uptime_table_prof_name = name+"|"+prof
+		account = stacking_uptime_Table[uptime_prof_name]['account']
+		uptime_table_prof_name = name+"|"+prof+"|"+account
 		dps_prof_name = f"{prof} {name}"
 		if uptime_table_prof_name in top_stats['player']:
 			uptime_fight_time = top_stats['player'][uptime_table_prof_name]['active_time'] or 1

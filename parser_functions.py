@@ -114,7 +114,7 @@ def calculate_resist_offset(resist_data: dict, state_data: dict) -> int:
 
 def determine_clone_usage(player, skill_map, mesmer_shatter_skills):
 	active_clones = {}
-	name_prof = f"{player['name']}_{player['profession']}"
+	name_prof = f"{player['name']}_{player['profession']}_{player['account']}"
 	if name_prof not in mesmer_clone_usage:
 		mesmer_clone_usage[name_prof] = {}
 	if "activeClones" in player:
@@ -571,7 +571,7 @@ def get_stacking_uptime_data(player, damagePS, duration, fight_ticks):
 		'b1122': "Stability", 'b719': "Swiftness", 'b26980': "Resistance", 'b873': "Resolution"
 	}
 
-	player_prof_name = f"{player['name']}|{player['profession']}"
+	player_prof_name = f"{player['name']}|{player['profession']}|{player['account']}"
 
 	if player_prof_name not in stacking_uptime_Table:
 		stacking_uptime_Table[player_prof_name] = {}
@@ -2103,6 +2103,7 @@ def get_minions_by_player(player_data: dict, player_name: str, profession: str) 
 	Returns:
 		None
 	"""
+	player_name = player_name+"|"+profession+"|"+player_data['account']
 	if "minions" in player_data:
 		if profession not in minions:
 			minions[profession] = {"player": {}, "pets_list": []}
@@ -2317,7 +2318,7 @@ def parse_file(file_path, fight_num, guild_data):
 		group_count = len(top_stats['parties_by_fight'][fight_num][group])
 		squad_count = top_stats['fight'][fight_num]['squad_count']
 
-		name_prof = name + "|" + profession
+		name_prof = name + "|" + profession + "|" + account
 		tag = player['hasCommanderTag']
 		if tag:	#Commander Tracking
 			top_stats['fight'][fight_num]['commander'] = name_prof
