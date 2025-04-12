@@ -3368,7 +3368,7 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: d
 	rows.append("|!Player | !Prof | !{{FightTime}} | !{{directHits}}| !{{evadedCount}}| !{{blockedCount}}| !{{glanceCount}}| !{{missedCount}}| !{{invulnedCount}}| !{{interruptedCount}}| !~AvgDmg|!~AvgDmg/{{FightTime}}| !~MinDmg| !~MinDmg/{{FightTime}}|h")
 
 	for name_prof, data in player_damage_mitigation.items():
-		player_name, player_profession = name_prof.split("|")
+		player_name, player_profession, player_account = name_prof.split("|")
 		if name_prof in top_stats['player']:
 			active_time = round(top_stats['player'][name_prof].get('active_time', 0) / 1000)
 		else:
@@ -3416,7 +3416,7 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: d
 		interrupted_entry = f'<span data-tooltip="Dmg: {total_interrupted_dmg:,.0f}">{total_interrupted:,.0f}</span>'
 		avg_damage = round(total_mitigation/active_time) if active_time > 0 else 0
 		min_avg_damage = round(total_min_mitigation/active_time) if active_time > 0 else 0
-		rows.append(f"|{player_name}|{player_profession}| {active_time:,} | {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}| {avg_damage:,.0f}| {total_min_mitigation:,.0f}| {min_avg_damage:,.0f}|")
+		rows.append(f"|<span data-tooltip='{player_account}'>{player_name}</span> |{player_profession}| {active_time:,} | {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}| {avg_damage:,.0f}| {total_min_mitigation:,.0f}| {min_avg_damage:,.0f}|")
 
 	rows.append("\n\n")
 

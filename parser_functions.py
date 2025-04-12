@@ -2012,7 +2012,7 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 	for player in players:
 		if player['notInSquad']:
 			continue
-		name_prof = f"{player['name']}|{player['profession']}"
+		name_prof = f"{player['name']}|{player['profession']}|{player['account']}"
 		if 'totalDamageTaken' in player:
 			if name_prof not in player_damage_mitigation:
 				player_damage_mitigation[name_prof] = {}
