@@ -1909,7 +1909,12 @@ def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_t
 		rows.append(header)
 
 		for player in player_list:
-			row = f"|{player} |"
+			prof, name, account = player.split("|")
+			if prof == name:
+				prof_name = "{{"+prof+"}} "+account
+			else:
+				prof_name = "{{"+prof+"}} "+name
+			row = f"|<span data-tooltip='{account}'> {prof_name} </span>|"
 			for mechanic in mechanics_list:
 				if player in mechanics[fight][mechanic]['data']:
 					row += f" {mechanics[fight][mechanic]['data'][player]} |"

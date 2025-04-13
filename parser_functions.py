@@ -1957,7 +1957,7 @@ def get_mechanics_by_fight(fight_number: int, mechanics_map: dict, players: dict
 			for player in players:
 				if player['name'] == actor:
 					# Get the player's profession and name
-					prof_name = "{{" + player['profession'] + "}} " + player['name']
+					prof_name = player['profession'] + "|" + player['name'] + "|" + player['account']
 
 			# If the actor is a player, add it to the player list
 			if prof_name:
