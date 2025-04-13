@@ -300,7 +300,7 @@ def get_commander_tag_data(fight_json):
 
 	for player in fight_json["players"]:
 		if player["hasCommanderTag"] and not player["notInSquad"]:
-			commander_name = f"{player['name']}|{player['profession']}"
+			commander_name = f"{player['name']}|{player['profession']}|{player['account']}"
 			if commander_name not in commander_summary_data:
 				commander_summary_data[commander_name] = {
 					'heal_stats': {},
@@ -1121,7 +1121,7 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 
 		commander_tag = player['hasCommanderTag']
 		if commander_tag:
-			commander_name = f"{player['name']}|{player['profession']}"
+			commander_name = f"{player['name']}|{player['profession']}|{player['account']}"
 			if commander_name not in commander_summary_data:
 				commander_summary_data[commander_name] = {stat_category: {}}
 			elif stat_category not in commander_summary_data[commander_name]:
@@ -1227,7 +1227,7 @@ def get_stat_by_skill(fight_num: int, player: dict, stat_category: str, name_pro
 					top_stats['overall'][stat_category][skill_id][stat] = top_stats['overall'][stat_category][skill_id].get(stat, 0) + value
 
 					if player['hasCommanderTag']:
-						commander_name = f"{player['name']}|{player['profession']}"
+						commander_name = f"{player['name']}|{player['profession']}|{player['account']}"
 						if skill_id not in commander_summary_data[commander_name][stat_category]:
 							commander_summary_data[commander_name][stat_category][skill_id] = {}
 						if stat not in commander_summary_data[commander_name][stat_category][skill_id]:
@@ -1532,7 +1532,7 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 			if outgoing_healing or downed_healing:
 
 				if heal_target_tag:
-					commander_name = f"{heal_target_name}|{players[index]['profession']}"
+					commander_name = f"{heal_target_name}|{players[index]['profession']}|{players[index]['account']}"
 
 					if name_prof not in commander_summary_data[commander_name]['heal_stats']:
 						commander_summary_data[commander_name]['heal_stats'][name_prof] = {
@@ -1633,7 +1633,7 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 
 			if outgoing_barrier:
 				if heal_target_tag:
-					commander_name = f"{barrier_target_name}|{players[index]['profession']}"
+					commander_name = f"{barrier_target_name}|{players[index]['profession']}|{players[index]['account']}"
 
 					if name_prof not in commander_summary_data[commander_name]['heal_stats']:
 						commander_summary_data[commander_name]['heal_stats'][name_prof] = {
@@ -1814,7 +1814,7 @@ def get_damage_mod_by_player(fight_num: int, player: dict, name_prof: str) -> No
 
 				# Update commander summary data if the player has a commander tag
 				if commander_tag:
-					commander_name = f"{player['name']}|{player['profession']}"
+					commander_name = f"{player['name']}|{player['profession']}|{player['account']}"
 					if mod_id == 'd-58':
 						commander_summary_data[commander_name]['prot_mods']['hitCount'] += mod_hit_count
 						commander_summary_data[commander_name]['prot_mods']['totalHitCount'] += mod_total_hit_count

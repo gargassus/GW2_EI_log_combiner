@@ -2941,11 +2941,11 @@ def build_commander_summary_menu(commander_summary_data: dict, tid_date_time: st
 	tag_name = "None"
 	tag_prof = "None"
 	for commander in commander_summary_data:
-		tag_name, tag_prof = commander.split("|")
+		tag_name, tag_prof, tag_acct = commander.split("|")
 
-		text += f"[[{tid_date_time}-{tag_name}-{tag_prof}-Tag-Summary]] "
+		text += f"[[{tid_date_time}-{tag_name}-{tag_prof}-{tag_acct}-Tag-Summary]] "
 
-	text += f'" "{tid_date_time}-{tag_name}-{tag_prof}-Tag-Summary" "$:/temp/tagtab">>'
+	text += f'" "{tid_date_time}-{tag_name}-{tag_prof}-{tag_acct}-Tag-Summary" "$:/temp/tagtab">>'
 
 	append_tid_for_output(
 		create_new_tid_from_template(title, caption, text, tags),
@@ -2966,9 +2966,12 @@ def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff
 	for commander, cmd_data in commander_summary_data.items():
 		rows = []
 		# Set the title, caption and tags for the table
-		tag_name, tag_prof = commander.split("|")
-		tid_title = f"{tid_date_time}-{tag_name}-{tag_prof}-Tag-Summary"
-		tid_caption = "{{"+f"{tag_prof}"+"}}"+f"-{tag_name}-Tag-Summary"
+		tag_name, tag_prof, tag_acct = commander.split("|")
+		tid_title = f"{tid_date_time}-{tag_name}-{tag_prof}-{tag_acct}-Tag-Summary"
+		if tag_prof == tag_name:
+			tid_caption = "{{"+f"{tag_prof}"+"}}"+f"-{tag_acct}-Tag-Summary"
+		else:
+			tid_caption = "{{"+f"{tag_prof}"+"}}"+f"-{tag_name}-Tag-Summary"
 		tid_tags = tid_date_time
 
 		damage_by_skill={}
@@ -2988,13 +2991,19 @@ def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff
 		damageGain = int(prot_data["damageGain"])
 		rows.append('<div style="overflow-x:auto;">\n<div class="flex-row">\n    <div class="flex-col">\n\n')
 		rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
-		rows.append(f"| {commander} - Defense Stats Summary |c")
+		if tag_prof == tag_name:
+			rows.append("|{{"+tag_prof+"}}"+f" {tag_acct} - Defense Stats Summary |c")
+		else:
+			rows.append("|{{"+tag_prof+"}}"+f" {tag_name} - Defense Stats Summary |c")
 		rows.append("| !Damage | !Barrier | !Protection | !Downed | !Dead | !Stripped| !Cleansed| !Hard CC|h")
 		rows.append(f"| {damageTaken:,} | {damageBarrier:,} | {damageGain:,} | {downCount} | {deadCount} | {boonStrips:,}| {conditionCleanses:,}| {receivedCrowdControl}|")
 		rows.append("\n\n")
-
+		rows.append('</div></div>\n<div class="flex-row">\n    <div class="flex-col">\n\n')
 		rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
-		rows.append(f"| {commander} - Incoming Heal Stats Summary |c")
+		if tag_prof == tag_name:
+			rows.append("|{{"+tag_prof+"}}"+f" {tag_acct} - Incoming Heal Stats Summary |c")
+		else:
+			rows.append("|{{"+tag_prof+"}}"+f" {tag_name} - Incoming Heal Stats Summary |c")		
 		rows.append("|!Healer | !Healing | !Barrier | !Downed Healing |h")
 		for healer, data in cmd_data["heal_stats"].items():
 			healer_name, healer_profession, healer_account = healer.split("|")
@@ -3002,11 +3011,14 @@ def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff
 			healing = int(data["outgoing_healing"])
 			barrier = int(data["outgoing_barrier"])
 			downed = int(data["downed_healing"])
-			rows.append(f"|{healer_profession} {healer_name}| {healing:,}| {barrier:,}| {downed:,}|")
+			rows.append(f"|{healer_profession} <span data-tooltip='{healer_account}'> {healer_name} </span>| {healing:,}| {barrier:,}| {downed:,}|")
 		rows.append("\n\n")
 		rows.append('</div>\n    <div class="flex-col">\n\n')
-		rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")		
-		rows.append(f"| {commander} - Incoming Damage Summary |c")
+		rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
+		if tag_prof == tag_name:
+			rows.append("|{{"+tag_prof+"}}"+f" {tag_acct} - Incoming Damage Summary |c")
+		else:
+			rows.append("|{{"+tag_prof+"}}"+f" {tag_name} - Incoming Damage Summary |c")		
 		rows.append("|!Skill | !Damage| !Hits| !Barrier Absorbed|h")
 		for item in sorted_items:
 			skill_id = "s"+str(item)
