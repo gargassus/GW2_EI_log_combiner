@@ -2056,8 +2056,10 @@ def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time:
 			name, profession, account = player.split("|")
 			fights = players[player]['num_fights']
 			fight_time = f"{players[player]['active_time']/1000:,.1f}"
-
-			row = f'|<span data-tooltip="{account}">{name}       </span> | {fights}| {fight_time}|'
+			if name == profession:
+				row = f'|<span data-tooltip="{account}">{account}</span>| {fights}| {fight_time}|'
+			else:
+				row = f'|<span data-tooltip="{account}">{name}</span>| {fights}| {fight_time}|'
 			for minion in minions[profession]['pets_list']:
 				if minion in minions[profession]['player'][player]:
 					entry = f" {minions[profession]['player'][player][minion]} |"
