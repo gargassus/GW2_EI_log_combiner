@@ -2362,7 +2362,7 @@ def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict
 
 		# Build the table header
 		header = "|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
-		header += f"|{{{profession}}} {name}|c\n"
+		header += "|{{"+profession+"}}"+f" - {name} - {account}|c\n"
 		header += "|!Skill Name | Damage | Dmg/Hit | % of Total Damage|h"
 		rows.append(header)
 
@@ -2379,8 +2379,11 @@ def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict
 
 		# Create the TID
 		text = "\n".join(rows)
-		player_title = f"{tid_date_time}-Damage-By-Skill-{profession}-{name}"
-		player_caption = f"{{{profession}}} - {name}"
+		player_title = f"{tid_date_time}-Damage-By-Skill-{profession}-{name}-{account}"
+		if profession == name:
+			player_caption = f"{{{profession}}} - {account}"
+		else:
+			player_caption = f"{{{profession}}} - {name}"
 
 		append_tid_for_output(
 			create_new_tid_from_template(player_title, player_caption, text, tid_date_time),
@@ -3101,7 +3104,7 @@ def build_damage_with_buffs(stacking_uptime_Table: dict, DPSStats: dict, top_sta
 		might_25_uptime = might_stacks[25] / (fight_time * 1000)
 
 		#"{:,}".format(round(fight_time))
-		output_string = '|'+name+' |'+' {{'+prof+'}} | '+"{:,}".format(round(playerDPS))+'| '+"{:,}".format(round(fight_time))
+		output_string = f'|<span data-tooltip="{account}"> {name} </span> |'+' {{'+prof+'}} | '+"{:,}".format(round(playerDPS))+'| '+"{:,}".format(round(fight_time))
 
 		output_string += '| <span data-tooltip="'+"{:.2f}".format(round(damage_with_avg_might, 4))+'% dmg - '+"{:.2f}".format(round(avg_might, 4))+'% uptime">'
 		output_string += "{:.2f}".format(round((damage_with_avg_might), 4))+'</span>'
@@ -3165,7 +3168,7 @@ def build_damage_with_buffs(stacking_uptime_Table: dict, DPSStats: dict, top_sta
 
 		total_damage = DPSStats[dps_prof_name]["damageTotal"] or 1
 		playerDPS = total_damage/dps_fight_time
-		output_string = '|'+name+' |'+' {{'+prof+'}} | '+"{:,}".format(round(playerDPS))+'| '+"{:,}".format(round(fight_time))+'|'
+		output_string = f'|<span data-tooltip="{account}"> {name} </span> |'+' {{'+prof+'}} | '+"{:,}".format(round(playerDPS))+'| '+"{:,}".format(round(fight_time))+'|'
 
 		for damage_buffID in other_buffs_with_damage:
 			damage_buff = other_buffs_with_damage[damage_buffID]
@@ -3253,6 +3256,7 @@ def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_
 	for uptime_prof_name in might_sorted_stacking_uptime_Table:
 		name = stacking_uptime_Table[uptime_prof_name]['name']
 		prof = stacking_uptime_Table[uptime_prof_name]['profession']
+		account = stacking_uptime_Table[uptime_prof_name]['account']
 		fight_time = (stacking_uptime_Table[uptime_prof_name]['duration_Might'] / 1000) or 1
 		might_stacks = stacking_uptime_Table[uptime_prof_name]['Might']
 
@@ -3264,7 +3268,7 @@ def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_
 		might_20_uptime = sum(might_stacks[i] for i in range(20,26)) / (fight_time * 1000)
 		might_25_uptime = might_stacks[25] / (fight_time * 1000)
 
-		output_string = '|'+name+' |'+' {{'+prof+'}} | '+"{:,}".format(round(fight_time))
+		output_string = f'|<span data-tooltip="{account}"> {name} </span> |'+' {{'+prof+'}} | '+"{:,}".format(round(fight_time))
 		output_string += '|'+"{:.2f}".format(avg_might)
 		output_string += "| "+"{:.2f}".format(round((might_uptime * 100), 4))+"%"
 		output_string += "| "+"{:.2f}".format(round((might_5_uptime * 100), 4))+"%"
@@ -3304,6 +3308,7 @@ def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_
 	for uptime_prof_name in stability_sorted_stacking_uptime_Table:
 		name = stacking_uptime_Table[uptime_prof_name]['name']
 		prof = stacking_uptime_Table[uptime_prof_name]['profession']
+		account = stacking_uptime_Table[uptime_prof_name]['account']
 		fight_time = (stacking_uptime_Table[uptime_prof_name]['duration_Stability'] / 1000) or 1
 		stability_stacks = stacking_uptime_Table[uptime_prof_name]['Stability']
 
@@ -3312,7 +3317,7 @@ def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_
 		stab_2_uptime = sum(stability_stacks[i] for i in range(2,26)) / (fight_time * 1000)
 		stab_5_uptime = sum(stability_stacks[i] for i in range(5,26)) / (fight_time * 1000)
 
-		output_string = '|'+name+' |'+' {{'+prof+'}} | '+"{:,}".format(round(fight_time))
+		output_string = f'|<span data-tooltip="{account}"> {name} </span> |'+' {{'+prof+'}} | '+"{:,}".format(round(fight_time))
 		output_string += '|'+"{:.2f}".format(avg_stab)
 		output_string += "| "+"{:.2f}".format(round((stab_uptime * 100), 4))+"%"
 		output_string += "| "+"{:.2f}".format(round((stab_2_uptime * 100), 4))+"%"
