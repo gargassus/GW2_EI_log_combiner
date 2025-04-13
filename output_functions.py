@@ -1839,7 +1839,13 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 		# Build rows for each player
 		for player in sorted_high_scores:
 			player, score = player
-			prof_name = player.split(" |")[0]
+			player_string = player.split("-")
+			prof_name = player_string[0]
+			acct = player_string[1]
+			fight = player_string[2]
+			fight = fight.split("|")[0]
+
+
 			
 			if category in ["statTarget_max", "totalDamageTaken_max"]:
 				skill_id = player.split("| ")[1]
@@ -1854,9 +1860,9 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 					skill_icon = "unknown.png"
 				
 				detailEntry = f'[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}'
-				row = f"|{prof_name} |{detailEntry} | {score:03,.2f}|"
+				row = f"|<span data-tooltip='{acct}'> {prof_name} </span>-{fight}|{detailEntry} | {score:03,.2f}|"
 			else:
-				row = f"|{prof_name} | {score:03,.2f}|"
+				row = f"|<span data-tooltip='{acct}'> {prof_name} </span>-{fight}| {score:03,.2f}|"
 			rows.append(row)
 
 		# Add table title and close the div
