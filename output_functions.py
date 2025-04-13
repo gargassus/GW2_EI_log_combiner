@@ -1349,7 +1349,7 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 		}
 
 	for player, player_data in top_stats['player'].items():
-		prof_name = player_data['profession'] + '|' + player_data['name'] + '|' + str(player_data['active_time'])
+		prof_name = player_data['profession'] + '|' + player_data['name'] + '|' + str(player_data['account']) + '|' + str(player_data['last_party']) + '|' + str(player_data['active_time'])
 		if 'skills' in player_data['extHealingStats']:
 
 			for skill in player_data['extHealingStats']['skills']:
@@ -1403,7 +1403,7 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 	rows.append('Tooltip for `Total hits` may be overstated if the skill does more than just downed healing\n\n')
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
-	header += "|!@@display:block;width:150px;Name@@ | !Prof | !{{FightTime}} |"
+	header += "|Party |!@@display:block;width:150px;Name@@| !Prof | !{{FightTime}} |"
 	for skill in sorted_res_skills:
 		if skill in skill_data:
 			skill_icon = skill_data[skill]['icon']
@@ -1421,11 +1421,11 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 	rows.append(header)
 
 	for player in combat_resurrect['players']:
-		profession, name, active_time = player.split('|')
+		profession, name, account, group, active_time = player.split('|')
 		time_secs = int(active_time) / 1000
 		abbrv = profession[:3]
 		profession = "{{" + profession + "}}"
-		row = f"|{name} | {profession} {abbrv} | {time_secs:,.1f}|"
+		row = f"|{group} |<span data-tooltip='{account}'> {name} </span>| {profession} {abbrv} | {time_secs:,.1f}|"
 		for skill in sorted_res_skills:
 			if skill in combat_resurrect['players'][player]:
 				total = f"{combat_resurrect['players'][player][skill].get('total', 0):,.0f}"
