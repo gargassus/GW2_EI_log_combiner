@@ -2175,14 +2175,13 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 
 	# Iterate through each healer
 	for healer in top_stats['players_running_healing_addon']:
-		name = healer.split('|')[0]
-		profession = healer.split('|')[1]
+		name, profession, account = healer.split('|')
 		healer_name = name
 		healer_profession = profession
 		healer_tags = f"{tid_date_time}"
-		healer_title = f"{tid_date_time}-{caption.replace(' ', '-')}-{healer_profession}-{healer_name}"
-		healer_caption = "{{"+healer_profession+"}}"+f" - {healer_name}"
-
+		healer_title = f"{tid_date_time}-{caption.replace(' ', '-')}-{healer_profession}-{healer_name}-{account}"
+		healer_caption = "{{"+healer_profession+"}}"+f" - <span data-tooltip='{account}'>{healer_name}       </span>"
+		#<span data-tooltip='{account}'>{healer_name}       </span>
 		rows = []
 
 		rows.append("---\n\n")
