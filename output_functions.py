@@ -1589,8 +1589,8 @@ def build_dps_stats_menu(datetime):
 	buff_stats_text += "* `Bur (t)s` = Maximum damage/second done over any `t` second interval \n"
 	buff_stats_text += "* `Ch5Ca (t)s` = Maximum Chunk(5) + Carrion damage/second done over any `t` second interval \n\n"
 
-	buff_stats_text += f"<<tabs '[[{datetime}-DPS-Stats-chunkDamage]] [[{datetime}-DPS-Stats-burstDamage]] [[{datetime}-DPS-Stats-ch5CaBurstDamage]]' '{datetime}-DPS-Stats-chunkDamage' '$:/temp/tab1'>>"
-
+	buff_stats_text += f"<<tabs '[[{datetime}-DPS-Stats-Ch-Total]] [[{datetime}-DPS-Stats-Ch-DPS]] [[{datetime}-DPS-Stats-Bur-Total]] [[{datetime}-DPS-Stats-Bur-DPS]] [[{datetime}-DPS-Stats-Ch5Ca-Total]] [[{datetime}-DPS-Stats-Ch5Ca-DPS]]' '{datetime}-DPS-Stats-Ch-DPS' '$:/temp/tab1'>>"
+	#tabs = {"Ch Total": "chunkDamage","Ch DPS": "chunkDamage", "Bur Total": "burstDamage",  "Bur DPS": "burstDamage", "Ch5Ca Total": "ch5CaBurstDamage", "Ch5Ca DPS": "ch5CaBurstDamage"}
 	append_tid_for_output(
 		create_new_tid_from_template(buff_stats_title, buff_stats_caption, buff_stats_text, buff_stats_tags, creator=buff_stats_creator),
 		tid_list
@@ -2556,7 +2556,7 @@ def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> 
 
 	The function then pushes the table to the tid_list for output.
 	"""
-	exp_dps_stats = {"chunkDamage": "Ch", "burstDamage": "Bur", "ch5CaBurstDamage": "Ch5Ca"}
+	tabs = {"Ch-Total": "chunkDamage","Ch-DPS": "chunkDamage", "Bur-Total": "burstDamage",  "Bur-DPS": "burstDamage", "Ch5Ca-Total": "ch5CaBurstDamage", "Ch5Ca-DPS": "ch5CaBurstDamage"}
 	sorted_DPSStats = []
 	for player_prof in DPSStats:
 		player = DPSStats[player_prof]['name']
@@ -2570,20 +2570,20 @@ def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> 
 	sorted_DPSStats = sorted(sorted_DPSStats, key=lambda x: x[1], reverse=True)
 	sorted_DPSStats = list(map(lambda x: x[0], sorted_DPSStats))
 
-	for exp_dps_stat in exp_dps_stats:
+	for tab in tabs.keys():
 		rows = []
 
 		# Set the title, caption and tags for the table
-		tid_title = f"{tid_date_time}-DPS-Stats-{exp_dps_stat}"
-		tid_caption = exp_dps_stat
+		tid_title = f"{tid_date_time}-DPS-Stats-{tab}"
+		tid_caption = tab
 		tid_tags = tid_date_time
 
 		# Add the select component to the table
 		rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
-		rows.append(f"| DPS Stats - {exp_dps_stat} |c")
-		header = "|!Player |!Profession | ! <span data-tooltip=`Number of seconds player was in squad logs`>Seconds</span>| !DPS|"
+		rows.append(f"| DPS Stats - {tab} |c")
+		header = "|!Player |!Profession | ! <span data-tooltip=`Number of seconds player was in squad logs`>Seconds</span>| !DPS| !Total|"
 		for i in range(1, 11):
-			header += f" !{exp_dps_stats[exp_dps_stat]} ({i})s|"
+			header += f" !{tab} ({i})s|"
 		header += "h"
 		rows.append(header)
 		for player_prof in sorted_DPSStats:
@@ -2591,13 +2591,18 @@ def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> 
 			profession = DPSStats[player_prof]["profession"]
 			account = DPSStats[player_prof]["account"]
 			fightTime = DPSStats[player_prof]['duration']
-			DPS = '<span data-tooltip="'+f"{DPSStats[player_prof]['damageTotal']:,.0f}"+' total damage">'+f"{round(DPSStats[player_prof]['damageTotal'] / fightTime):,.0f}</span>" 
-			row = f"|<span data-tooltip='{account}'>{player}</span> | {{{{{profession}}}}} {profession[:3]}| {fightTime} | {DPS} |"
+			DPS = '<span data-tooltip="'+f"{DPSStats[player_prof]['damageTotal']:,.0f}"+' total damage">'+f"{round(DPSStats[player_prof]['damageTotal'] / fightTime):,.0f}</span>"
+			TOTAL = '<span data-tooltip="'+f"{DPSStats[player_prof]['damageTotal']:,.0f}"+' total damage">'+f"{DPSStats[player_prof]['damageTotal']:,.0f}</span>"
+			row = f"|<span data-tooltip='{account}'>{player}</span> | {{{{{profession}}}}} {profession[:3]}| {fightTime} | {DPS} | {TOTAL}|"
 			for i in range(1, 11):
-				if exp_dps_stat == "chunkDamage":
-					row += ' <span data-tooltip="'+f"{DPSStats[player_prof][exp_dps_stat][i]:,.0f}"+f' chunk({i}) damage">'+f"{round(DPSStats[player_prof][exp_dps_stat][i] / fightTime):,.0f}</span>|"
+				if tab == "Ch-DPS":
+					row += ' <span data-tooltip="'+f"{DPSStats[player_prof][tabs[tab]][i]:,.0f}"+f' chunk({i}) damage">'+f"{round(DPSStats[player_prof][tabs[tab]][i] / fightTime):,.0f}</span>|"
+				elif tab == "Ch-Total":
+					row += ' <span data-tooltip="'+f"{round(DPSStats[player_prof][tabs[tab]][i] / fightTime):,.0f}"+f' chunk({i}) damage">'+f"{DPSStats[player_prof][tabs[tab]][i]:,.0f}</span>|"
+				elif tab in ["Bur-Total","Ch5Ca-Total"]:
+					row += ' <span data-tooltip="'+f"{round(DPSStats[player_prof][tabs[tab]][i] / i):,.0f}"+f' chunk({i}) damage">'+f"{DPSStats[player_prof][tabs[tab]][i]:,.0f}</span>|"
 				else:
-					row += ' <span data-tooltip="'+f"{DPSStats[player_prof][exp_dps_stat][i]:,.0f}"+f' chunk({i}) damage">'+f"{round(DPSStats[player_prof][exp_dps_stat][i] / i):,.0f}</span>|"
+					row += ' <span data-tooltip="'+f"{DPSStats[player_prof][tabs[tab]][i]:,.0f}"+f' chunk({i}) damage">'+f"{round(DPSStats[player_prof][tabs[tab]][i] / i):,.0f}</span>|"
 
 			rows.append(row)	
 
