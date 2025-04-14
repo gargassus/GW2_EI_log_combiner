@@ -2564,7 +2564,7 @@ def build_dps_stats_tids(DPSStats: dict, tid_date_time: str, tid_list: list) -> 
 		account = DPSStats[player_prof]['account']
 		fightTime = DPSStats[player_prof]['duration']
 
-		if DPSStats[player_prof]['damageTotal'] / fightTime < 250:
+		if DPSStats[player_prof]['damageTotal'] / fightTime < 500:
 			continue
 		sorted_DPSStats.append([player_prof, DPSStats[player_prof]['damageTotal'] / fightTime])
 	sorted_DPSStats = sorted(sorted_DPSStats, key=lambda x: x[1], reverse=True)
