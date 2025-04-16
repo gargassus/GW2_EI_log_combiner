@@ -762,7 +762,7 @@ def calculate_dps_stats(fight_json):
 				targetDowns = dict(target['combatReplayData']['down'])
 				for targetDownsIndex, (downKey, downValue) in enumerate(targetDowns.items()):
 					downIndex = math.floor(downKey / 1000)
-					startIndex = max(0, math.floor(downKey / 1000) - chunk_damage_seconds)
+					startIndex = max(0, downIndex - chunk_damage_seconds)
 					if targetDownsIndex > 0:
 						lastDownKey, lastDownValue = list(targetDowns.items())[targetDownsIndex - 1]
 						lastDownIndex = math.floor(lastDownKey / 1000)
