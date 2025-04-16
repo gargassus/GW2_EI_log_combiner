@@ -761,11 +761,11 @@ def calculate_dps_stats(fight_json):
 			for chunk_damage_seconds in range(1, CHUNK_DAMAGE_SECONDS):
 				targetDowns = dict(target['combatReplayData']['down'])
 				for targetDownsIndex, (downKey, downValue) in enumerate(targetDowns.items()):
-					downIndex = math.ceil(downKey / 1000)
-					startIndex = max(0, math.ceil(downKey / 1000) - chunk_damage_seconds)
+					downIndex = math.floor(downKey / 1000)
+					startIndex = max(0, math.floor(downKey / 1000) - chunk_damage_seconds)
 					if targetDownsIndex > 0:
 						lastDownKey, lastDownValue = list(targetDowns.items())[targetDownsIndex - 1]
-						lastDownIndex = math.ceil(lastDownKey / 1000)
+						lastDownIndex = math.floor(lastDownKey / 1000)
 						if lastDownIndex == downIndex:
 							# Probably an ele in mist form
 							continue
@@ -780,6 +780,7 @@ def calculate_dps_stats(fight_json):
 							player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']	
 							damage_on_target = player["targetDamage1S"][index][0]
 							player_damage = damage_on_target[downIndex] - damage_on_target[startIndex]
+							#player_damage = player["targetDamage1S"][downIndex][0] - player["targetDamage1S"][startIndex][0]
 
 							DPSStats[player_prof_name]["chunkDamage"][chunk_damage_seconds] += player_damage
 							squad_damage_on_target += player_damage
