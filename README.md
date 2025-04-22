@@ -44,6 +44,5 @@ Testing alpha releases with frequent changes.
 ![GitHub](https://img.shields.io/github/license/Drevarr/GW2_EI_log_combiner)
 
 
-![Alt](https://repobeats.axiom.co/api/embed/d07727b06a0bcacb7692ccd3c30bd9cfdb2394f7.svg "Repobeats analytics image")
-
+![Alt](https://repobeats.axiom.co/api/embed/30e54d6fd35e0a496f6e2edcd0fc8c40e1856f01.svg "Repobeats analytics image")
 ---
