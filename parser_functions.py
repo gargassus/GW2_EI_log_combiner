@@ -58,6 +58,32 @@ DPSStats = {}
 stacking_uptime_Table = {}
 IOL_revive = {}
 debuff_damage = {}
+fight_data = {}
+
+def get_fight_data(player, fight_num):
+	player_id = f"{player['account']}-{player['profession']}-{player['name']}"
+	if fight_num not in fight_data:
+		fight_data[fight_num] = {
+			"damage1S": {},
+			"damageTaken1S": {},
+			"players": {}
+		}
+
+	if player['dpsAll'][0]['dps'] >= 750:
+		if player_id not in fight_data[fight_num]["players"]:
+			fight_data[fight_num]["players"][player_id] = {
+				"damage1S": player["damage1S"][0],
+				"damageTaken1S": player["damageTaken1S"][0]
+			}
+	last_index = 0
+
+	for index in range(len(player["damage1S"][0])):
+		current_damage = player["damage1S"][0][index] - player["damage1S"][0][last_index]
+		current_damage_taken = player["damageTaken1S"][0][index] - player["damageTaken1S"][0][last_index]
+
+		fight_data[fight_num]["damage1S"][index] = fight_data[fight_num]["damage1S"].get(index, 0) + current_damage
+		fight_data[fight_num]["damageTaken1S"][index] = fight_data[fight_num]["damageTaken1S"].get(index, 0) + current_damage_taken
+		last_index = index
 
 def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 	"""
@@ -2111,7 +2137,9 @@ def get_minions_by_player(player_data: dict, player_name: str, profession: str) 
 			minions[profession] = {"player": {}, "pets_list": []}
 
 		for minion in player_data["minions"]:
-			minion_name = minion["name"].replace("Juvenile ", "").replace("UNKNOWN", "Unknown")
+			minion_name = minion["name"].replace("Juvenile ", "")
+			if "UNKNOWN" in minion_name:
+				minion_name = "Unknown"
 			if 'combatReplayData' in minion:
 				minion_count = len(minion["combatReplayData"])
 			else:
@@ -2124,6 +2152,18 @@ def get_minions_by_player(player_data: dict, player_name: str, profession: str) 
 				minions[profession]["player"][player_name][minion_name] = minion_count
 			else:
 				minions[profession]["player"][player_name][minion_name] += minion_count
+			if "totalDamageTaken" in minion:
+				minions[profession]["player"][player_name][minion_name+"DamageTaken"] = minions[profession]["player"][player_name].get(minion_name+"DamageTaken", 0) + minion['totalDamageTaken'][0]
+			else:
+				minions[profession]["player"][player_name][minion_name+"DamageTaken"] = 0
+			if "totalShieldDamage" in minion:
+				minions[profession]["player"][player_name][minion_name+"ShieldDamage"] = minions[profession]["player"][player_name].get(minion_name+"ShieldDamage", 0) + minion['totalShieldDamage'][0]
+			else:
+				minions[profession]["player"][player_name][minion_name+"ShieldDamage"] = 0
+			if 'extHealingStats' in minion:
+				minions[profession]["player"][player_name][minion_name+"IncomingHealing"] = minions[profession]["player"][player_name].get(minion_name+"IncomingHealing", 0) + minion['extHealingStats']['totalIncomingHealing'][0]
+			else:
+				minions[profession]["player"][player_name][minion_name+"IncomingHealing"] = 0
 
 def fetch_guild_data(guild_id: str, api_key: str) -> dict:
 	"""
@@ -2202,7 +2242,7 @@ def get_illusion_of_life_data(players: dict, durationMS: int) -> None:
 					IOL_revive[playerName]['casts'] = IOL_revive[playerName].get('casts', 0) + rotationCasts
 					IOL_revive[playerName]['prof'] = playerProf
 
-def parse_file(file_path, fight_num, guild_data):
+def parse_file(file_path, fight_num, guild_data, fight_data_charts):
 	json_stats = config.json_stats
 
 	if file_path.endswith('.gz'):
@@ -2366,6 +2406,8 @@ def parse_file(file_path, fight_num, guild_data):
 
 		# store last party the player was a member
 		top_stats['player'][name_prof]['last_party'] = group
+		if fight_data_charts:
+			get_fight_data(player, fight_num)
 
 		get_firebrand_pages(player, name_prof, name, account,fight_duration_ms)
 

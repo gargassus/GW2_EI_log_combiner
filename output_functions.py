@@ -2376,7 +2376,7 @@ def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict
 		# Build the table header
 		header = "|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
 		header += "|{{"+profession+"}}"+f" - {name} - {account}|c\n"
-		header += "|!Skill Name | Damage | Dmg/Hit | % of Total Damage|h"
+		header += "|!Skill Name | Damage | Hits | Dmg/Hit | % of Total|h"
 		rows.append(header)
 
 		# Populate the table with the player's damage output by skill
@@ -2387,7 +2387,7 @@ def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict
 			if connect_hits == 0:
 				connect_hits = 1
 			entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name[:30]}"
-			row = f"|{entry} | {damage:,.0f} | {damage / connect_hits:,.1f} | {damage / total_damage * 100:,.1f}%|"
+			row = f"|{entry} | {damage:,.0f} | {connect_hits} | {damage / connect_hits:,.1f} | {damage / total_damage * 100:,.1f}%|"
 			rows.append(row)
 
 		# Create the TID
@@ -3463,6 +3463,125 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: d
 		tid_list	
 	)
 
+def build_fight_line_chart(fight_data, fight_num):
+    """
+    Build a line chart for a single fight in the log. The chart shows both outgoing and incoming damage over time.
+
+    Args:
+        fight_data (dict): A dictionary of fight data from the log.
+        fight_num (int): The fight number to generate the chart for.
+
+    Returns:
+        str: The configuration string for the line chart.
+    """
+    outgoing_damage_data = list(fight_data[fight_num]["damage1S"].values())
+    incoming_damage_data = list(fight_data[fight_num]["damageTaken1S"].values())
+    time_series = list(fight_data[fight_num]["damage1S"].keys())
+    chart_title = f"Fight-{fight_num}: Damage Output Review"
+
+    line_chart_config = f"""
+    option = {{
+    title: {{
+        text: '{chart_title}',
+        left: 'center'
+    }},
+    grid: {{
+      left: '5%',
+      right: '15%'
+    }},
+    legend: {{
+        type: 'scroll',
+        orient: 'vertical',
+        selector: ['all', 'inverse'],
+        right: 10,
+        top: 20,
+        bottom: 20,
+    }},
+    tooltip: {{
+        trigger: 'axis',
+        showContent: true
+    }},
+    dataZoom: [
+        {{
+        show: true,
+        realtime: true,
+        start: 30,
+        end: 70,
+        xAxisIndex: [0, 1]
+        }},
+        {{
+        type: 'inside',
+        realtime: true,
+        start: 30,
+        end: 70,
+        xAxisIndex: [0, 1]
+        }}
+    ],
+    xAxis: {{
+        type: 'category',
+        nameLocation: 'middle',
+        nameGap: 40,
+        name: 'Fight Time',
+        axisLabel: {{
+        formatter: '{{value}}s',
+        align: 'center'
+        }},
+        data: {time_series}
+    }},
+    yAxis: {{
+        type: 'value',
+        nameLocation: 'middle',
+        nameGap: 55,
+        name: 'Damage'
+    }},
+    series: [
+        {{
+        name: 'Outgoing Damage',
+        data: {outgoing_damage_data},
+        type: 'line',
+        smooth: true,
+        itemStyle: {{
+            // Color of the point.
+            color: 'dodgerblue'
+        }},
+        emphasis: {{ focus: 'series' }}
+        }},
+        {{
+        name: 'Incoming Damage',
+        data: {incoming_damage_data},
+        type: 'line',
+        smooth: true,
+        itemStyle: {{
+        // Color of the point.
+        color: 'khaki'
+        }},
+        emphasis: {{ focus: 'series' }}
+        }}
+    """
+    for player in fight_data[fight_num]["players"].keys():
+        if (fight_data[fight_num]["players"][player]['damage1S'][-1]/len(fight_data[fight_num]["players"][player]['damage1S'])) < 750:
+            continue
+        player_name = player.split("-")[1][:3]+" - "+player.split("-")[2]
+        player_damage_data = []
+        last_index = 0
+        for index in range(len(fight_data[fight_num]["players"][player]['damage1S'])):
+            cur_damage = fight_data[fight_num]["players"][player]['damage1S'][index] - fight_data[fight_num]["players"][player]['damage1S'][last_index]
+            
+            player_damage_data.append(cur_damage)
+            last_index = index
+
+        player_line_chart_config = f""",
+    {{
+    name: '{player_name}',
+    data: {player_damage_data},
+    type: 'line',
+    smooth: true,
+    emphasis: {{ focus: 'series' }}
+    }}"""
+        line_chart_config += player_line_chart_config
+    line_chart_config += "\n    ]\n    };"
+    return line_chart_config
+
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 		
 	"""
@@ -3539,7 +3658,7 @@ def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	conn.close()
 	print("Database updated.")
 
-def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, personal_buff_data: dict, fb_pages: dict, mechanics: dict, minions: dict, mesmer_clone_usage: dict, death_on_tag: dict, DPSStats: dict, commander_summary_data: dict, player_damage_mitigation: dict, stacking_uptime_Table: dict, IOL_revive: dict, outfile: str) -> None:
+def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, personal_buff_data: dict, fb_pages: dict, mechanics: dict, minions: dict, mesmer_clone_usage: dict, death_on_tag: dict, DPSStats: dict, commander_summary_data: dict, player_damage_mitigation: dict, stacking_uptime_Table: dict, IOL_revive: dict, fight_data: dict, outfile: str) -> None:
 	"""Print the top_stats dictionary as a JSON object to the console."""
 
 	json_dict = {}
@@ -3566,7 +3685,7 @@ def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, da
 	json_dict["player_damage_mitigation"] = {key: value for key, value in player_damage_mitigation.items()}
 	json_dict["stacking_uptime_Table"] = {key: value for key, value in stacking_uptime_Table.items()}
 	json_dict["IOL_revive"] = {key: value for key, value in IOL_revive.items()}
-
+	json_dict["fight_data"] = {key: value for key, value in fight_data.items()}
 
 	#stacking_uptime_Table
 	with open(outfile, 'w') as json_file:
