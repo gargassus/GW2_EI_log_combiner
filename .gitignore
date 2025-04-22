@@ -166,5 +166,7 @@ Guild_Data.py
 FluxGuild_Data.py
 KDRGuild_Data.py
 _Guild_Data.py
+fear_config.ini
+
 #guild db
 top_stats.db

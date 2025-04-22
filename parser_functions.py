@@ -2160,7 +2160,7 @@ def get_minions_by_player(player_data: dict, player_name: str, profession: str) 
 				minions[profession]["player"][player_name][minion_name+"ShieldDamage"] = minions[profession]["player"][player_name].get(minion_name+"ShieldDamage", 0) + minion['totalShieldDamage'][0]
 			else:
 				minions[profession]["player"][player_name][minion_name+"ShieldDamage"] = 0
-			if 'extHealingStats' in minion:
+			if 'extHealingStats' in minion and 'totalIncomingHealing' in minion['extHealingStats']:
 				minions[profession]["player"][player_name][minion_name+"IncomingHealing"] = minions[profession]["player"][player_name].get(minion_name+"IncomingHealing", 0) + minion['extHealingStats']['totalIncomingHealing'][0]
 			else:
 				minions[profession]["player"][player_name][minion_name+"IncomingHealing"] = 0
