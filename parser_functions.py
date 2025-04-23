@@ -2005,6 +2005,36 @@ def get_mechanics_by_fight(fight_number: int, mechanics_map: dict, players: dict
 				else:
 					mechanics[fight_number][mechanic_name]['enemy_data'][actor] += 1
 
+def get_rally_mechanics_by_fight(mechanics_map: dict) -> None:
+	killing_blows = {}
+	got_ups = {}
+	rallies = 0
+	for mechanic_data in mechanics_map:
+		mechanic_name = mechanic_data['name']
+		if "Got" in mechanic_name:
+			for kb in mechanic_data['mechanicsData']:
+				kb_time = kb['time']
+				got_ups[kb_time] = got_ups.get(kb_time, 0) + 1
+
+		if mechanic_name == "Kllng.Blw.Player":
+			for kb in mechanic_data['mechanicsData']:
+				kb_time = kb['time']
+				killing_blows[kb_time] = killing_blows.get(kb_time, 0) + 1
+
+	for rally_time in got_ups:
+		if rally_time in killing_blows:
+			if killing_blows[rally_time] > got_ups[rally_time]:
+				rallies += got_ups[rally_time]
+			else:
+				rallies += killing_blows[rally_time]
+	print(f"Rallies: {rallies}")
+	print(f"Killing Blows: {sum(killing_blows.values())}")
+	print(f"Killing Blows Dict: {killing_blows}")
+	print(f"Got Ups: {sum(got_ups.values())}")
+	print(f"Got Ups Dict: {got_ups}")	
+	return rallies
+
+
 def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, skill_data: dict, buff_data: dict) -> None:
 	"""
 	Collects damage mitigation data from a fight and stores it in a dictionary.
@@ -2310,6 +2340,7 @@ def parse_file(file_path, fight_num, guild_data, fight_data_charts):
 		'enemy_Green': 0,
 		'enemy_Blue': 0,
 		'enemy_Unk': 0,
+		'rallies': 0,
 	}
 
 	for stat_cat in json_stats:
@@ -2342,6 +2373,9 @@ def parse_file(file_path, fight_num, guild_data, fight_data_charts):
 
 	#collect mechanics data
 	get_mechanics_by_fight(fight_num, mechanics_map, players, log_type)
+
+	top_stats['fight'][fight_num]['rallies'] = get_rally_mechanics_by_fight(mechanics_map)
+	top_stats['overall']['rallies'] = top_stats['overall'].get('rallies', 0) + top_stats['fight'][fight_num]['rallies']
 
 	get_damage_mitigation_data(fight_num, players, targets, skill_map, buff_map)
 
