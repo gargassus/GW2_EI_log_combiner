@@ -2054,13 +2054,20 @@ def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time:
 		rows = []
 		rows.append('<div style="overflow-x:auto;">\n\n')
 		header = "|thead-dark table-caption-top-left table-hover sortable freeze-col|k\n"
-		header += "|!Player | Fights| Fight Time|"
+		header += "|,!Player |, Fights|, Fight Time|"
+		header2 = "|~|~|~|"
 		for minion in minions[profession]['pets_list']:
-			header += f" !{minion} |"
-		header += "h"
+			header += f" !{minion} |<|<|"
+			header2 += " !# | !{{damageTaken}}| {{Healing}}|"
+		header += " Total Minion Data |<|<|h"
+		header2 += " !# | !{{damageTaken}}| {{Healing}}|h"
 		rows.append(header)
+		rows.append(header2)
 
 		for player in minions[profession]['player']:
+			total_count = 0
+			total_damage_taken = 0
+			total_healing = 0
 			name, profession, account = player.split("|")
 			fights = players[player]['num_fights']
 			fight_time = f"{players[player]['active_time']/1000:,.1f}"
@@ -2070,10 +2077,17 @@ def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time:
 				row = f'|<span data-tooltip="{account}">{name}</span>| {fights}| {fight_time}|'
 			for minion in minions[profession]['pets_list']:
 				if minion in minions[profession]['player'][player]:
-					entry = f" {minions[profession]['player'][player][minion]} |"
+					minion_count = minions[profession]['player'][player][minion]
+					total_count += minion_count
+					minion_damage_taken = minions[profession]['player'][player][minion+'DamageTaken']/1000
+					total_damage_taken += minion_damage_taken
+					minion_healing = minions[profession]['player'][player][minion+'IncomingHealing']/1000
+					total_healing += minion_healing
+					entry = f" {minion_count} | {minion_damage_taken:,.1f}K| {minion_healing:,.1f}K|"
 				else:
-					entry = " - |"
+					entry = " - | - | - |"
 				row += entry
+			row += f" {total_count} | {total_damage_taken:,.1f}K| {total_healing:,.1f}K|"
 			rows.append(row)
 		#rows.append(f"| {profession}_{caption} |c")
 		rows.append("\n\n</div>\n\n")
