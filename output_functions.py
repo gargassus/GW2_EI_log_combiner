@@ -2058,9 +2058,9 @@ def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time:
 		header2 = "|~|~|~|"
 		for minion in minions[profession]['pets_list']:
 			header += f" !{minion} |<|<|"
-			header2 += " !# | !{{damageTaken}}| {{Healing}}|"
+			header2 += " !Count | !{{damageTaken}}| {{Healing}}|"
 		header += " Total Minion Data |<|<|h"
-		header2 += " !# | !{{damageTaken}}| {{Healing}}|h"
+		header2 += " !Count | !{{damageTaken}}| {{Healing}}|h"
 		rows.append(header)
 		rows.append(header2)
 
