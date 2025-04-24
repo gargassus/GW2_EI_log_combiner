@@ -59,6 +59,10 @@ stacking_uptime_Table = {}
 IOL_revive = {}
 debuff_damage = {}
 fight_data = {}
+killing_blow_rallies = {
+	"total": 0,
+	'kb_players': {}
+}
 
 def get_fight_data(player, fight_num):
 	player_id = f"{player['account']}-{player['profession']}-{player['name']}"
@@ -2005,33 +2009,48 @@ def get_mechanics_by_fight(fight_number: int, mechanics_map: dict, players: dict
 				else:
 					mechanics[fight_number][mechanic_name]['enemy_data'][actor] += 1
 
-def get_rally_mechanics_by_fight(mechanics_map: dict) -> None:
-	killing_blows = {}
+def get_rally_mechanics_by_fight(mechanics_map, players):
 	got_ups = {}
+	got_up_cnts = {}
+	killing_blows = {}
+	killing_blows_cnts = {}
 	rallies = 0
+
 	for mechanic_data in mechanics_map:
 		mechanic_name = mechanic_data['name']
 		if "Got" in mechanic_name:
-			for kb in mechanic_data['mechanicsData']:
-				kb_time = kb['time']
-				got_ups[kb_time] = got_ups.get(kb_time, 0) + 1
+			got_ups = mechanic_data['mechanicsData']
+			for entry in got_ups:
+				gu_time = entry['time']
+				if gu_time not in got_up_cnts:
+					got_up_cnts[gu_time] = 0
+				got_up_cnts[gu_time] += 1
 
 		if mechanic_name == "Kllng.Blw.Player":
-			for kb in mechanic_data['mechanicsData']:
-				kb_time = kb['time']
-				killing_blows[kb_time] = killing_blows.get(kb_time, 0) + 1
+			killing_blows = mechanic_data['mechanicsData']
+			for entry in killing_blows:
+				kb_time = entry['time']
+				kb_actor = entry['actor']
+				kb_key = f"{kb_time}|{kb_actor}"
+				if kb_key not in killing_blows_cnts:
+					killing_blows_cnts[kb_key] = 0
+				killing_blows_cnts[kb_key] += 1		
 
-	for rally_time in got_ups:
-		if rally_time in killing_blows:
-			if killing_blows[rally_time] > got_ups[rally_time]:
-				rallies += got_ups[rally_time]
-			else:
-				rallies += killing_blows[rally_time]
-	print(f"Rallies: {rallies}")
-	print(f"Killing Blows: {sum(killing_blows.values())}")
-	print(f"Killing Blows Dict: {killing_blows}")
-	print(f"Got Ups: {sum(got_ups.values())}")
-	print(f"Got Ups Dict: {got_ups}")	
+	for gu_entry in got_up_cnts:
+		rally_time = gu_entry
+		for kb_entry in killing_blows_cnts:
+			kb_time, kb_actor = kb_entry.split('|')
+			for player in players:
+				if player['name'] == kb_actor:
+					kb_actor = f"{player['profession']}|{player['name']}|{player['account']}"
+			if str(kb_time) == str(rally_time):
+				rally_count = got_up_cnts[gu_entry] if got_up_cnts[gu_entry] < killing_blows_cnts[kb_entry] else killing_blows_cnts[kb_entry]
+				killing_blow_rallies['total'] += rally_count
+				rallies += rally_count
+				if kb_actor not in killing_blow_rallies['kb_players']:
+					killing_blow_rallies['kb_players'][kb_actor] = 0
+				killing_blow_rallies['kb_players'][kb_actor] = killing_blow_rallies['kb_players'].get(kb_actor,0) + rally_count
+
 	return rallies
 
 
@@ -2374,9 +2393,11 @@ def parse_file(file_path, fight_num, guild_data, fight_data_charts):
 	#collect mechanics data
 	get_mechanics_by_fight(fight_num, mechanics_map, players, log_type)
 
-	top_stats['fight'][fight_num]['rallies'] = get_rally_mechanics_by_fight(mechanics_map)
+	#top_stats['fight'][fight_num]['rallies'] = get_rally_mechanics_by_fight(mechanics_map)
+	top_stats['fight'][fight_num]['rallies'] = get_rally_mechanics_by_fight(mechanics_map, players)
 	top_stats['overall']['rallies'] = top_stats['overall'].get('rallies', 0) + top_stats['fight'][fight_num]['rallies']
 
+	#collect damage mitigation data
 	get_damage_mitigation_data(fight_num, players, targets, skill_map, buff_map)
 
 	get_illusion_of_life_data(players, fight_duration_ms)

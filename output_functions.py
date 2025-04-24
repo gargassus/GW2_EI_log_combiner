@@ -392,7 +392,7 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += f"| {caption} |c\n"
-	header += "|# |Fight Link | Duration | Squad | Allies | Enemy | R/G/B | {{DownedEnemy}} | {{killed}} | {{DownedAlly}} |[img width=24 [Rallies|https://wiki.guildwars2.com/images/6/6e/Renown_Heart_%28map_icon%29.png]] | {{DeadAlly}} | {{Damage}} | {{Damage Taken}} | {{damageBarrier}} | {{damageBarrier}} % | {{damageShield}} | {{damageShield}} % |h"
+	header += "|# |Fight Link | Duration | Squad | Allies | Enemy | R/G/B | {{DownedEnemy}} | {{killed}} | {{DownedAlly}} | [img width=24 [Rallies|https://wiki.guildwars2.com/images/6/6e/Renown_Heart_%28map_icon%29.png]] | {{DeadAlly}} | {{Damage}} | {{Damage Taken}} | {{damageBarrier}} | {{damageBarrier}} % | {{damageShield}} | {{damageShield}} % |h"
 
 	rows.append(header)
 
@@ -1327,7 +1327,7 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 			tid_list
 		)
 
-def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_data: dict, IOL_revive: dict,  caption: str, tid_date_time: str) -> None:
+def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_data: dict, IOL_revive: dict, killing_blow_rallies: dict, caption: str, tid_date_time: str) -> None:
 	"""Build a table of combat resurrection stats for all players in the log running the extension.
 
 	This function iterates over the top_stats dictionary and builds a dictionary with the following structure:
@@ -1394,6 +1394,24 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 				combat_resurrect['players'][prof_name]['s10244']['total']  = IOL_revive[player_data['name']].get('hits', 0)
 				combat_resurrect['players'][prof_name]['s10244']['hits']  = IOL_revive[player_data['name']].get('casts', 0)	
 
+		kb_actor = f"{player_data['profession']}|{player_data['name']}|{player_data['account']}"
+		if kb_actor in killing_blow_rallies['kb_players']:
+			if 'kb_rally' not in combat_resurrect['res_skills']:
+				combat_resurrect['res_skills']['kb_rally'] = killing_blow_rallies['kb_players'][kb_actor]
+			else:
+				combat_resurrect['res_skills']['kb_rally'] = combat_resurrect['res_skills']['kb_rally'] + killing_blow_rallies['kb_players'][kb_actor]
+
+			if prof_name not in combat_resurrect['players']:
+				combat_resurrect['players'][prof_name] = {}
+
+			if 'kb_rally' not in combat_resurrect['players'][prof_name]:
+				combat_resurrect['players'][prof_name]['kb_rally'] = {
+					'total': 0,
+					'hits': 0
+				}
+				combat_resurrect['players'][prof_name]['kb_rally']['total']  = killing_blow_rallies['kb_players'][kb_actor]
+				combat_resurrect['players'][prof_name]['kb_rally']['hits']  = killing_blow_rallies['kb_players'][kb_actor]
+
 	sorted_res_skills = sorted(combat_resurrect['res_skills'], key=combat_resurrect['res_skills'].get, reverse=True)
 
 	combat_resurrect_tags = f"{tid_date_time}"
@@ -1413,10 +1431,13 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 		elif skill.replace(skill[0], "b", 1) in buff_data:
 			skill_icon = buff_data[skill.replace(skill[0], "b", 1)]['icon']
 			skill_name = buff_data[skill.replace(skill[0], "b", 1)]['name']
+		elif skill == "kb_rally":
+			skill_icon = "https://wiki.guildwars2.com/images/6/6e/Renown_Heart_%28map_icon%29.png"
+			skill_name = "Killing Blow Rally"
 		else:
 			skill_icon = "unknown.png"
 			skill_name = skill
-		header += f" ![img width=24 [{skill} - {skill_name}|{skill_icon}]] |"
+		header += f" ![img width=24 [{skill} - {skill_name}|{skill_icon}]]|"
 
 	header += "h"
 
@@ -1425,6 +1446,7 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 	for player in combat_resurrect['players']:
 		profession, name, account, group, active_time = player.split('|')
 		time_secs = int(active_time) / 1000
+
 		abbrv = profession[:3]
 		profession = "{{" + profession + "}}"
 		row = f"|{group} |<span data-tooltip='{account}'> {name} </span>| {profession} {abbrv} | {time_secs:,.1f}|"
@@ -1434,6 +1456,8 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 				hits = f"{combat_resurrect['players'][player][skill].get('hits', 0):,.0f}"
 				if skill == 's10244':
 					row += f' <span data-tooltip="{hits} Casts"> {total} </span>|'
+				elif skill == 'kb_rally':
+					row += f' <span data-tooltip="{total} Rallies"> {total} </span>|'
 				else:
 					row += f' <span data-tooltip="{hits} Total hits"> {total} </span>|'
 			else:
@@ -2969,6 +2993,7 @@ def build_commander_summary_menu(commander_summary_data: dict, tid_date_time: st
 	text = '<<tabs "'
 	tag_name = "None"
 	tag_prof = "None"
+	tag_acct = "None"
 	for commander in commander_summary_data:
 		tag_name, tag_prof, tag_acct = commander.split("|")
 

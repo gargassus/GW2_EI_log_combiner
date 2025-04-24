@@ -285,11 +285,11 @@ if __name__ == '__main__':
 	build_fight_summary(top_stats, "Overview", tid_date_time)
 
 	#get combat resurrection stats found and output table
-	build_combat_resurrection_stats_tid(top_stats, skill_data, buff_data, IOL_revive, "Combat Resurrect", tid_date_time)
+	build_combat_resurrection_stats_tid(top_stats, skill_data, buff_data, IOL_revive, killing_blow_rallies, "Combat Resurrect", tid_date_time)
 
 	#get FB Pages and output table
 	build_fb_pages_tid(fb_pages, "FB Pages", tid_date_time)
-
+ 
 	build_high_scores_tid(high_scores, skill_data, buff_data, "High Scores", tid_date_time)
 
 	build_mechanics_tid(mechanics, top_stats['player'], "Mechanics", tid_date_time)
