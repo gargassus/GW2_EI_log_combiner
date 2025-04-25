@@ -30,6 +30,7 @@ mesmer_shatter_skills = config.mesmer_shatter_skills
 mesmer_clone_usage = {}
 enemy_avg_damage_per_skill = {}
 player_damage_mitigation = {}
+player_minion_damage_mitigation = {}
 
 # Buff and skill data collected from all logs
 buff_data = {}
@@ -2167,6 +2168,105 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 					player_damage_mitigation[name_prof][skill_name]['interrupted_dmg'] += player_damage_mitigation[name_prof][skill_name]['interrupted'] * player_damage_mitigation[name_prof][skill_name]['avg_dmg']
 					player_damage_mitigation[name_prof][skill_name]['avoided_damage'] += avoided_damage
 					player_damage_mitigation[name_prof][skill_name]['min_avoided_damage'] += min_avoided_damage
+
+		if "minions" in player:
+			for minion in player["minions"]:
+				if 'totalDamageTakenDist' not in minion:
+					continue
+				minion_name = minion["name"].replace("Juvenile ", "")
+				if "UNKNOWN" in minion_name:
+					minion_name = "Unknown"
+				for skill in minion['totalDamageTakenDist'][0]:
+					skill_id = skill['id']
+					if f"s{skill_id}" in skill_data:
+						skill_name = skill_data[f"s{skill_id}"]['name']
+					elif f"b{skill_id}" in buff_data:
+						skill_name = buff_data[f"b{skill_id}"]['name']
+					else:
+						skill_name = f"Unknown Skill {skill_id}"
+
+					if name_prof not in player_minion_damage_mitigation:
+						player_minion_damage_mitigation[name_prof] = {}
+					if minion_name not in player_minion_damage_mitigation[name_prof]:
+						player_minion_damage_mitigation[name_prof][minion_name] = {}
+					if skill_name not in player_minion_damage_mitigation[name_prof][minion_name]:
+						player_minion_damage_mitigation[name_prof][minion_name][skill_name] = {
+							'blocked': 0,
+							'blocked_dmg': 0,
+							'evaded': 0,
+							'evaded_dmg': 0,
+							'glanced': 0,
+							'glanced_dmg': 0,
+							'missed': 0,
+							'missed_dmg': 0,
+							'invulned': 0,
+							'invulned_dmg': 0,
+							'interrupted': 0,
+							'interrupted_dmg': 0,
+							'total_dmg': 0,
+							'skill_hits': 0,
+							'total_hits': 0,
+							'avg_dmg': 0,
+							'min_dmg': 0,
+							'avoided_damage': 0,
+							'min_avoided_damage': 0							
+						}
+
+					player_minion_damage_mitigation[name_prof][minion_name][skill_name]['blocked'] += skill['blocked']
+					player_minion_damage_mitigation[name_prof][minion_name][skill_name]['evaded'] += skill['evaded']
+					player_minion_damage_mitigation[name_prof][minion_name][skill_name]['glanced'] += skill['glance']
+					player_minion_damage_mitigation[name_prof][minion_name][skill_name]['missed'] += skill['missed']
+					player_minion_damage_mitigation[name_prof][minion_name][skill_name]['invulned'] += skill['invulned']
+					player_minion_damage_mitigation[name_prof][minion_name][skill_name]['interrupted'] += skill['interrupted']
+					player_minion_damage_mitigation[name_prof][minion_name][skill_name]['skill_hits'] += skill['hits']
+					player_minion_damage_mitigation[name_prof][minion_name][skill_name]['total_dmg'] = enemy_avg_damage_per_skill[skill_name]['dmg'] if skill_name in enemy_avg_damage_per_skill else 0
+					player_minion_damage_mitigation[name_prof][minion_name][skill_name]['total_hits'] = enemy_avg_damage_per_skill[skill_name]['hits'] if skill_name in enemy_avg_damage_per_skill else 0
+
+					if player_minion_damage_mitigation[name_prof][minion_name][skill_name]['skill_hits'] > 0:
+						player_minion_damage_mitigation[name_prof][minion_name][skill_name]['avg_dmg'] = player_minion_damage_mitigation[name_prof][minion_name][skill_name]['total_dmg'] / player_minion_damage_mitigation[name_prof][minion_name][skill_name]['skill_hits']
+						if skill_name in enemy_avg_damage_per_skill:
+							player_minion_damage_mitigation[name_prof][minion_name][skill_name]['min_dmg'] = sum(enemy_avg_damage_per_skill[skill_name]['min']) / len(enemy_avg_damage_per_skill[skill_name]['min'])
+						else:
+							player_minion_damage_mitigation[name_prof][minion_name][skill_name]['min_dmg'] = 0
+						avoided_damage = (
+							player_minion_damage_mitigation[name_prof][minion_name][skill_name]['glanced'] * player_minion_damage_mitigation[name_prof][minion_name][skill_name]['avg_dmg']/2
+							+(
+								(
+									#player_minion_damage_mitigation[name_prof][minion_name][
+									player_minion_damage_mitigation[name_prof][minion_name][skill_name]['blocked']
+									+ player_minion_damage_mitigation[name_prof][minion_name][skill_name]['evaded']
+									+ player_minion_damage_mitigation[name_prof][minion_name][skill_name]['missed']
+									+ player_minion_damage_mitigation[name_prof][minion_name][skill_name]['invulned']
+									+ player_minion_damage_mitigation[name_prof][minion_name][skill_name]['interrupted']
+
+								)* player_minion_damage_mitigation[name_prof][minion_name][skill_name]['avg_dmg']
+							)
+						)
+						min_avoided_damage = (
+							player_minion_damage_mitigation[name_prof][minion_name][skill_name]['glanced'] * player_minion_damage_mitigation[name_prof][minion_name][skill_name]['min_dmg']/2
+							+(
+								(
+									player_minion_damage_mitigation[name_prof][minion_name][skill_name]['blocked']
+									+player_minion_damage_mitigation[name_prof][minion_name][skill_name]['evaded']
+									+player_minion_damage_mitigation[name_prof][minion_name][skill_name]['missed']
+									+player_minion_damage_mitigation[name_prof][minion_name][skill_name]['invulned']
+									+player_minion_damage_mitigation[name_prof][minion_name][skill_name]['interrupted']
+
+								)*player_minion_damage_mitigation[name_prof][minion_name][skill_name]['min_dmg']
+							)
+						)
+						player_minion_damage_mitigation[name_prof][minion_name][skill_name]['blocked_dmg'] = player_minion_damage_mitigation[name_prof][minion_name][skill_name]['blocked'] * player_minion_damage_mitigation[name_prof][minion_name][skill_name]['avg_dmg']
+						player_minion_damage_mitigation[name_prof][minion_name][skill_name]['evaded_dmg'] = player_minion_damage_mitigation[name_prof][minion_name][skill_name]['evaded'] * player_minion_damage_mitigation[name_prof][minion_name][skill_name]['avg_dmg']
+						player_minion_damage_mitigation[name_prof][minion_name][skill_name]['glanced_dmg'] = player_minion_damage_mitigation[name_prof][minion_name][skill_name]['glanced'] * (player_minion_damage_mitigation[name_prof][minion_name][skill_name]['avg_dmg']/2)
+						player_minion_damage_mitigation[name_prof][minion_name][skill_name]['missed_dmg'] = player_minion_damage_mitigation[name_prof][minion_name][skill_name]['missed'] * player_minion_damage_mitigation[name_prof][minion_name][skill_name]['avg_dmg']
+						player_minion_damage_mitigation[name_prof][minion_name][skill_name]['invulned_dmg'] = player_minion_damage_mitigation[name_prof][minion_name][skill_name]['invulned'] * player_minion_damage_mitigation[name_prof][minion_name][skill_name]['avg_dmg']
+						player_minion_damage_mitigation[name_prof][minion_name][skill_name]['interrupted_dmg'] = player_minion_damage_mitigation[name_prof][minion_name][skill_name]['interrupted'] * player_minion_damage_mitigation[name_prof][minion_name][skill_name]['avg_dmg']
+						player_minion_damage_mitigation[name_prof][minion_name][skill_name]['avoided_damage'] = avoided_damage
+						player_minion_damage_mitigation[name_prof][minion_name][skill_name]['min_avoided_damage'] = min_avoided_damage
+
+
+
+
 
 def get_minions_by_player(player_data: dict, player_name: str, profession: str) -> None:
 	"""

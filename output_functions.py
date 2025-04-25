@@ -1529,7 +1529,7 @@ def build_menu_tid(datetime: str) -> None:
 	)
 
 	append_tid_for_output(
-		create_new_tid_from_template(title, caption, text, tags, fields={'radio': 'Total', 'boon_radio': 'Total', "category_radio": "Total", "category_heal": "Squad", "stacking_item": "might", 'damage_with_buff': 'might'}),
+		create_new_tid_from_template(title, caption, text, tags, fields={'radio': 'Total', 'boon_radio': 'Total', "category_radio": "Total", "category_heal": "Squad", "stacking_item": "might", 'damage_with_buff': 'might', 'mitigation': 'Player'}),
 		tid_list
 	)
 
@@ -3410,7 +3410,7 @@ def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_
 		tid_list	
 	)
 	
-def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: dict, tid_date_time: str, tid_list: list) -> None:
+def build_defense_damage_mitigation(player_damage_mitigation: dict, player_minion_damage_mitigation: dict, top_stats: dict, tid_date_time: str, tid_list: list) -> None:
 	"""
 	Build a table of defense damage mitigation for each player in the log running the extension.
 
@@ -3440,8 +3440,9 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: d
 	rows.append("\n!!!@@ Note: This is a rough estimate based on average skill damage by the enemy and defensive actions by the player.@@")
 	rows.append("\n!!!@@If you have high incoming downed damage the values are likely exaggerated@@\n\n")
 
-	rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
-	rows.append(f"| Damage Mitigation based on Average Enemy Damage per `skillID` and Player defensive activity per `skillID` |c")
+	rows.append('<$reveal stateTitle=<<currentTiddler>> stateField="mitigation" type="match" text="Player" animate="yes">\n')
+	rows.append('|<$radio field="mitigation" value="Player"> Player </$radio> - <$radio field="mitigation" value="Minions"> Minions  </$radio> - Damage Mitigation based on Average Enemy Damage per `skillID` and Player Defensive Activity per `skillID` |c')
+	rows.append('|thead-dark table-hover table-caption-top sortable|k')
 	rows.append("|!Player | !Prof | !{{FightTime}} | !{{directHits}}| !{{evadedCount}}| !{{blockedCount}}| !{{glanceCount}}| !{{missedCount}}| !{{invulnedCount}}| !{{interruptedCount}}| !~AvgDmg|!~AvgDmg/{{FightTime}}| !~MinDmg| !~MinDmg/{{FightTime}}|h")
 
 	for name_prof, data in player_damage_mitigation.items():
@@ -3495,6 +3496,66 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, top_stats: d
 		min_avg_damage = round(total_min_mitigation/active_time) if active_time > 0 else 0
 		rows.append(f"|<span data-tooltip='{player_account}'>{player_name}</span> |{player_profession}| {active_time:,} | {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}| {avg_damage:,.0f}| {total_min_mitigation:,.0f}| {min_avg_damage:,.0f}|")
 
+	rows.append("</$reveal>\n")
+
+	rows.append('<$reveal stateTitle=<<currentTiddler>> stateField="mitigation" type="match" text="Minions" animate="yes">\n')
+	rows.append('|<$radio field="mitigation" value="Player"> Player </$radio> - <$radio field="mitigation" value="Minions"> Minions  </$radio> - Damage Mitigation based on Average Enemy Damage per `skillID` and Minion Defensive Activity per `skillID` |c')
+	rows.append('|thead-dark table-hover table-caption-top sortable|k')
+	rows.append("|!Player | !Prof |!Minion | !{{FightTime}} | !{{directHits}}| !{{evadedCount}}| !{{blockedCount}}| !{{glanceCount}}| !{{missedCount}}| !{{invulnedCount}}| !{{interruptedCount}}| !~AvgDmg|!~AvgDmg/{{FightTime}}| !~MinDmg| !~MinDmg/{{FightTime}}|h")
+
+	for name_prof, minion_data in player_minion_damage_mitigation.items():
+		player_name, player_profession, player_account = name_prof.split("|")
+		if name_prof in top_stats['player']:
+			active_time = round(top_stats['player'][name_prof].get('active_time', 0) / 1000)
+		else:
+			active_time = 0		
+		player_profession = "{{"+player_profession+"}} "+player_profession[:3]
+
+		for minion in minion_data:
+			total_blocked = 0
+			total_evaded = 0
+			total_missed = 0
+			total_glanced = 0
+			total_invulned = 0
+			total_interrupted = 0
+			total_mitigation = 0
+			total_hits = 0
+			total_blocked_dmg = 0
+			total_evaded_dmg = 0
+			total_missed_dmg = 0
+			total_glanced_dmg = 0
+			total_invulned_dmg = 0
+			total_interrupted_dmg = 0
+			total_min_mitigation = 0
+
+			for skill in minion_data[minion]:
+				#if minion_data[minion][skill]["avoided_damage"]:
+				total_blocked += minion_data[minion][skill]["blocked"]
+				total_evaded += minion_data[minion][skill]["evaded"]
+				total_missed += minion_data[minion][skill]["missed"]
+				total_glanced += minion_data[minion][skill]["glanced"]
+				total_invulned += minion_data[minion][skill]["invulned"]
+				total_interrupted += minion_data[minion][skill]["interrupted"]
+				total_mitigation += minion_data[minion][skill]["avoided_damage"]
+				total_hits += minion_data[minion][skill]["skill_hits"]
+				total_blocked_dmg += minion_data[minion][skill]["blocked_dmg"]
+				total_evaded_dmg += minion_data[minion][skill]["evaded_dmg"]
+				total_missed_dmg += minion_data[minion][skill]["missed_dmg"]
+				total_glanced_dmg += minion_data[minion][skill]["glanced_dmg"]
+				total_invulned_dmg += minion_data[minion][skill]["invulned_dmg"]
+				total_interrupted_dmg += minion_data[minion][skill]["interrupted_dmg"]
+				total_min_mitigation += minion_data[minion][skill]["min_avoided_damage"]
+
+			blocked_entry = f'<span data-tooltip="Dmg: {total_blocked_dmg:,.0f}">{total_blocked:,.0f}</span>'
+			evaded_entry = f'<span data-tooltip="Dmg: {total_evaded_dmg:,.0f}">{total_evaded:,.0f}</span>'
+			missed_entry = f'<span data-tooltip="Dmg: {total_missed_dmg:,.0f}">{total_missed:,.0f}</span>'
+			glanced_entry = f'<span data-tooltip="Dmg: {total_glanced_dmg:,.0f}">{total_glanced:,.0f}</span>'
+			invulned_entry = f'<span data-tooltip="Dmg: {total_invulned_dmg:,.0f}">{total_invulned:,.0f}</span>'
+			interrupted_entry = f'<span data-tooltip="Dmg: {total_interrupted_dmg:,.0f}">{total_interrupted:,.0f}</span>'
+			avg_damage = round(total_mitigation/active_time) if active_time > 0 else 0
+			min_avg_damage = round(total_min_mitigation/active_time) if active_time > 0 else 0
+			if total_mitigation:
+				rows.append(f"|<span data-tooltip='{player_account}'>{player_name}</span> |{player_profession}|{minion} | {active_time:,} | {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}| {avg_damage:,.0f}| {total_min_mitigation:,.0f}| {min_avg_damage:,.0f}|")
 	rows.append("\n\n")
 
 	text = "\n".join(rows)
@@ -3699,7 +3760,7 @@ def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 	conn.close()
 	print("Database updated.")
 
-def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, personal_buff_data: dict, fb_pages: dict, mechanics: dict, minions: dict, mesmer_clone_usage: dict, death_on_tag: dict, DPSStats: dict, commander_summary_data: dict, player_damage_mitigation: dict, stacking_uptime_Table: dict, IOL_revive: dict, fight_data: dict, outfile: str) -> None:
+def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, damage_mod_data: dict, high_scores: dict, personal_damage_mod_data: dict, personal_buff_data: dict, fb_pages: dict, mechanics: dict, minions: dict, mesmer_clone_usage: dict, death_on_tag: dict, DPSStats: dict, commander_summary_data: dict, player_damage_mitigation: dict, player_minion_damage_mitigation: dict, stacking_uptime_Table: dict, IOL_revive: dict, fight_data: dict, outfile: str) -> None:
 	"""Print the top_stats dictionary as a JSON object to the console."""
 
 	json_dict = {}
@@ -3724,11 +3785,11 @@ def output_top_stats_json(top_stats: dict, buff_data: dict, skill_data: dict, da
 	json_dict["DPSStats"] = {key: value for key, value in DPSStats.items()}
 	json_dict["commander_summary_data"] = {key: value for key, value in commander_summary_data.items()}
 	json_dict["player_damage_mitigation"] = {key: value for key, value in player_damage_mitigation.items()}
+	json_dict["player_minion_damage_mitigation"] = {key: value for key, value in player_minion_damage_mitigation.items()}
 	json_dict["stacking_uptime_Table"] = {key: value for key, value in stacking_uptime_Table.items()}
 	json_dict["IOL_revive"] = {key: value for key, value in IOL_revive.items()}
 	json_dict["fight_data"] = {key: value for key, value in fight_data.items()}
 
-	#stacking_uptime_Table
 	with open(outfile, 'w') as json_file:
 		json.dump(json_dict, json_file, indent=4)
 
