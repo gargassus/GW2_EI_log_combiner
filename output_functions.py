@@ -2976,7 +2976,7 @@ def build_attendance_table(top_stats: dict, tid_date_time: str, tid_list: list) 
 						f"|~|{player_name}|{profession}| {stats['num_fights']}| {stats['active_time']}| {guild_status} |"
 					)
 		rows.append(
-			f"| Totals for {account}:|<|<| {total_num_fights}| {total_active_time}| {guild_status} ||h"
+			f"| Totals for {account}:|<|<| {total_num_fights}| {total_active_time}| {guild_status} |h"
 		)
 
 	text = "\n".join(rows)
