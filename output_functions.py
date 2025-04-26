@@ -357,7 +357,7 @@ def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
 		tid_list
 		)
 
-def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> None:
+def build_fight_summary(top_stats: dict, fight_data_charts, caption: str, tid_date_time : str) -> None:
 	"""
 	Build a summary of the top stats for each fight.
 
@@ -392,7 +392,10 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 	rows.append('<div style="overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += f"| {caption} |c\n"
-	header += "|# |Fight Link | Duration | Squad | Allies | Enemy | R/G/B | {{DownedEnemy}} | {{killed}} | {{DownedAlly}} | [img width=24 [Rallies|https://wiki.guildwars2.com/images/6/6e/Renown_Heart_%28map_icon%29.png]] | {{DeadAlly}} | {{Damage}} | {{Damage Taken}} | {{damageBarrier}} | {{damageBarrier}} % | {{damageShield}} | {{damageShield}} % |h"
+	if fight_data_charts:
+		header += "|# |Fight Link | Duration | Squad | Allies | Enemy | R/G/B | {{DownedEnemy}} | {{killed}} | {{DownedAlly}} | [img width=24 [Rallies|https://wiki.guildwars2.com/images/6/6e/Renown_Heart_%28map_icon%29.png]] | {{DeadAlly}} | {{Damage}} | {{Damage Taken}} | {{damageBarrier}} | {{damageBarrier}} % | {{damageShield}} | {{damageShield}} % |Fight Chart|h"
+	else:
+		header += "|# |Fight Link | Duration | Squad | Allies | Enemy | R/G/B | {{DownedEnemy}} | {{killed}} | {{DownedAlly}} | [img width=24 [Rallies|https://wiki.guildwars2.com/images/6/6e/Renown_Heart_%28map_icon%29.png]] | {{DeadAlly}} | {{Damage}} | {{Damage Taken}} | {{damageBarrier}} | {{damageBarrier}} % | {{damageShield}} | {{damageShield}} % |h"
 
 	rows.append(header)
 
@@ -449,6 +452,8 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 		# Calculate the shield damage percentage
 		shield_damage_pct = (fight_shield_damage / dmg_out) * 100 if dmg_out else 0
 		row += f"| {shield_damage_pct:.2f}%|"
+		if fight_data_charts:
+			row += f"[[F-{fight_num} Chart|{tid_date_time}_Fight_{fight_num}_Damage_Output_Review]]|"
 
 		# Keep track of the last fight number, end time, and total duration
 		last_fight = fight_num
@@ -458,7 +463,10 @@ def build_fight_summary(top_stats: dict, caption: str, tid_date_time : str) -> N
 
 	raid_duration = convert_duration(total_durationMS)
 	# Build the footer
-	footer = f"|Total Fights: {last_fight}|<| {raid_duration}| {avg_squad_count:.1f},,avg,,| {avg_ally_count:.1f},,avg,,| {avg_enemy_count:.1f},,avg,,|     | {enemy_downed} | {enemy_killed} | {squad_down} | {total_rallies} | {squad_dead} | {total_damage_out:,}| {total_damage_in:,}| {total_barrier_damage:,}| {total_barrier_damage_percent:.2f}%| {total_shield_damage:,}| {total_shield_damage_percent:.2f}%|f"
+	if fight_data_charts:
+		footer = f"|Total Fights: {last_fight}|<| {raid_duration}| {avg_squad_count:.1f},,avg,,| {avg_ally_count:.1f},,avg,,| {avg_enemy_count:.1f},,avg,,|     | {enemy_downed} | {enemy_killed} | {squad_down} | {total_rallies} | {squad_dead} | {total_damage_out:,}| {total_damage_in:,}| {total_barrier_damage:,}| {total_barrier_damage_percent:.2f}%| {total_shield_damage:,}| {total_shield_damage_percent:.2f}%| |f"
+	else:
+		footer = f"|Total Fights: {last_fight}|<| {raid_duration}| {avg_squad_count:.1f},,avg,,| {avg_ally_count:.1f},,avg,,| {avg_enemy_count:.1f},,avg,,|     | {enemy_downed} | {enemy_killed} | {squad_down} | {total_rallies} | {squad_dead} | {total_damage_out:,}| {total_damage_in:,}| {total_barrier_damage:,}| {total_barrier_damage_percent:.2f}%| {total_shield_damage:,}| {total_shield_damage_percent:.2f}%|f"
 	rows.append(footer)
 	rows.append("\n\n</div>")
 	# push the table to tid_list
@@ -3565,124 +3573,134 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, player_minio
 		tid_list	
 	)
 
-def build_fight_line_chart(fight_data, fight_num):
-    """
-    Build a line chart for a single fight in the log. The chart shows both outgoing and incoming damage over time.
+def build_fight_line_chart(fight_data: dict, tid_date_time, tid_list) -> str:
+	"""
+	Build a line chart for a single fight in the log. The chart shows both outgoing and incoming damage over time.
 
-    Args:
-        fight_data (dict): A dictionary of fight data from the log.
-        fight_num (int): The fight number to generate the chart for.
+	Args:
+		fight_data (dict): A dictionary of fight data from the log.
+		fight_num (int): The fight number to generate the chart for.
 
-    Returns:
-        str: The configuration string for the line chart.
-    """
-    outgoing_damage_data = list(fight_data[fight_num]["damage1S"].values())
-    incoming_damage_data = list(fight_data[fight_num]["damageTaken1S"].values())
-    time_series = list(fight_data[fight_num]["damage1S"].keys())
-    chart_title = f"Fight-{fight_num}: Damage Output Review"
+	Returns:
+		str: The configuration string for the line chart.
+	"""
 
-    line_chart_config = f"""
-    option = {{
-    title: {{
-        text: '{chart_title}',
-        left: 'center'
-    }},
-    grid: {{
-      left: '5%',
-      right: '15%'
-    }},
-    legend: {{
-        type: 'scroll',
-        orient: 'vertical',
-        selector: ['all', 'inverse'],
-        right: 10,
-        top: 20,
-        bottom: 20,
-    }},
-    tooltip: {{
-        trigger: 'axis',
-        showContent: true
-    }},
-    dataZoom: [
-        {{
-        show: true,
-        realtime: true,
-        start: 30,
-        end: 70,
-        xAxisIndex: [0, 1]
-        }},
-        {{
-        type: 'inside',
-        realtime: true,
-        start: 30,
-        end: 70,
-        xAxisIndex: [0, 1]
-        }}
-    ],
-    xAxis: {{
-        type: 'category',
-        nameLocation: 'middle',
-        nameGap: 40,
-        name: 'Fight Time',
-        axisLabel: {{
-        formatter: '{{value}}s',
-        align: 'center'
-        }},
-        data: {time_series}
-    }},
-    yAxis: {{
-        type: 'value',
-        nameLocation: 'middle',
-        nameGap: 55,
-        name: 'Damage'
-    }},
-    series: [
-        {{
-        name: 'Outgoing Damage',
-        data: {outgoing_damage_data},
-        type: 'line',
-        smooth: true,
-        itemStyle: {{
-            // Color of the point.
-            color: 'dodgerblue'
-        }},
-        emphasis: {{ focus: 'series' }}
-        }},
-        {{
-        name: 'Incoming Damage',
-        data: {incoming_damage_data},
-        type: 'line',
-        smooth: true,
-        itemStyle: {{
-        // Color of the point.
-        color: 'khaki'
-        }},
-        emphasis: {{ focus: 'series' }}
-        }}
-    """
-    for player in fight_data[fight_num]["players"].keys():
-        if (fight_data[fight_num]["players"][player]['damage1S'][-1]/len(fight_data[fight_num]["players"][player]['damage1S'])) < 750:
-            continue
-        player_name = player.split("-")[1][:3]+" - "+player.split("-")[2]
-        player_damage_data = []
-        last_index = 0
-        for index in range(len(fight_data[fight_num]["players"][player]['damage1S'])):
-            cur_damage = fight_data[fight_num]["players"][player]['damage1S'][index] - fight_data[fight_num]["players"][player]['damage1S'][last_index]
-            
-            player_damage_data.append(cur_damage)
-            last_index = index
+	for fight_num in fight_data:
+		outgoing_damage_data = list(fight_data[fight_num]["damage1S"].values())
+		incoming_damage_data = list(fight_data[fight_num]["damageTaken1S"].values())
+		time_series = list(fight_data[fight_num]["damage1S"].keys())
+		chart_title = f"Fight-{fight_num}: Damage Output Review"
+		line_chart_config = '```py\nPlayer_Line = players with DPS > 700 for the fight\n```\n\n\n\n<$echarts $text="""\n'
+		line_chart_config += f"""
+		option = {{
+		title: {{
+			text: '{chart_title}',
+			left: 'center'
+		}},
+		grid: {{
+		left: '5%',
+		right: '15%'
+		}},
+		legend: {{
+			type: 'scroll',
+			orient: 'vertical',
+			selector: ['all', 'inverse'],
+			right: 10,
+			top: 20,
+			bottom: 20,
+		}},
+		tooltip: {{
+			trigger: 'axis',
+			showContent: true
+		}},
+		dataZoom: [
+			{{
+			show: true,
+			realtime: true,
+			start: 30,
+			end: 70,
+			xAxisIndex: [0, 1]
+			}},
+			{{
+			type: 'inside',
+			realtime: true,
+			start: 30,
+			end: 70,
+			xAxisIndex: [0, 1]
+			}}
+		],
+		xAxis: {{
+			type: 'category',
+			nameLocation: 'middle',
+			nameGap: 40,
+			name: 'Fight Time',
+			axisLabel: {{
+			formatter: '{{value}}s',
+			align: 'center'
+			}},
+			data: {time_series}
+		}},
+		yAxis: {{
+			type: 'value',
+			nameLocation: 'middle',
+			nameGap: 55,
+			name: 'Damage'
+		}},
+		series: [
+			{{
+			name: 'Outgoing Damage',
+			data: {outgoing_damage_data},
+			type: 'line',
+			smooth: true,
+			itemStyle: {{
+				// Color of the point.
+				color: 'dodgerblue'
+			}},
+			emphasis: {{ focus: 'series' }}
+			}},
+			{{
+			name: 'Incoming Damage',
+			data: {incoming_damage_data},
+			type: 'line',
+			smooth: true,
+			itemStyle: {{
+			// Color of the point.
+			color: 'khaki'
+			}},
+			emphasis: {{ focus: 'series' }}
+			}}
+		"""
+		for player in fight_data[fight_num]["players"].keys():
+			if (fight_data[fight_num]["players"][player]['damage1S'][-1]/len(fight_data[fight_num]["players"][player]['damage1S'])) < 750:
+				continue
+			player_name = player.split("-")[1][:3]+" - "+player.split("-")[2]
+			player_damage_data = []
+			last_index = 0
+			for index in range(len(fight_data[fight_num]["players"][player]['damage1S'])):
+				cur_damage = fight_data[fight_num]["players"][player]['damage1S'][index] - fight_data[fight_num]["players"][player]['damage1S'][last_index]
+				
+				player_damage_data.append(cur_damage)
+				last_index = index
 
-        player_line_chart_config = f""",
-    {{
-    name: '{player_name}',
-    data: {player_damage_data},
-    type: 'line',
-    smooth: true,
-    emphasis: {{ focus: 'series' }}
-    }}"""
-        line_chart_config += player_line_chart_config
-    line_chart_config += "\n    ]\n    };"
-    return line_chart_config
+			player_line_chart_config = f""",
+		{{
+		name: '{player_name}',
+		data: {player_damage_data},
+		type: 'line',
+		smooth: true,
+		emphasis: {{ focus: 'series' }}
+		}}"""
+			line_chart_config += player_line_chart_config
+		line_chart_config += '\n    ]\n    };\n\n"""$height="500px" $width="100%" $theme="dark"/>'
+
+		line_chart_title = f"{tid_date_time}_Fight_{fight_num}_Damage_Output_Review"
+		line_chart_caption = f"Fight-{fight_num}: Damage Output Review"
+		line_chart_tags = "Chart"
+
+		append_tid_for_output(
+			create_new_tid_from_template(line_chart_title, line_chart_caption, line_chart_config, line_chart_tags),
+			tid_list	
+		)
 
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 		

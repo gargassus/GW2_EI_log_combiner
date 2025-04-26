@@ -74,7 +74,7 @@ def get_fight_data(player, fight_num):
 			"players": {}
 		}
 
-	if player['dpsAll'][0]['dps'] >= 750:
+	if player['dpsAll'][0]['dps'] >= 700:
 		if player_id not in fight_data[fight_num]["players"]:
 			fight_data[fight_num]["players"][player_id] = {
 				"damage1S": player["damage1S"][0],

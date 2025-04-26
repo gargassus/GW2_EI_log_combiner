@@ -282,7 +282,7 @@ if __name__ == '__main__':
 
 	#get overview stats found and output table
 	#overview_stats = config_output.overview_stats
-	build_fight_summary(top_stats, "Overview", tid_date_time)
+	build_fight_summary(top_stats, fight_data_charts, "Overview", tid_date_time)
 
 	#get combat resurrection stats found and output table
 	build_combat_resurrection_stats_tid(top_stats, skill_data, buff_data, IOL_revive, killing_blow_rallies, "Combat Resurrect", tid_date_time)
@@ -330,6 +330,10 @@ if __name__ == '__main__':
 	build_stacking_buffs(stacking_uptime_Table, top_stats, tid_date_time, tid_list)
 
 	build_damage_with_buffs(stacking_uptime_Table, DPSStats, top_stats, tid_date_time, tid_list)
+
+	#Fight Data line charts
+	if fight_data_charts:
+		build_fight_line_chart(fight_data, tid_date_time, tid_list)
 
 	#commander Tag summary
 	if build_commander_summary_menu:
