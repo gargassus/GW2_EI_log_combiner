@@ -66,6 +66,16 @@ killing_blow_rallies = {
 }
 
 def get_fight_data(player, fight_num):
+	"""
+	Get the fight data for a player in a given fight
+
+	Args:
+		player (dict): The player data from the log
+		fight_num (int): The fight number to add the data to
+
+	Returns:
+		None
+	"""
 	player_id = f"{player['account']}-{player['profession']}-{player['name']}"
 	if fight_num not in fight_data:
 		fight_data[fight_num] = {
@@ -144,6 +154,21 @@ def calculate_resist_offset(resist_data: dict, state_data: dict) -> int:
 	return total_offset
 
 def determine_clone_usage(player, skill_map, mesmer_shatter_skills):
+	"""
+	Determine Mesmer clone usage for a given player.
+
+	This function loops over each skill in the player's rotation and checks if the skill is a Mesmer shatter skill.
+	If the skill is a Mesmer shatter skill, this function then loops over each cast of the skill and checks what clone state the Mesmer was in at the time of the cast.
+	The total time the Mesmer was in each clone state is then recorded in the mesmer_clone_usage dictionary.
+
+	Args:
+		player (dict): A dictionary containing information about the player.
+		skill_map (dict): A dictionary mapping skill IDs to skill names.
+		mesmer_shatter_skills (list): A list of Mesmer shatter skills.
+
+	Returns:
+		None
+	"""
 	active_clones = {}
 	name_prof = f"{player['name']}_{player['profession']}_{player['account']}"
 	if name_prof not in mesmer_clone_usage:
@@ -207,6 +232,16 @@ def calculate_moving_average(data: list, window_size: int) -> list:
 	return ma
 
 def find_lowest(dict):
+	"""
+	Find the key-value pair(s) with the lowest value in a dictionary.
+
+	Args:
+		dict (dict): A dictionary where the values are comparable.
+
+	Returns:
+		list: A list containing the key(s) and the lowest value found in the dictionary.
+	"""
+
 	temp = min(dict.values())
 	res = []
 	for key, value in dict.items():
@@ -216,6 +251,15 @@ def find_lowest(dict):
 	return res
 
 def find_smallest_value(my_dict):
+	"""
+	Find the key with the smallest value in a dictionary.
+
+	Args:
+		my_dict (dict): A dictionary where the values are comparable.
+
+	Returns:
+		str: The key with the smallest value in the dictionary, or "Dictionary is empty" if the dictionary is empty.
+	"""
 	if not my_dict:
 		return "Dictionary is empty"
 	
@@ -224,33 +268,62 @@ def find_smallest_value(my_dict):
 
 def calculate_damage_during_buff(player, target_idx, buff_start, buff_end, damage_type):
 
-    start_idx = math.floor(buff_start / 1000)
-    end_idx = math.ceil(buff_end / 1000)
+	"""
+	Calculate the damage a player did to a target during a given buff window.
 
-    current_damage = player[damage_type][target_idx][0][end_idx] - player[damage_type][target_idx][0][start_idx]
-            
-    return current_damage
+	Args:
+		player (dict): A dictionary containing information about the player.
+		target_idx (int): The index of the target in the player's targets list.
+		buff_start (float): The start time of the buff window in milliseconds.
+		buff_end (float): The end time of the buff window in milliseconds.
+		damage_type (str): The type of damage to calculate (e.g. "dps", "powerDps", etc.).
+
+	Returns:
+		float: The damage the player did to the target during the buff window.
+	"""
+	start_idx = math.floor(buff_start / 1000)
+	end_idx = math.ceil(buff_end / 1000)
+
+	current_damage = player[damage_type][target_idx][0][end_idx] - player[damage_type][target_idx][0][start_idx]
+			
+	return current_damage
 
 def check_target_for_buff_start_end(targets, players, damage_buff_ids):
-    for target in targets:
-        if "buffs" in target:
-            for buff in target["buffs"]:
-                if buff['id'] in damage_buff_ids:
-                    for player, phases in buff['statsPerSource'].items():
-                        buff_start_time = None
-                        total_damage = 0
-                        for phase in phases:
-                            if phase[1] != 0 and buff_start_time is None:
-                                buff_start_time = phase[0]
-                            elif phase[1] == 0 and buff_start_time is not None:
-                                buff_end_time = phase[0]
-                                damage, name_prof = calculate_damage_during_buff(players, target, player, buff_start_time, buff_end_time)
-                                total_damage += damage
-                                buff_start_time = None
-                        if total_damage > 0:
-                            if name_prof not in debuff_damage:
-                                debuff_damage[name_prof] = {}
-                            debuff_damage[name_prof][buff['id']] = debuff_damage[name_prof].get(buff['id'], 0) + total_damage
+	"""
+	Check each target for active buffs and calculate the total damage done by players during the buff duration.
+
+	This function iterates over a list of targets and checks for specific buffs in each target. For each buff found,
+	it calculates the damage done by each player during the active duration of the buff. The damage is accumulated for
+	each player and stored in a global dictionary `debuff_damage`.
+
+	Args:
+		targets (list): A list of target dictionaries containing buff information.
+		players (dict): A dictionary containing player information.
+		damage_buff_ids (set): A set of buff IDs that should be checked for damage calculation.
+
+	Returns:
+		None
+	"""
+
+	for target in targets:
+		if "buffs" in target:
+			for buff in target["buffs"]:
+				if buff['id'] in damage_buff_ids:
+					for player, phases in buff['statsPerSource'].items():
+						buff_start_time = None
+						total_damage = 0
+						for phase in phases:
+							if phase[1] != 0 and buff_start_time is None:
+								buff_start_time = phase[0]
+							elif phase[1] == 0 and buff_start_time is not None:
+								buff_end_time = phase[0]
+								damage, name_prof = calculate_damage_during_buff(players, target, player, buff_start_time, buff_end_time)
+								total_damage += damage
+								buff_start_time = None
+						if total_damage > 0:
+							if name_prof not in debuff_damage:
+								debuff_damage[name_prof] = {}
+							debuff_damage[name_prof][buff['id']] = debuff_damage[name_prof].get(buff['id'], 0) + total_damage
 
 def update_high_score(stat_name: str, key: str, value: float) -> None:
 	"""
@@ -313,6 +386,15 @@ def determine_player_role(player_data: dict) -> str:
 		return "DPS"
 
 def calculate_defensive_hits_and_glances(player_data: dict) -> dict:
+	"""
+	Calculate the number of direct and glancing hits taken by a player based on the total damage taken.
+
+	Args:
+		player_data (dict): The player data.
+
+	Returns:
+		tuple: The number of direct hits and glancing hits taken by the player as a tuple (direct_hits, glancing_hits).
+	"""
 	direct_hits = 0
 	glancing_hits = 0
 	for skill in player_data['totalDamageTaken'][0]:
@@ -358,79 +440,90 @@ def get_commander_tag_data(fight_json):
 	return commander_tag_positions, earliest_death_time, has_died
 
 def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead_tag, inch_to_pixel, polling_rate):
-		name_prof = player['name'] + "|" + player['profession'] + "|" + player['account']
-		if name_prof not in death_on_tag:
-			death_on_tag[name_prof] = {
-			"name": player['name'],
-			"profession": player['profession'],
-			"account": player['account'],
-			"distToTag": [],
-			"On_Tag": 0,
-			"Off_Tag": 0,
-			"Run_Back": 0,
-			"After_Tag_Death": 0,
-			"Total": 0,
-			"Ranges": [],
-			}
+	"""
+	Calculate the distance to the commander tag for each player in the log, and store it in the death_on_tag dictionary.
+	
+	Args:
+		player (dict): The player data.
+		commander_tag_positions (list): The positions of the commander tag, as a list of (x, y) coordinates.
+		dead_tag_mark (int): The mark at which the commander tag was last alive.
+		dead_tag (bool): Whether the commander tag was dead.
+		inch_to_pixel (float): The conversion factor between inches and pixels.
+		polling_rate (int): The rate at which the combat log is polled.
+	"""
+	name_prof = player['name'] + "|" + player['profession'] + "|" + player['account']
+	if name_prof not in death_on_tag:
+		death_on_tag[name_prof] = {
+		"name": player['name'],
+		"profession": player['profession'],
+		"account": player['account'],
+		"distToTag": [],
+		"On_Tag": 0,
+		"Off_Tag": 0,
+		"Run_Back": 0,
+		"After_Tag_Death": 0,
+		"Total": 0,
+		"Ranges": [],
+		}
+		
+	player_dist_to_tag = round(player['statsAll'][0]['distToCom'])
+
+	if player['combatReplayData']['dead'] and player['combatReplayData']['down'] and commander_tag_positions:
+		player_deaths = dict(player['combatReplayData']['dead'])
+		player_downs = dict(player['combatReplayData']['down'])
+
+		for death_key, death_value in player_deaths.items():
+			if death_key < 0:  # Handle death on the field before main squad combat log starts
+				continue
+
+			position_mark = max(1, math.floor(death_key / polling_rate))
+			player_positions = player['combatReplayData']['positions']
 			
-		player_dist_to_tag = round(player['statsAll'][0]['distToCom'])
+			for down_key, down_value in player_downs.items():
+				if death_key == down_value:
+					# process data for downKey
+					x1, y1 = player_positions[position_mark]
+					#y1 = player_positions[position_mark][1]
+					x2, y2 = commander_tag_positions[position_mark]
+					#y2 = commander_tag_positions[position_mark][1]
+					death_distance = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+					death_range = round(death_distance / inch_to_pixel)
+					death_on_tag[name_prof]["Total"] += 1
 
-		if player['combatReplayData']['dead'] and player['combatReplayData']['down'] and commander_tag_positions:
-			player_deaths = dict(player['combatReplayData']['dead'])
-			player_downs = dict(player['combatReplayData']['down'])
+					if int(down_key) > int(dead_tag_mark) and dead_tag:
+						death_on_tag[name_prof]["After_Tag_Death"] += 1
 
-			for death_key, death_value in player_deaths.items():
-				if death_key < 0:  # Handle death on the field before main squad combat log starts
-					continue
+						# Calc Avg distance through dead tag final mark
+						player_dead_poll = max(1, int(dead_tag_mark / polling_rate))
+						player_distances = []
+						for position, tag_position in zip(player_positions[:player_dead_poll], commander_tag_positions[:player_dead_poll]):
+							delta_x = position[0] - tag_position[0]
+							delta_y = position[1] - tag_position[1]
+							player_distances.append(math.sqrt(delta_x * delta_x + delta_y * delta_y))
 
-				position_mark = max(1, math.floor(death_key / polling_rate))
-				player_positions = player['combatReplayData']['positions']
-				
-				for down_key, down_value in player_downs.items():
-					if death_key == down_value:
-						# process data for downKey
-						x1, y1 = player_positions[position_mark]
-						#y1 = player_positions[position_mark][1]
-						x2, y2 = commander_tag_positions[position_mark]
-						#y2 = commander_tag_positions[position_mark][1]
-						death_distance = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-						death_range = round(death_distance / inch_to_pixel)
-						death_on_tag[name_prof]["Total"] += 1
+						player_dist_to_tag = round((sum(player_distances) / len(player_distances)) / inch_to_pixel)
+					else:
+						player_dead_poll = position_mark
+						player_positions = player['combatReplayData']['positions']
+						player_distances = []
+						for position, tag_position in zip(player_positions[:player_dead_poll], commander_tag_positions[:player_dead_poll]):
+							delta_x = position[0] - tag_position[0]
+							delta_y = position[1] - tag_position[1]
+							player_distances.append(math.sqrt(delta_x * delta_x + delta_y * delta_y))
+						player_dist_to_tag = round((sum(player_distances) / len(player_distances)) / inch_to_pixel)
 
-						if int(down_key) > int(dead_tag_mark) and dead_tag:
-							death_on_tag[name_prof]["After_Tag_Death"] += 1
+					if death_range <= On_Tag:
+						death_on_tag[name_prof]["On_Tag"] += 1
 
-							# Calc Avg distance through dead tag final mark
-							player_dead_poll = max(1, int(dead_tag_mark / polling_rate))
-							player_distances = []
-							for position, tag_position in zip(player_positions[:player_dead_poll], commander_tag_positions[:player_dead_poll]):
-								delta_x = position[0] - tag_position[0]
-								delta_y = position[1] - tag_position[1]
-								player_distances.append(math.sqrt(delta_x * delta_x + delta_y * delta_y))
+					if death_range > On_Tag and death_range <= Run_Back:
+						death_on_tag[name_prof]["Off_Tag"] += 1
+						death_on_tag[name_prof]["Ranges"].append(death_range)
 
-							player_dist_to_tag = round((sum(player_distances) / len(player_distances)) / inch_to_pixel)
-						else:
-							player_dead_poll = position_mark
-							player_positions = player['combatReplayData']['positions']
-							player_distances = []
-							for position, tag_position in zip(player_positions[:player_dead_poll], commander_tag_positions[:player_dead_poll]):
-								delta_x = position[0] - tag_position[0]
-								delta_y = position[1] - tag_position[1]
-								player_distances.append(math.sqrt(delta_x * delta_x + delta_y * delta_y))
-							player_dist_to_tag = round((sum(player_distances) / len(player_distances)) / inch_to_pixel)
+					if death_range > Run_Back:
+						death_on_tag[name_prof]["Run_Back"] += 1
 
-						if death_range <= On_Tag:
-							death_on_tag[name_prof]["On_Tag"] += 1
-
-						if death_range > On_Tag and death_range <= Run_Back:
-							death_on_tag[name_prof]["Off_Tag"] += 1
-							death_on_tag[name_prof]["Ranges"].append(death_range)
-
-						if death_range > Run_Back:
-							death_on_tag[name_prof]["Run_Back"] += 1
-
-		if player_dist_to_tag <= Run_Back:
-			death_on_tag[name_prof]["distToTag"].append(player_dist_to_tag)
+	if player_dist_to_tag <= Run_Back:
+		death_on_tag[name_prof]["distToTag"].append(player_dist_to_tag)
 
 def get_player_fight_dps(dpsTargets: dict, name: str, profession: str, account: str, fight_num: int, fight_time: int) -> None:
 	"""
@@ -453,8 +546,24 @@ def get_player_fight_dps(dpsTargets: dict, name: str, profession: str, account: 
 		)
 
 def get_combat_start_from_player_json(initial_time, player_json):
+	"""
+	Determine the start time of combat for a player based on health and damage changes.
+
+	This function analyzes the player's health percentages and power damage over time to
+	identify when combat began. It checks for the first instance of health reduction or 
+	change in power damage to infer the start of combat.
+
+	Args:
+		initial_time (int): The initial timestamp to start checking from.
+		player_json (dict): The player's JSON data containing 'healthPercents' and 'damage1S'.
+
+	Returns:
+		int: The timestamp representing the start of combat, or -1 if no combat is found.
+	"""
+
 	start_combat = -1
-	# TODO check healthPercents exists
+	if 'healthPercents' not in player_json:
+		return start_combat 
 	last_health_percent = 100
 	for change in player_json['healthPercents']:
 		if change[0] < initial_time:
@@ -521,13 +630,20 @@ def get_combat_time_breakpoints(player_json):
 	return breakpoints
 
 def sum_breakpoints(breakpoints):
+	"""
+	Calculate the total combat time from a list of combat breakpoints.
+
+	Args:
+		breakpoints (list): A list of [start, end] tuples representing combat time breakpoints
+
+	Returns:
+		int: The total combat time in milliseconds
+	"""
 	combat_time = 0
 	for [start, end] in breakpoints:
 		combat_time += end - start
 	return combat_time
 
-# States array is formatted: [start, stack_count]
-# Reformat as: [start, end, stack_count]
 def split_boon_states(states, duration):
 	"""
 	Split boon states into individual start/end times and stack counts.
@@ -551,8 +667,18 @@ def split_boon_states(states, duration):
 			split_states.append([start, min(states[index + 1][0], duration), stacks])
 	return split_states
 
-# Take state array and combat breakpoints, filter down states to only include those when in combat
 def split_boon_states_by_combat_breakpoints(states, breakpoints, duration):
+	"""
+	Split boon states into individual start/end times and stack counts, split by combat breakpoints.
+
+	Args:
+		states (list): List of (start, stack_count) tuples
+		breakpoints (list): List of [start, end] tuples representing combat time breakpoints
+		duration (int): Duration of the fight in milliseconds
+
+	Returns:
+		list: List of (start, end, stack_count) tuples
+	"""
 	if not breakpoints:
 		return []
 
@@ -687,7 +813,20 @@ def get_stacking_uptime_data(player, damagePS, duration, fight_ticks):
 			stacking_uptime_Table[player_prof_name]["duration_"+buff_name] += total_time
 
 def calculate_dps_stats(fight_json):
+	"""
+	Calculates the various DPS stats from the fight JSON.
 
+	Does the following:
+
+	* Calculates the total damage done by each player
+	* Calculates the total damage done by the squad
+	* Calculates the coordination damage, which is the damage done by each player weighted by the amount of time they are coordinated with the squad
+	* Calculates the chunk damage, which is the damage done by each player within X seconds of a target dying
+	* Calculates the carrion damage, which is the damage done to targets that die
+	* Calculates the burst damage, which is the maximum damage done by each player in X seconds
+	* Calculates the ch5Ca burst damage, which is the maximum damage done by each player in X seconds, but only counting damage done while Ch5Ca is active
+
+	"""
 	fight_ticks = len(fight_json['players'][0]["damage1S"][0])
 	duration = round(fight_json['durationMS']/1000)
 
@@ -895,7 +1034,20 @@ def calculate_dps_stats(fight_json):
 					DPSStats[player_prof_name]["ch5CaBurstDamage"][i] = max(dmg, DPSStats[player_prof_name]["ch5CaBurstDamage"][i])
 
 def get_player_stats_targets(statsTargets: dict, name: str, profession: str, account: str, fight_num: int, fight_time: int) -> None:
-	#fight_stat_value= 0
+	"""
+	Gets the stats for a player in a fight for a given stat
+
+	Args:
+		statsTargets (dict): A dictionary of stats for the player
+		name (str): The name of the player
+		profession (str): The profession of the player
+		account (str): The account of the player
+		fight_num (int): The number of the fight
+		fight_time (int): The length of the fight
+
+	Returns:
+		None
+	"""
 	fight_stats = ["killed", "downed", "downContribution", "appliedCrowdControl"]
 	for stat in fight_stats:
 		fight_stat_value= 0
@@ -1161,6 +1313,15 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 			commander_summary_data[commander_name][stat_category][stat] = commander_summary_data[commander_name][stat_category].get(stat, 0) + value
 
 def get_defense_hits_and_glances(fight_num: int, player: dict, stat_category: str, name_prof: str) -> None:
+	"""
+	Add defensive hits and glances to top_stats dictionary
+
+	Args:
+		fight_num (int): The number of the fight.
+		player (dict): The player dictionary.
+		stat_category (str): The category of stats to collect.
+		name_prof (str): The name of the profession.
+	"""
 	direct_hits, glancing_hits = calculate_defensive_hits_and_glances(player)
 	top_stats['player'][name_prof][stat_category]['directHits'] = top_stats['player'][name_prof][stat_category].get('directHits', 0) + direct_hits
 	top_stats['player'][name_prof][stat_category]['glanceCount'] = top_stats['player'][name_prof][stat_category].get('glanceCount', 0) + glancing_hits	
@@ -1359,9 +1520,9 @@ def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_categ
 	"""
 	x =  {"b70350": 0.10, "b70806": 0.10}
 	debuff_data = {
-        "b70350": [0.10,'targetDamage1S'], #Dragonhunter Relic
-        "b70806": [0.10,'targetPowerDamage1S'] #Isgarren Relic
-    }
+		"b70350": [0.10,'targetDamage1S'], #Dragonhunter Relic
+		"b70806": [0.10,'targetPowerDamage1S'] #Isgarren Relic
+	}
 	target_idx = 0
 	for target in targets:
 		if 'buffs' in target:
@@ -2011,6 +2172,16 @@ def get_mechanics_by_fight(fight_number: int, mechanics_map: dict, players: dict
 					mechanics[fight_number][mechanic_name]['enemy_data'][actor] += 1
 
 def get_rally_mechanics_by_fight(mechanics_map, players):
+	"""
+	Get the number of rallies by fight from the mechanics map.
+
+	Args:
+		mechanics_map (dict): The mechanics map from the log.
+		players (list): A list of player data from the log.
+
+	Returns:
+		int: The number of rallies by fight.
+	"""
 	got_ups = {}
 	got_up_cnts = {}
 	killing_blows = {}
@@ -2053,7 +2224,6 @@ def get_rally_mechanics_by_fight(mechanics_map, players):
 				killing_blow_rallies['kb_players'][kb_actor] = killing_blow_rallies['kb_players'].get(kb_actor,0) + rally_count
 
 	return rallies
-
 
 def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, skill_data: dict, buff_data: dict) -> None:
 	"""
@@ -2264,10 +2434,6 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 						player_minion_damage_mitigation[name_prof][minion_name][skill_name]['avoided_damage'] = avoided_damage
 						player_minion_damage_mitigation[name_prof][minion_name][skill_name]['min_avoided_damage'] = min_avoided_damage
 
-
-
-
-
 def get_minions_by_player(player_data: dict, player_name: str, profession: str) -> None:
 	"""
 	Collects minions created by a player and stores them in a global dictionary.
@@ -2334,6 +2500,16 @@ def fetch_guild_data(guild_id: str, api_key: str) -> dict:
 		return None
 
 def find_member(guild_data: list, member_account: str) -> str:
+	"""
+	Finds a member in the guild data and returns their rank. If the member is not found, it returns "--==Non Member==--".
+
+	Args:
+		guild_data (list): A list of dictionaries containing guild data.
+		member_account (str): The name of the account to find.
+
+	Returns:
+		str: The rank of the member if found, otherwise "--==Non Member==--".
+	"""
 	for guild_member in guild_data:
 		if guild_member["name"] == member_account:
 			return guild_member["rank"]
@@ -2392,6 +2568,21 @@ def get_illusion_of_life_data(players: dict, durationMS: int) -> None:
 					IOL_revive[playerName]['prof'] = playerProf
 
 def parse_file(file_path, fight_num, guild_data, fight_data_charts):
+	"""
+	Parses a single log file and stores the data in a global top_stats dictionary.
+
+	Arguments:
+	file_path: The path to the log file to be parsed.
+	fight_num: The fight number of the log file. Used to distinguish between different
+		fights in the same log.
+	guild_data: A dictionary of guild data, used to determine the guild status of
+		each player.
+	fight_data_charts: A boolean indicating whether to store detailed fight data
+		for each player.
+
+	Side effects:
+	Modifies the global top_stats dictionary.
+	"""
 	json_stats = config.json_stats
 
 	if file_path.endswith('.gz'):

@@ -20,14 +20,10 @@ import configparser
 import sys
 import os.path
 from os import listdir
-from enum import Enum
-import json
 import datetime
-import gzip
 
 from collections import OrderedDict
 
-import config
 import config_output
 from parser_functions import *
 from output_functions import *

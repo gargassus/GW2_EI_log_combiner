@@ -12,8 +12,6 @@ This is a continuation of my efforts previously focused on a fork of @Freyavf /[
 Currently works with WVW and Detailed WVW logs. Partially working with PVElogs, still needs adjustments to handle the PVE formats.
 
 
-Testing alpha releases with frequent changes.
-
 **Steps for success**
 
  - Parse your [ArcDps](https://www.deltaconnected.com/arcdps/x64/) WvW logs with [GW2 Elite Insight Parser](https://github.com/baaron4/GW2-Elite-Insights-Parser/releases) 
@@ -33,6 +31,7 @@ Testing alpha releases with frequent changes.
  - You can run from source after installing required packages `pip install requests` via cmd line: 
    -  Examples:
       - `python tw5_top_stats.py -i d:\path\to\logs`  # `-i` flag to set the directory of the `EI json logs`
+      or
       - `python tw5_top_stats.py -c flux_config.ini`  # `-c` flag to utilize a specific `guild_config.ini` file
 
  - You can use [TopStatsAIO](https://github.com/darkharasho/TopStatsAIO) for a GUI frontend that utilizes Elite Insights CLI version and either of my parsers.
