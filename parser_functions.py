@@ -2294,6 +2294,12 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 						'min_avoided_damage': 0
 					}
 
+				if skill_name not in enemy_avg_damage_per_skill:
+					enemy_avg_dmg = 1
+					enemy_min_dmg = 1
+				else:
+					enemy_min_dmg = sum(enemy_avg_damage_per_skill[skill_name]['min']) / len(enemy_avg_damage_per_skill[skill_name]['min']) if skill_name in enemy_avg_damage_per_skill else 0
+					enemy_avg_dmg = enemy_avg_damage_per_skill[skill_name]['dmg'] / enemy_avg_damage_per_skill[skill_name]['hits'] if enemy_avg_damage_per_skill[skill_name]['hits'] > 0 else 0
 				player_damage_mitigation[name_prof][skill_name]['blocked'] += skill['blocked']
 				player_damage_mitigation[name_prof][skill_name]['evaded'] += skill['evaded']
 				player_damage_mitigation[name_prof][skill_name]['glanced'] += skill['glance']
@@ -2304,8 +2310,8 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 				player_damage_mitigation[name_prof][skill_name]['skill_hits'] += skill['hits']
 				player_damage_mitigation[name_prof][skill_name]['total_hits'] = enemy_avg_damage_per_skill[skill_name]['hits'] if skill_name in enemy_avg_damage_per_skill else 0
 				if player_damage_mitigation[name_prof][skill_name]['total_hits'] > 0:
-					player_damage_mitigation[name_prof][skill_name]['avg_dmg'] = player_damage_mitigation[name_prof][skill_name]['total_dmg'] / player_damage_mitigation[name_prof][skill_name]['total_hits']
-					player_damage_mitigation[name_prof][skill_name]['min_dmg'] = sum(enemy_avg_damage_per_skill[skill_name]['min']) / len(enemy_avg_damage_per_skill[skill_name]['min'])
+					player_damage_mitigation[name_prof][skill_name]['avg_dmg'] = enemy_avg_dmg
+					player_damage_mitigation[name_prof][skill_name]['min_dmg'] = enemy_min_dmg
 					avoided_damage = (
 						player_damage_mitigation[name_prof][skill_name]['glanced'] * player_damage_mitigation[name_prof][skill_name]['avg_dmg'] / 2
 						+ (
@@ -2381,7 +2387,12 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 							'avoided_damage': 0,
 							'min_avoided_damage': 0							
 						}
-
+					if skill_name not in enemy_avg_damage_per_skill:
+						enemy_avg_dmg = 1
+						enemy_min_dmg = 1
+					else:
+						enemy_min_dmg = sum(enemy_avg_damage_per_skill[skill_name]['min']) / len(enemy_avg_damage_per_skill[skill_name]['min']) if skill_name in enemy_avg_damage_per_skill else 0
+						enemy_avg_dmg = enemy_avg_damage_per_skill[skill_name]['dmg'] / enemy_avg_damage_per_skill[skill_name]['hits'] if enemy_avg_damage_per_skill[skill_name]['hits'] > 0 else 0
 					player_minion_damage_mitigation[name_prof][minion_name][skill_name]['blocked'] += skill['blocked']
 					player_minion_damage_mitigation[name_prof][minion_name][skill_name]['evaded'] += skill['evaded']
 					player_minion_damage_mitigation[name_prof][minion_name][skill_name]['glanced'] += skill['glance']
@@ -2393,9 +2404,9 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 					player_minion_damage_mitigation[name_prof][minion_name][skill_name]['total_hits'] = enemy_avg_damage_per_skill[skill_name]['hits'] if skill_name in enemy_avg_damage_per_skill else 0
 
 					if player_minion_damage_mitigation[name_prof][minion_name][skill_name]['skill_hits'] > 0:
-						player_minion_damage_mitigation[name_prof][minion_name][skill_name]['avg_dmg'] = player_minion_damage_mitigation[name_prof][minion_name][skill_name]['total_dmg'] / player_minion_damage_mitigation[name_prof][minion_name][skill_name]['skill_hits']
+						player_minion_damage_mitigation[name_prof][minion_name][skill_name]['avg_dmg'] = enemy_avg_dmg
 						if skill_name in enemy_avg_damage_per_skill:
-							player_minion_damage_mitigation[name_prof][minion_name][skill_name]['min_dmg'] = sum(enemy_avg_damage_per_skill[skill_name]['min']) / len(enemy_avg_damage_per_skill[skill_name]['min'])
+							player_minion_damage_mitigation[name_prof][minion_name][skill_name]['min_dmg'] = enemy_min_dmg
 						else:
 							player_minion_damage_mitigation[name_prof][minion_name][skill_name]['min_dmg'] = 0
 						avoided_damage = (
