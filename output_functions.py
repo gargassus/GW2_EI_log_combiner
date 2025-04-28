@@ -3254,7 +3254,7 @@ def build_damage_with_buffs(stacking_uptime_Table: dict, DPSStats: dict, top_sta
 			damage_with_buff = stacking_uptime_Table[uptime_prof_name]['damage_with_'+damage_buff]
 			damage_with_buff_uptime = damage_with_buff[1] / total_damage			
 
-			if damage_buff in top_stats['player'][uptime_table_prof_name]['buffUptimesActive']:
+			if damage_buffID in top_stats['player'][uptime_table_prof_name]['buffUptimesActive']:
 				buff_uptime = top_stats['player'][uptime_table_prof_name]['buffUptimesActive'][damage_buffID]['uptime_ms'] / uptime_fight_time
 			else:
 				buff_uptime = 0
