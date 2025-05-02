@@ -36,7 +36,7 @@ Currently works with WVW and Detailed WVW logs. Partially working with PVElogs, 
 
  - You can use [TopStatsAIO](https://github.com/darkharasho/TopStatsAIO) for a GUI frontend that utilizes Elite Insights CLI version and either of my parsers.
 
-### Example Output of current state:  [Log Summary](https://wvwlogs.com/#202503052206-Log-Summary)
+### Example Output of current state shown here:  [Log Summary](https://wvwlogs.com)
 
 ---
 
