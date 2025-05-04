@@ -3589,7 +3589,8 @@ def build_fight_line_chart(fight_data: dict, tid_date_time, tid_list) -> str:
 		outgoing_damage_data = list(fight_data[fight_num]["damage1S"].values())
 		incoming_damage_data = list(fight_data[fight_num]["damageTaken1S"].values())
 		time_series = list(fight_data[fight_num]["damage1S"].keys())
-		chart_title = f"Fight-{fight_num}: Damage Output Review"
+		zf_fight_num = str(fight_num).zfill(2)
+		chart_title = f"Fight-{zf_fight_num}: Damage Output Review"
 		line_chart_config = '```py\nPlayer_Line = players with DPS > 700 for the fight\n```\n\n\n\n<$echarts $text="""\n'
 		line_chart_config += f"""
 		option = {{
@@ -3693,8 +3694,8 @@ def build_fight_line_chart(fight_data: dict, tid_date_time, tid_list) -> str:
 			line_chart_config += player_line_chart_config
 		line_chart_config += '\n    ]\n    };\n\n"""$height="500px" $width="100%" $theme="dark"/>'
 
-		line_chart_title = f"{tid_date_time}_Fight_{fight_num}_Damage_Output_Review"
-		line_chart_caption = f"Fight-{fight_num}: Damage Output Review"
+		line_chart_title = f"{tid_date_time}_Fight_{zf_fight_num}_Damage_Output_Review"
+		line_chart_caption = f"Fight-{zf_fight_num}: Damage Output Review"
 		line_chart_tags = "Chart"
 
 		append_tid_for_output(
