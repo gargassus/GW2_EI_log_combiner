@@ -453,7 +453,7 @@ def build_fight_summary(top_stats: dict, fight_data_charts, caption: str, tid_da
 		shield_damage_pct = (fight_shield_damage / dmg_out) * 100 if dmg_out else 0
 		row += f"| {shield_damage_pct:.2f}%|"
 		if fight_data_charts:
-			row += f"[[F-{fight_num} Chart|{tid_date_time}_Fight_{fight_num}_Damage_Output_Review]]|"
+			row += f"[[F-{fight_num} Chart|{tid_date_time}_Fight_{str(fight_num).zfill(2)}_Damage_Output_Review]]|"
 
 		# Keep track of the last fight number, end time, and total duration
 		last_fight = fight_num
