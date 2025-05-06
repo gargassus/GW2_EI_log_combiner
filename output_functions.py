@@ -2684,11 +2684,11 @@ def build_utility_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_
 	chart_min = 100
 	chart_max = 0
 	chart_xAxis = "Strips/Sec"
-	chart_yAxis = "Condition Score"
+	chart_yAxis = "Condition/Sec"
 	chart_xData = "Strips/Sec"
 	chart_yData = "Condition Score"
 
-	data_header = ["Name", "Profession", "Condition Score", "Strips/Sec", "Boon Score", "color"]
+	data_header = ["Name", "Profession", "Strips/Sec", "Condition Score", "Boon Score", "color"]
 	chart_data.append(data_header)
 
 	for player, player_data in top_stats['player'].items():
