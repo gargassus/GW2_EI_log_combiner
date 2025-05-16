@@ -1212,9 +1212,13 @@ def get_enemies_by_fight(fight_num: int, targets: dict) -> None:
 				# Create a new team if it doesn't exist
 				top_stats["fight"][fight_num][team] = 0
 
-			if enemy_prof not in top_stats["enemies_by_fight"][fight_num]:
-				top_stats["enemies_by_fight"][fight_num][enemy_prof] = 0
-			top_stats["enemies_by_fight"][fight_num][enemy_prof] += 1
+			if team_colors[target["teamID"]] not in top_stats["enemies_by_fight"][fight_num]:
+				top_stats["enemies_by_fight"][fight_num][team_colors[target["teamID"]]] = {}
+
+			if enemy_prof not in top_stats["enemies_by_fight"][fight_num][team_colors[target["teamID"]]]:
+				top_stats["enemies_by_fight"][fight_num][team_colors[target["teamID"]]][enemy_prof] = 0
+
+			top_stats["enemies_by_fight"][fight_num][team_colors[target["teamID"]]][enemy_prof] += 1
 
 			top_stats["fight"][fight_num][team] += 1
 
