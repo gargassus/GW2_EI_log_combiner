@@ -580,6 +580,8 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 		# Build the table body
 		for player in top_stats["player"].values():
 			fight_time = player["active_time"] / 1000
+			if fight_time == 0:
+				continue
 			account = player["account"]
 			name = player["name"]
 			tt_name = f'<span data-tooltip="{account}">{name}</span>'
