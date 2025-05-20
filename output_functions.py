@@ -502,6 +502,8 @@ def build_damage_summary_table(top_stats: dict, caption: str, tid_date_time: str
 	# Build the table body
 	for player, player_data in top_stats["player"].items():
 		fighttime = player_data["active_time"] / 1000
+		if fighttime == 0:
+			continue
 		account = player_data["account"]
 		name = player_data["name"]
 		tt_name = f'<span data-tooltip="{account}">{name}</span>'
