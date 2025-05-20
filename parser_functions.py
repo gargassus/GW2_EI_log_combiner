@@ -25,7 +25,7 @@ import requests
 top_stats = config.top_stats
 
 team_colors = config.team_colors
-
+team_code_missing = []
 mesmer_shatter_skills = config.mesmer_shatter_skills
 mesmer_clone_usage = {}
 enemy_avg_damage_per_skill = {}
@@ -1204,26 +1204,30 @@ def get_enemies_by_fight(fight_num: int, targets: dict) -> None:
 			enemy_prof = target['name'].split(" ")[0]
 
 			if team in team_colors:
+				colorTeam = team_colors[team]
 				team = "enemy_" + team_colors[team]
 			else:
+				colorTeam = "Unk"
+				if team not in team_code_missing:
+					team_code_missing.append(team)
 				team = "enemy_Unk"
 			
 			if team not in top_stats["fight"][fight_num]:
 				# Create a new team if it doesn't exist
 				top_stats["fight"][fight_num][team] = 0
+			if colorTeam not in top_stats["enemies_by_fight"][fight_num]:
+				top_stats["enemies_by_fight"][fight_num][colorTeam] = {}
 
-			if team_colors[target["teamID"]] not in top_stats["enemies_by_fight"][fight_num]:
-				top_stats["enemies_by_fight"][fight_num][team_colors[target["teamID"]]] = {}
+			if enemy_prof not in top_stats["enemies_by_fight"][fight_num][colorTeam]:
+				top_stats["enemies_by_fight"][fight_num][colorTeam][enemy_prof] = 0
 
-			if enemy_prof not in top_stats["enemies_by_fight"][fight_num][team_colors[target["teamID"]]]:
-				top_stats["enemies_by_fight"][fight_num][team_colors[target["teamID"]]][enemy_prof] = 0
-
-			top_stats["enemies_by_fight"][fight_num][team_colors[target["teamID"]]][enemy_prof] += 1
+			top_stats["enemies_by_fight"][fight_num][colorTeam][enemy_prof] += 1
 
 			top_stats["fight"][fight_num][team] += 1
 
 		top_stats["fight"][fight_num]["enemy_count"] += 1
 		top_stats['overall']['enemy_count'] = top_stats['overall'].get('enemy_count', 0) + 1
+
 
 def get_enemy_downed_and_killed_by_fight(fight_num: int, targets: dict, players: dict, log_type: str) -> None:
 	"""

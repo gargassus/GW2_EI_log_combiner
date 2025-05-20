@@ -52,6 +52,7 @@ top_stats = {
 
 # Team colors - team_id:color
 team_colors = {
+    0: "Unk",
     705: "Red",
     706: "Red",
     882: "Red",
@@ -63,6 +64,7 @@ team_colors = {
     432: "Blue",
     1277: "Blue",
 }
+
 
 # High scores stats
 high_scores = [

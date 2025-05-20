@@ -343,3 +343,9 @@ if __name__ == '__main__':
 
 	if db_update:
 		write_data_to_db(top_stats, top_stats['overall']['last_fight'])
+
+	if team_code_missing:
+		print("Missing team codes: " + str(team_code_missing))
+		print("Please review and add to config.py file")
+	else:
+		print("No new team codes found")
