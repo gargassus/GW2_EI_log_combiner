@@ -3579,7 +3579,7 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, player_minio
 		tid_list	
 	)
 
-def build_fight_line_chart(fight_data: dict, tid_date_time, tid_list) -> str:
+def build_fight_line_chart(fight_data: dict, tid_date_time: str, tid_list: list) -> str:
 	"""
 	Build a line chart for a single fight in the log. The chart shows both outgoing and incoming damage over time.
 
@@ -3708,6 +3708,82 @@ def build_fight_line_chart(fight_data: dict, tid_date_time, tid_list) -> str:
 			create_new_tid_from_template(line_chart_title, line_chart_caption, line_chart_config, line_chart_tags),
 			tid_list	
 		)
+
+def build_pull_stats_tid(tid_date_time: str, top_stats: dict, tid_list: list) -> None:
+	Pull_Skills = [
+		"Pull","Wrathful Grasp","Blazing Edge","Temporal Rift","Otherworldly Attraction","Abyssal Blot",
+		"Snap Pull","Barbed Pull","Capture Line","Path of Scars","Tow Line","Undertow","Cyclone",
+		"Into the Void","Vortex","Deadly Catch","Grasping Darkness","Skill","Chapter 3: Heated Rebuke",
+		"Magnet","Magnetic Shield","Utility","Call to Anguish","Call to Anguish","Glyph of the Tides",
+		"Scorpion Wire","Spectral Grasp","Elite","Dragon's Maw","Shadowfall","Whirlpool","Gravity Well",
+		"Mechanics Skill","Hunter's Verdict","Wild Whirl","Prismatic Singularity","Prelude Lash",
+		"Throw Magnetic Bomb","Throw Unstable Reagent","Pet Skill","Fang Grapple"
+		]
+	pull_data = {
+		'incoming': {},
+		'outgoing': {}
+	}
+	Used_Pulls = {}
+	for skill, data in top_stats['skill_data'].items():
+		if data['name'] in Pull_Skills:
+			Used_Pulls[skill] = data['name']
+	
+	for player, p_data in top_stats['players'].items():
+		name = p_data['name']
+		prof = p_data['profession']
+		for skill, s_data in p_data['totalDamageTaken'].items():
+			if f"s{skill}" in Used_Pulls:
+				skill_name = Used_Pulls[f"s{skill}"]
+				Chits = s_data['connectedHits']
+				hits = s_data['hits']
+
+				if skill_name not in pull_data['incoming']:
+					pull_data['incoming'][skill_name] = {
+						'chits': Chits,
+						'hits': hits,
+						'player_data': {}
+					}
+				else:
+					pull_data['incoming'][skill_name]['chits'] += Chits
+					pull_data['incoming'][skill_name]['hits'] += hits
+
+				if player not in pull_data['incoming'][skill_name]['player_data']:
+					pull_data['incoming'][skill_name]['player_data'][player] = {
+						'name': name,
+						'prof': prof,
+						'chits': Chits,
+						'hits': hits
+					}
+				else:
+					pull_data['incoming'][skill_name]['player_data'][player]['chits'] += Chits
+					pull_data['incoming'][skill_name]['player_data'][player]['hits'] += hits
+
+		for skill, s_data in p_data['targetDamageDist'].items():
+			if f"s{skill}" in Used_Pulls:
+				skill_name = Used_Pulls[f"s{skill}"]
+				Chits = s_data['connectedHits']
+				hits = s_data['hits']
+
+				if skill_name not in pull_data['outgoing']:
+					pull_data['outgoing'][skill_name] = {	
+						'chits': Chits,
+						'hits': hits,
+						'player_data': {}
+					}
+				else:
+					pull_data['outgoing'][skill_name]['chits'] += Chits
+					pull_data['outgoing'][skill_name]['hits'] += hits	
+
+				if player not in pull_data['outgoing'][skill_name]['player_data']:
+					pull_data['outgoing'][skill_name]['player_data'][player] = {
+						'name': name,
+						'prof': prof,
+						'chits': Chits,
+						'hits': hits
+					}
+				else:
+					pull_data['outgoing'][skill_name]['player_data'][player]['chits'] += Chits
+					pull_data['outgoing'][skill_name]['player_data'][player]['hits'] += hits
 
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 		
