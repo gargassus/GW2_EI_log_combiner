@@ -2468,7 +2468,7 @@ def get_minions_by_player(player_data: dict, player_name: str, profession: str) 
 	player_name = player_name+"|"+profession+"|"+player_data['account']
 	if "minions" in player_data:
 		if profession not in minions:
-			minions[profession] = {"player": {}, "pets_list": []}
+			minions[profession] = {"player": {}, "pets_list": [], "pet_skills_list": []}
 
 		for minion in player_data["minions"]:
 			minion_name = minion["name"].replace("Juvenile ", "")
@@ -2484,6 +2484,7 @@ def get_minions_by_player(player_data: dict, player_name: str, profession: str) 
 				minions[profession]["player"][player_name] = {}
 			if minion_name not in minions[profession]["player"][player_name]:
 				minions[profession]["player"][player_name][minion_name] = minion_count
+				minions[profession]["player"][player_name][minion_name+"Skills"] = {}
 			else:
 				minions[profession]["player"][player_name][minion_name] += minion_count
 			if "totalDamageTaken" in minion:
@@ -2498,6 +2499,16 @@ def get_minions_by_player(player_data: dict, player_name: str, profession: str) 
 				minions[profession]["player"][player_name][minion_name+"IncomingHealing"] = minions[profession]["player"][player_name].get(minion_name+"IncomingHealing", 0) + minion['extHealingStats']['totalIncomingHealing'][0]
 			else:
 				minions[profession]["player"][player_name][minion_name+"IncomingHealing"] = 0
+			if "rotation" in minion:
+				for skill in minion["rotation"]:
+					if skill["id"] not in minions[profession]["pet_skills_list"]:
+						minions[profession]["pet_skills_list"].append(skill["id"])
+					skill_count = len(skill["skills"])
+					if skill["id"] not in minions[profession]["player"][player_name][minion_name+"Skills"]:
+						minions[profession]["player"][player_name][minion_name+"Skills"][skill["id"]] = skill_count
+					else:
+						minions[profession]["player"][player_name][minion_name+"Skills"][skill["id"]] += skill_count
+
 
 def fetch_guild_data(guild_id: str, api_key: str) -> dict:
 	"""
