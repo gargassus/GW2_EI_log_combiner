@@ -290,7 +290,7 @@ if __name__ == '__main__':
 
 	build_mechanics_tid(mechanics, top_stats['player'], "Mechanics", tid_date_time)
 
-	build_minions_tid(minions, top_stats['player'], "Minions", tid_date_time)
+	build_minions_tid(minions, top_stats['player'], skill_data, "Minions", tid_date_time)
 
 	build_top_damage_by_skill(top_stats['overall']['totalDamageTaken'], top_stats['overall']['targetDamageDist'], skill_data, buff_data, "Top Damage By Skill", tid_date_time)
 

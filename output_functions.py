@@ -2057,7 +2057,7 @@ def build_personal_buff_summary(top_stats: dict, buff_data: dict, personal_buff_
 			tid_list
 		)
 
-def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time: str) -> None:
+def build_minions_tid(minions: dict, players: dict, skill_data: dict, caption: str, tid_date_time: str) -> None:
 	"""
 	Build a table of minions for each player in the log.
 
@@ -2125,6 +2125,43 @@ def build_minions_tid(minions: dict, players: dict, caption: str, tid_date_time:
 				row += entry
 			row += f" {total_count} | {total_damage_taken:,.1f}K| {total_healing:,.1f}K|"
 			rows.append(row)
+		rows.append("\n\n")
+		rows.append("---")
+		rows.append("\n\n")
+		header3 = "|thead-dark table-caption-top-left table-hover sortable freeze-col|k\n"
+		header3 += "|!Player | !Fights| !Fight Time|!Minion |"
+		for pet_skill in minions[profession]['pet_skills_list']:
+			pet_skill_icon = skill_data[f"s{pet_skill}"]['icon']
+			pet_skill_name = skill_data[f"s{pet_skill}"]['name']
+			skill_entry = f"![img width=24 [{pet_skill_name}|{pet_skill_icon}]]"
+			header3 += f" {skill_entry} |"
+		header3 += "h"
+		rows.append(header3)
+
+		for player in minions[profession]['player']:
+			total_count = 0
+			total_damage_taken = 0
+			total_healing = 0
+			name, profession, account = player.split("|")
+			fights = players[player]['num_fights']
+			fight_time = f"{players[player]['active_time']/1000:,.1f}"
+
+			for minion in minions[profession]['pets_list']:
+				if minion in minions[profession]['player'][player]:
+					if name == profession:
+						row = f'|<span data-tooltip="{account}">{account}</span>| {fights}| {fight_time}|{minion} |'
+					else:
+						row = f'|<span data-tooltip="{account}">{name}</span>| {fights}| {fight_time}|{minion} |'
+					for pet_skill in minions[profession]['pet_skills_list']:
+						if pet_skill in minions[profession]['player'][player][f"{minion}Skills"]:
+							skill_count = minions[profession]['player'][player][f"{minion}Skills"][pet_skill]
+							row += f" {skill_count} |"
+						else:
+							row += " - |"
+					rows.append(row)
+
+
+
 		#rows.append(f"| {profession}_{caption} |c")
 		rows.append("\n\n</div>\n\n")
 		text = "\n".join(rows)
