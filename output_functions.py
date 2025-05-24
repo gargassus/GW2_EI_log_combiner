@@ -2129,6 +2129,7 @@ def build_minions_tid(minions: dict, players: dict, skill_data: dict, caption: s
 		rows.append("---")
 		rows.append("\n\n")
 		header3 = "|thead-dark table-caption-top-left table-hover sortable freeze-col|k\n"
+		header3 += "| Skill Casts / Minute |c\n"
 		header3 += "|!Player | !Fights| !Fight Time|!Minion |"
 		for pet_skill in minions[profession]['pet_skills_list']:
 			pet_skill_icon = skill_data[f"s{pet_skill}"]['icon']
@@ -2145,6 +2146,7 @@ def build_minions_tid(minions: dict, players: dict, skill_data: dict, caption: s
 			name, profession, account = player.split("|")
 			fights = players[player]['num_fights']
 			fight_time = f"{players[player]['active_time']/1000:,.1f}"
+			fight_minutes = (players[player]['active_time']/1000)/60
 
 			for minion in minions[profession]['pets_list']:
 				if minion in minions[profession]['player'][player]:
@@ -2155,7 +2157,8 @@ def build_minions_tid(minions: dict, players: dict, skill_data: dict, caption: s
 					for pet_skill in minions[profession]['pet_skills_list']:
 						if pet_skill in minions[profession]['player'][player][f"{minion}Skills"]:
 							skill_count = minions[profession]['player'][player][f"{minion}Skills"][pet_skill]
-							row += f" {skill_count} |"
+							skill_minute = f"{skill_count/fight_minutes:,.2f}"
+							row += f" {skill_minute} |"
 						else:
 							row += " - |"
 					rows.append(row)
