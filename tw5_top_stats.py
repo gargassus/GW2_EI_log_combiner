@@ -130,10 +130,11 @@ if __name__ == '__main__':
 
 	guild_data = None
 	if guild_id and api_key:
-		guild_data = fetch_guild_data(guild_id, api_key)
+		guild_data = fetch_guild_data(guild_id, api_key, max_retries = 3, backoff_factor = 0.5)
 	
 	print("guild_id: ", guild_id)
 	print("API_KEY: ", api_key)
+
 	for filename in sorted_files:
 		
 		# skip files of incorrect filetype

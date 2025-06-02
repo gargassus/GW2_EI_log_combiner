@@ -20,6 +20,9 @@ import gzip
 import json
 import math
 import requests
+import time
+from typing import Optional, Dict
+from requests.exceptions import RequestException, HTTPError, Timeout, ConnectionError
 
 # Top stats dictionary to store combined log data
 top_stats = config.top_stats
@@ -385,7 +388,7 @@ def determine_player_role(player_data: dict) -> str:
 	else:
 		return "DPS"
 
-def calculate_defensive_hits_and_glances(player_data: dict) -> dict:
+def calculate_defensive_hits_and_glances(player_data):
 	"""
 	Calculate the number of direct and glancing hits taken by a player based on the total damage taken.
 
@@ -1653,7 +1656,7 @@ def get_buff_generation(fight_num: int, player: dict, stat_category: str, name_p
 		top_stats['overall'][stat_category][buff_id]['generation'] = top_stats['overall'][stat_category][buff_id].get('generation', 0) + buff_generation
 		top_stats['overall'][stat_category][buff_id]['wasted'] = top_stats['overall'][stat_category][buff_id].get('wasted', 0) + buff_wasted
 
-def get_skill_cast_by_prof_role(active_time: int, player: dict, stat_category: str, name_prof: str) -> None:
+def get_skill_cast_by_prof_role(active_time, player: dict, stat_category: str, name_prof: str) -> None:
 	"""
 	Add player skill casts by profession and role to top_stats dictionary
 
@@ -2109,7 +2112,7 @@ def get_firebrand_pages(player, name_prof, name, account, fight_duration_ms):
 				pages_data = fb_pages[name_prof]["firebrand_pages"]
 				pages_data[skill_id] = pages_data.get(skill_id, 0) + len(rotation_skill['skills'])
 
-def get_mechanics_by_fight(fight_number: int, mechanics_map: dict, players: dict, log_type: str) -> None:
+def get_mechanics_by_fight(fight_number, mechanics_map: dict, players: dict, log_type: str) -> None:
 	"""
 	Collects mechanics data from a fight and stores it in a dictionary.
 
@@ -2510,24 +2513,62 @@ def get_minions_by_player(player_data: dict, player_name: str, profession: str) 
 						minions[profession]["player"][player_name][minion_name+"Skills"][skill["id"]] += skill_count
 
 
-def fetch_guild_data(guild_id: str, api_key: str) -> dict:
-	"""
-	Fetches the guild data from the Guild Wars 2 API.
+def fetch_guild_data(guild_id: str, api_key: str, max_retries: int = 3, backoff_factor: float = 0.5) -> Optional[Dict]:
+    """
+    Fetches guild data from the Guild Wars 2 API with retry logic and enhanced error handling.
 
-	Args:
-		guild_id: The ID of the guild to fetch data for.
-		api_key: The API key to use for the request.
+    Args:
+        guild_id: The ID of the guild to fetch data for.
+        api_key: The API key to use for the request.
+        max_retries: Maximum number of retry attempts for failed requests (default: 3).
+        backoff_factor: Factor for exponential backoff delay between retries (default: 0.5).
 
-	Returns:
-		A dictionary containing the guild data if the request is successful, otherwise None.
-	"""
-	url = f"https://api.guildwars2.com/v2/guild/{guild_id}/members?access_token={api_key}"
-	try:
-		response = requests.get(url, timeout=5)
-		response.raise_for_status()
-		return json.loads(response.text)
-	except requests.exceptions.RequestException:
-		return None
+    Returns:
+        A dictionary containing the guild data if the request is successful, otherwise None.
+    """
+    url = f"https://api.guildwars2.com/v2/guild/{guild_id}/members?access_token={api_key}"
+    
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            return json.loads(response.text)
+        
+        except Timeout:
+            print(f"Warning: Timeout fetching guild data for guild ID {guild_id}, attempt {attempt}/{max_retries}")
+            if attempt == max_retries:
+                print(f"Error: Max retries reached for guild ID {guild_id}: Timeout")
+                return None
+            time.sleep(backoff_factor * (2 ** (attempt - 1)))  # Exponential backoff
+        
+        except ConnectionError:
+            print(f"Warning: Connection error for guild ID {guild_id}, attempt {attempt}/{max_retries}")
+            if attempt == max_retries:
+                print(f"Error: Max retries reached for guild ID {guild_id}: Connection error")
+                return None
+            time.sleep(backoff_factor * (2 ** (attempt - 1)))
+        
+        except HTTPError as e:
+            status_code = e.response.status_code
+            if status_code == 429:  # Rate limit exceeded
+                print(f"Warning: Rate limit exceeded for guild ID {guild_id}, attempt {attempt}/{max_retries}")
+                retry_after = int(e.response.headers.get('Retry-After', 5))
+                time.sleep(retry_after)
+            elif status_code >= 500:  # Server errors
+                print(f"Warning: Server error {status_code} for guild ID {guild_id}, attempt {attempt}/{max_retries}")
+                if attempt == max_retries:
+                    print(f"Error: Max retries reached for guild ID {guild_id}: Server error {status_code}")
+                    return None
+                time.sleep(backoff_factor * (2 ** (attempt - 1)))
+            else:
+                print(f"Error: HTTP error {status_code} for guild ID {guild_id}: {str(e)}")
+                return None
+        
+        except RequestException as e:
+            print(f"Error: Unexpected error for guild ID {guild_id}: {str(e)}")
+            return None
+    
+    return None
 
 def find_member(guild_data: list, member_account: str) -> str:
 	"""
@@ -2540,10 +2581,11 @@ def find_member(guild_data: list, member_account: str) -> str:
 	Returns:
 		str: The rank of the member if found, otherwise "--==Non Member==--".
 	"""
+	status = "--==Non Member==--"
 	for guild_member in guild_data:
 		if guild_member["name"] == member_account:
-			return guild_member["rank"]
-	return "--==Non Member==--"
+			status = guild_member["rank"]
+	return status
 
 def get_illusion_of_life_data(players: dict, durationMS: int) -> None:
 	"""

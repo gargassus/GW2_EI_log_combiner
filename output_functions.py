@@ -3005,10 +3005,12 @@ def build_attendance_table(top_stats: dict, tid_date_time: str, tid_list: list) 
 		total_active_time = 0
 		total_num_fights = 0
 		is_first_entry = True
+		guild_status = ""
 
 
 		for player_name, professions_data in players_data.items():
 			for profession, stats in professions_data.items():
+				guild_status = attendance_data[account][player_name][profession]["guild_status"]
 				total_active_time += stats["active_time"]
 				total_num_fights += stats["num_fights"]
 
