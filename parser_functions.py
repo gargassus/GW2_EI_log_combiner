@@ -192,7 +192,7 @@ def determine_clone_usage(player, skill_map, mesmer_shatter_skills):
 					cast_time = item['castTime']
 					for key, value in reversed(list(active_clones.items())):
 						if key <= cast_time:
-							mesmer_clone_usage[name_prof][skill_name][value] = mesmer_clone_usage[name_prof][skill_name].get(value, 0) + value
+							mesmer_clone_usage[name_prof][skill_name][value] = mesmer_clone_usage[name_prof][skill_name].get(value, 0) + 1 #value
 							break
 
 def get_buff_states(buff_states: list) -> dict:
@@ -2803,7 +2803,7 @@ def parse_file(file_path, fight_num, guild_data, fight_data_charts):
 			guild_id = None
 
 		if guild_data:
-			guild_status = find_member(guild_data, account)
+			guild_status = (guild_data, account)
 		else:
 			guild_status = ""
 
