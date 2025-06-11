@@ -2803,7 +2803,7 @@ def parse_file(file_path, fight_num, guild_data, fight_data_charts):
 			guild_id = None
 
 		if guild_data:
-			guild_status = (guild_data, account)
+			guild_status = find_member(guild_data, account)
 		else:
 			guild_status = ""
 
