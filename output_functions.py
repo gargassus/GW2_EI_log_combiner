@@ -3356,7 +3356,18 @@ def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_
 		max_stacking_buff_fight_time = max(stacking_uptime_Table[uptime_prof_name]['duration_Might'], max_stacking_buff_fight_time)
 
 	rows.append('\n<<alert dark "Stacking Buffs" width:60%>>\n\n')
-	
+	squad_fight_time=0
+	squad_stab_avg=0
+	squad_stab_1=0
+	squad_stab_2=0
+	squad_stab_5=0
+	squad_str_avg=0
+	squad_str_1=0
+	squad_str_5=0
+	squad_str_10=0
+	squad_str_15=0
+	squad_str_20=0
+	squad_str_25=0	
 	# Might stack table
 	rows.append('<$reveal stateTitle=<<currentTiddler>> stateField="stacking_item" type="match" text="might" animate="yes">\n')
 	rows.append('|<$radio field="stacking_item" value="might"> Might </$radio> - <$radio field="stacking_item" value="stability"> Stability  </$radio> - {{Might}} uptime by stack|c')
@@ -3370,6 +3381,7 @@ def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_
 	might_sorted_stacking_uptime_Table = []
 	for uptime_prof_name in stacking_uptime_Table:
 		fight_time = (stacking_uptime_Table[uptime_prof_name]['duration_Might'] / 1000) or 1
+		squad_fight_time += fight_time
 		might_stacks = stacking_uptime_Table[uptime_prof_name]['Might']
 
 		if (top_stats['player'][uptime_prof_name]['active_time'] * 100) / max_fightTime < 1:
@@ -3388,12 +3400,19 @@ def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_
 		might_stacks = stacking_uptime_Table[uptime_prof_name]['Might']
 
 		avg_might = sum(stack_num * might_stacks[stack_num] for stack_num in range(1, 26)) / (fight_time * 1000)
+		squad_str_avg += avg_might*fight_time
 		might_uptime = 1.0 - (might_stacks[0] / (fight_time * 1000))
+		squad_str_1 += might_uptime*fight_time
 		might_5_uptime = sum(might_stacks[i] for i in range(5,26)) / (fight_time * 1000)
+		squad_str_5 += might_5_uptime*fight_time
 		might_10_uptime = sum(might_stacks[i] for i in range(10,26)) / (fight_time * 1000)
+		squad_str_10 += might_10_uptime*fight_time
 		might_15_uptime = sum(might_stacks[i] for i in range(15,26)) / (fight_time * 1000)
+		squad_str_15 += might_15_uptime*fight_time
 		might_20_uptime = sum(might_stacks[i] for i in range(20,26)) / (fight_time * 1000)
+		squad_str_20 += might_20_uptime*fight_time
 		might_25_uptime = might_stacks[25] / (fight_time * 1000)
+		squad_str_25 += might_25_uptime*fight_time
 
 		output_string = f'|<span data-tooltip="{account}"> {name} </span> |'+' {{'+prof+'}} | '+"{:,}".format(round(fight_time))
 		output_string += '|'+"{:.2f}".format(avg_might)
@@ -3406,7 +3425,16 @@ def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_
 		output_string += '|'
 
 		rows.append(output_string)
-
+	squad_string = f'|Squad Average: |<|<'
+	squad_string += '|'+"{:.2f}".format(round((squad_str_avg /(squad_fight_time)), 4))
+	squad_string += "| "+"{:.2f}".format(round((squad_str_1 /(squad_fight_time) * 100), 4))+"%"
+	squad_string += "| "+"{:.2f}".format(round((squad_str_5 /(squad_fight_time) * 100), 4))+"%"
+	squad_string += "| "+"{:.2f}".format(round((squad_str_10 /(squad_fight_time) * 100), 4))+"%"
+	squad_string += "| "+"{:.2f}".format(round((squad_str_15 /(squad_fight_time) * 100), 4))+"%"
+	squad_string += "| "+"{:.2f}".format(round((squad_str_20 /(squad_fight_time) * 100), 4))+"%"
+	squad_string += "| "+"{:.2f}".format(round((squad_str_25 /(squad_fight_time) * 100), 4))+"%"
+	squad_string += '|h'
+	rows.append(squad_string)
 	rows.append("</$reveal>\n")
 	
 	# Stability stack table
@@ -3440,9 +3468,13 @@ def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_
 		stability_stacks = stacking_uptime_Table[uptime_prof_name]['Stability']
 
 		avg_stab = sum(stack_num * stability_stacks[stack_num] for stack_num in range(1, 26)) / (fight_time * 1000)
+		squad_stab_avg += avg_stab*fight_time
 		stab_uptime = 1.0 - (stability_stacks[0] / (fight_time * 1000))
+		squad_stab_1 += stab_uptime*fight_time
 		stab_2_uptime = sum(stability_stacks[i] for i in range(2,26)) / (fight_time * 1000)
+		squad_stab_2 += stab_2_uptime*fight_time
 		stab_5_uptime = sum(stability_stacks[i] for i in range(5,26)) / (fight_time * 1000)
+		squad_stab_5 += stab_5_uptime*fight_time
 
 		output_string = f'|<span data-tooltip="{account}"> {name} </span> |'+' {{'+prof+'}} | '+"{:,}".format(round(fight_time))
 		output_string += '|'+"{:.2f}".format(avg_stab)
@@ -3452,7 +3484,13 @@ def build_stacking_buffs(stacking_uptime_Table: dict, top_stats: dict, tid_date_
 		output_string += '|'
 
 		rows.append(output_string)
-
+	squad_string = f'|Squad Average: |<|<'
+	squad_string += '|'+"{:.2f}".format(round((squad_stab_avg) /(squad_fight_time), 4))
+	squad_string += "| "+"{:.2f}".format(round((squad_stab_1 /(squad_fight_time) * 100), 4))+"%"
+	squad_string += "| "+"{:.2f}".format(round((squad_stab_2 /(squad_fight_time) * 100), 4))+"%"
+	squad_string += "| "+"{:.2f}".format(round((squad_stab_5 /(squad_fight_time) * 100), 4))+"%"
+	squad_string += '|h'
+	rows.append(squad_string)
 	rows.append("</$reveal>\n")
 
 
