@@ -2089,45 +2089,78 @@ def build_minions_tid(minions: dict, players: dict, skill_data: dict, caption: s
 	for profession in minions:
 		rows = []
 		rows.append('<div style="overflow-x:auto;">\n\n')
-		header = "|thead-dark table-caption-top-left table-hover sortable freeze-col|k\n"
-		header += "|,!Player |, Fights|, Fight Time|"
-		header2 = "|~|~|~|"
-		for minion in minions[profession]['pets_list']:
-			header += f" !{minion} |<|<|"
-			header2 += " !Count | !{{damageTaken}}| {{Healing}}|"
-		header += " Total Minion Data |<|<|h"
-		header2 += " !Count | !{{damageTaken}}| {{Healing}}|h"
-		rows.append(header)
-		rows.append(header2)
+		toggle_options = ["Total", "Stat/1s", "Stat/60s"]
 
-		for player in minions[profession]['player']:
-			total_count = 0
-			total_damage_taken = 0
-			total_healing = 0
-			name, profession, account = player.split("|")
-			fights = players[player]['num_fights']
-			fight_time = f"{players[player]['active_time']/1000:,.1f}"
-			if name == profession:
-				row = f'|<span data-tooltip="{account}">{account}</span>| {fights}| {fight_time}|'
-			else:
-				row = f'|<span data-tooltip="{account}">{name}</span>| {fights}| {fight_time}|'
+		for toggle in toggle_options:
+			rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="category_radio" type="match" text="{toggle}" animate="yes">\n')
+			
+			header = "|thead-dark table-caption-top-left table-hover sortable freeze-col|k\n"
+			header += "|,!Player |, Fights|, Fight Time|"
+			sub_header = "|~|~|~|"
+
 			for minion in minions[profession]['pets_list']:
-				if minion in minions[profession]['player'][player]:
-					minion_count = minions[profession]['player'][player][minion]
-					total_count += minion_count
-					minion_damage_taken = minions[profession]['player'][player][minion+'DamageTaken']/1000
-					total_damage_taken += minion_damage_taken
-					minion_healing = minions[profession]['player'][player][minion+'IncomingHealing']/1000
-					total_healing += minion_healing
-					entry = f" {minion_count} | {minion_damage_taken:,.1f}K| {minion_healing:,.1f}K|"
+				header += f" !{minion} |<|<|"
+				sub_header += " !Count | !{{damageTaken}}| {{Healing}}|"
+				
+			header += " Total Minion Data |<|<|h"
+			sub_header += " !Count | !{{damageTaken}}| {{Healing}}|h"
+
+			rows.append(header)
+			rows.append(sub_header)
+
+			for player_key in minions[profession]['player']:
+				total_count = 0
+				total_damage_taken = 0
+				total_healing = 0
+				player_name, player_profession, player_account = player_key.split("|")
+				fights = players[player_key]['num_fights']
+				total_fight_time = players[player_key]['active_time'] / 1000
+				fight_time_str = f"{total_fight_time:,.1f}"
+				fight_minutes = total_fight_time / 60
+
+				if player_name == player_profession:
+					row = f'|<span data-tooltip="{player_account}">{player_account}</span>| {fights}| {fight_time_str}|'
 				else:
-					entry = " - | - | - |"
-				row += entry
-			row += f" {total_count} | {total_damage_taken:,.1f}K| {total_healing:,.1f}K|"
-			rows.append(row)
+					row = f'|<span data-tooltip="{player_account}">{player_name}</span>| {fights}| {fight_time_str}|'
+
+				for minion in minions[profession]['pets_list']:
+					minion_count = 0
+					minion_damage_taken = 0
+					minion_healing = 0
+
+					if minion in minions[profession]['player'][player_key]:
+						minion_count = minions[profession]['player'][player_key][minion]
+						minion_damage_taken = minions[profession]['player'][player_key][minion + 'DamageTaken'] / 1000
+						minion_healing = minions[profession]['player'][player_key][minion + 'IncomingHealing'] / 1000
+
+						total_count += minion_count
+						total_damage_taken += minion_damage_taken
+						total_healing += minion_healing
+
+					if toggle == "Stat/1s":
+						row += f" {minion_count / total_fight_time:,.3f} | {minion_damage_taken / total_fight_time:,.2f}K| {minion_healing / total_fight_time:,.2f}K|"
+					elif toggle == "Stat/60s":
+						row += f" {minion_count / fight_minutes:,.3f} | {minion_damage_taken / fight_minutes:,.2f}K| {minion_healing / fight_minutes:,.2f}K|"
+					elif toggle == "Total":
+						row += f" {minion_count:,.2f} | {minion_damage_taken:,.2f}K| {minion_healing:,.2f}K|"
+
+				if toggle == "Total":
+					row += f" {total_count:,.1f} | {total_damage_taken:,.2f}K| {total_healing:,.2f}K|"
+				elif toggle == "Stat/1s":
+					row += f" {total_count / total_fight_time:,.2f} | {total_damage_taken / total_fight_time:,.2f}K| {total_healing / total_fight_time:,.2f}K|"
+				elif toggle == "Stat/60s":
+					row += f" {total_count / fight_minutes:,.2f} | {total_damage_taken / fight_minutes:,.2f}K| {total_healing / fight_minutes:,.2f}K|"
+
+				rows.append(row)
+
+			radio_buttons = ' - '.join([f'<$radio field="category_radio" value="{option}"> {option} </$radio>' for option in toggle_options])
+			rows.append(f'| {radio_buttons} - Minion Table |c')
+			rows.append("\n</$reveal>")
+		
 		rows.append("\n\n")
 		rows.append("---")
 		rows.append("\n\n")
+
 		header3 = "|thead-dark table-caption-top-left table-hover sortable freeze-col|k\n"
 		header3 += "| Skill Casts / Minute |c\n"
 		header3 += "|!Player | !Fights| !Fight Time|!Minion |"
