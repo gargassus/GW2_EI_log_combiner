@@ -3822,26 +3822,26 @@ def build_fight_line_chart(fight_data: dict, tid_date_time: str, tid_list: list)
 			tid_list	
 		)
 
-def build_pull_stats_tid(tid_date_time: str, top_stats: dict, tid_list: list) -> None:
+def build_pull_stats_tid(tid_date_time: str, top_stats: dict, skill_data: dict, tid_list: list) -> None:
 	Pull_Skills = [
 		"Pull","Wrathful Grasp","Blazing Edge","Temporal Rift","Otherworldly Attraction","Abyssal Blot",
 		"Snap Pull","Barbed Pull","Capture Line","Path of Scars","Tow Line","Undertow","Cyclone",
-		"Into the Void","Vortex","Deadly Catch","Grasping Darkness","Skill","Chapter 3: Heated Rebuke",
-		"Magnet","Magnetic Shield","Utility","Call to Anguish","Call to Anguish","Glyph of the Tides",
-		"Scorpion Wire","Spectral Grasp","Elite","Dragon's Maw","Shadowfall","Whirlpool","Gravity Well",
-		"Mechanics Skill","Hunter's Verdict","Wild Whirl","Prismatic Singularity","Prelude Lash",
-		"Throw Magnetic Bomb","Throw Unstable Reagent","Pet Skill","Fang Grapple"
+		"Into the Void","Vortex","Deadly Catch","Grasping Darkness","Chapter 3: Heated Rebuke",
+		"Magnet","Magnetic Shield","Call to Anguish","Call to Anguish","Glyph of the Tides",
+		"Scorpion Wire","Spectral Grasp","Dragon's Maw","Shadowfall","Whirlpool","Gravity Well",
+		"Hunter's Verdict","Wild Whirl","Prismatic Singularity","Prelude Lash","Throw Magnetic Bomb",
+		"Throw Unstable Reagent","Fang Grapple","Relic of the Wizard's Tower","Magebane Tether"
 		]
 	pull_data = {
 		'incoming': {},
 		'outgoing': {}
 	}
 	Used_Pulls = {}
-	for skill, data in top_stats['skill_data'].items():
+	for skill, data in skill_data.items():
 		if data['name'] in Pull_Skills:
-			Used_Pulls[skill] = data['name']
+			Used_Pulls[skill] = '[img width=24 ['+data['icon']+']] '+data['name']
 	
-	for player, p_data in top_stats['players'].items():
+	for player, p_data in top_stats['player'].items():
 		name = p_data['name']
 		prof = p_data['profession']
 		for skill, s_data in p_data['totalDamageTaken'].items():
@@ -3897,6 +3897,32 @@ def build_pull_stats_tid(tid_date_time: str, top_stats: dict, tid_list: list) ->
 				else:
 					pull_data['outgoing'][skill_name]['player_data'][player]['chits'] += Chits
 					pull_data['outgoing'][skill_name]['player_data'][player]['hits'] += hits
+
+	tags = f"{tid_date_time}"
+	title = f"{tid_date_time}-pull-skills"
+	caption = "Pull Skill Summary"
+	rows=[]
+	rows.append("\n\n|thead-dark table-caption-top table-hover|k")
+	rows.append("| Incoming Pulls |c")	
+	header = "|!Skill Name |!Player | !Hits | !Incoming | !% Connected |h"
+	rows.append(header)
+	#playername|prof|skill Name|Chits|hits|% connected|
+	for skill in pull_data['incoming']:
+		for player, player_data in pull_data['incoming'][skill]['player_data'].items():
+			name=player_data['name']
+			prof=player_data['prof']
+			chits=player_data['chits']
+			hits=player_data['hits']
+			percentage=(chits/hits)*100 if hits else 0
+			row = f"|{skill} |{{{{{prof}}}}} {name} | {chits}| {hits}| {percentage:,.0f}%|"
+			rows.append(row)
+
+	text = "\n".join(rows)
+
+	append_tid_for_output(
+		create_new_tid_from_template(title, caption, text, tags),
+		tid_list
+	)
 
 def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 		
