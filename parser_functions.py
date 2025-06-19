@@ -1231,7 +1231,6 @@ def get_enemies_by_fight(fight_num: int, targets: dict) -> None:
 		top_stats["fight"][fight_num]["enemy_count"] += 1
 		top_stats['overall']['enemy_count'] = top_stats['overall'].get('enemy_count', 0) + 1
 
-
 def get_enemy_downed_and_killed_by_fight(fight_num: int, targets: dict, players: dict, log_type: str) -> None:
 	"""
 	Count enemy downed and killed for a fight.
@@ -1596,6 +1595,7 @@ def get_target_buff_data(fight_num: int, player: dict, targets: dict, stat_categ
 					top_stats['overall'][stat_category][buff_id]['applied_counts'] += appliedCounts
 
 		target_idx += 1
+
 def get_buff_generation(fight_num: int, player: dict, stat_category: str, name_prof: str, duration: int, buff_data: dict, squad_count: int, group_count: int) -> None:
 	"""
 	Calculate buff generation stats for a player

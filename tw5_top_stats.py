@@ -328,6 +328,8 @@ if __name__ == '__main__':
 
 	build_damage_with_buffs(stacking_uptime_Table, DPSStats, top_stats, tid_date_time, tid_list)
 
+	build_pull_stats_tid(tid_date_time, top_stats, skill_data, tid_list)
+	
 	#Fight Data line charts
 	if fight_data_charts:
 		build_fight_line_chart(fight_data, tid_date_time, tid_list)
