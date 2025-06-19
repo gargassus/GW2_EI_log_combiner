@@ -1554,7 +1554,7 @@ def build_general_stats_tid(datetime):
 	caption = "General Stats"
 	creator = "Drevarr@github.com"
 	text = (f"<<tabs '[[{datetime}-Damage]] [[{datetime}-Damage-With-Buffs]] [[{datetime}-Offensive]] "
-			f"[[{datetime}-Defenses]] [[{datetime}-Support]] [[{datetime}-Heal-Stats]] [[{datetime}-Healers]] [[{datetime}-Combat-Resurrect]] [[{datetime}-FB-Pages]] [[{datetime}-Mesmer-Clone-Usage]]' "
+			f"[[{datetime}-Defenses]] [[{datetime}-Support]] [[{datetime}-Heal-Stats]] [[{datetime}-Healers]] [[{datetime}-Combat-Resurrect]] [[{datetime}-FB-Pages]] [[{datetime}-Mesmer-Clone-Usage]] [[{datetime}-Pull-Skills]]' "
 			f"'{datetime}-Offensive' '$:/temp/tab1'>>")
 
 	append_tid_for_output(
@@ -3832,91 +3832,123 @@ def build_pull_stats_tid(tid_date_time: str, top_stats: dict, skill_data: dict, 
 		"Hunter's Verdict","Wild Whirl","Prismatic Singularity","Prelude Lash","Throw Magnetic Bomb",
 		"Throw Unstable Reagent","Fang Grapple","Relic of the Wizard's Tower","Magebane Tether"
 		]
+	
 	pull_data = {
 		'incoming': {},
 		'outgoing': {}
 	}
+
 	Used_Pulls = {}
+	incoming_pulls = []
+	outgoing_pulls = []
+
 	for skill, data in skill_data.items():
 		if data['name'] in Pull_Skills:
-			Used_Pulls[skill] = '[img width=24 ['+data['icon']+']] '+data['name']
-	
+			Used_Pulls[skill] = f'[img width=24 [{data['name']}|{data['icon']}]]'
+
 	for player, p_data in top_stats['player'].items():
 		name = p_data['name']
 		prof = p_data['profession']
+
+		if player not in pull_data['incoming']:
+			pull_data['incoming'][player] = {}
+
 		for skill, s_data in p_data['totalDamageTaken'].items():
-			if f"s{skill}" in Used_Pulls:
-				skill_name = Used_Pulls[f"s{skill}"]
+			if f"s{skill}" in Used_Pulls and s_data['hits']:
 				Chits = s_data['connectedHits']
 				hits = s_data['hits']
+				if skill not in incoming_pulls:
+					incoming_pulls.append(skill)
 
-				if skill_name not in pull_data['incoming']:
-					pull_data['incoming'][skill_name] = {
-						'chits': Chits,
-						'hits': hits,
-						'player_data': {}
-					}
-				else:
-					pull_data['incoming'][skill_name]['chits'] += Chits
-					pull_data['incoming'][skill_name]['hits'] += hits
-
-				if player not in pull_data['incoming'][skill_name]['player_data']:
-					pull_data['incoming'][skill_name]['player_data'][player] = {
-						'name': name,
-						'prof': prof,
+				if skill not in pull_data['incoming'][player]:
+					pull_data['incoming'][player][skill] = {
 						'chits': Chits,
 						'hits': hits
 					}
 				else:
-					pull_data['incoming'][skill_name]['player_data'][player]['chits'] += Chits
-					pull_data['incoming'][skill_name]['player_data'][player]['hits'] += hits
+					pull_data['incoming'][player][skill]['chits'] += Chits
+					pull_data['incoming'][player][skill]['hits'] += hits
+
+
 
 		for skill, s_data in p_data['targetDamageDist'].items():
-			if f"s{skill}" in Used_Pulls:
-				skill_name = Used_Pulls[f"s{skill}"]
+			if f"s{skill}" in Used_Pulls and s_data['hits']:
 				Chits = s_data['connectedHits']
 				hits = s_data['hits']
+				if skill not in outgoing_pulls:
+					outgoing_pulls.append(skill)
 
-				if skill_name not in pull_data['outgoing']:
-					pull_data['outgoing'][skill_name] = {	
-						'chits': Chits,
-						'hits': hits,
-						'player_data': {}
-					}
-				else:
-					pull_data['outgoing'][skill_name]['chits'] += Chits
-					pull_data['outgoing'][skill_name]['hits'] += hits	
+				if player not in pull_data['outgoing']:
+					pull_data['outgoing'][player] = {}
 
-				if player not in pull_data['outgoing'][skill_name]['player_data']:
-					pull_data['outgoing'][skill_name]['player_data'][player] = {
-						'name': name,
-						'prof': prof,
+				if skill not in pull_data['outgoing'][player]:
+					pull_data['outgoing'][player][skill] = {	
 						'chits': Chits,
 						'hits': hits
 					}
 				else:
-					pull_data['outgoing'][skill_name]['player_data'][player]['chits'] += Chits
-					pull_data['outgoing'][skill_name]['player_data'][player]['hits'] += hits
+					pull_data['outgoing'][player][skill]['chits'] += Chits
+					pull_data['outgoing'][player][skill]['hits'] += hits	
 
 	tags = f"{tid_date_time}"
-	title = f"{tid_date_time}-pull-skills"
+	title = f"{tid_date_time}-Pull-Skills"
 	caption = "Pull Skill Summary"
 	rows=[]
-	rows.append("\n\n|thead-dark table-caption-top table-hover|k")
+	rows.append('\n<div class="flex-row">\n     <div class="flex-col">\n\n')
+	rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
 	rows.append("| Incoming Pulls |c")	
-	header = "|!Skill Name |!Player | !Hits | !Incoming | !% Connected |h"
+	header = "|!Player | Prof |"
+	for skill in incoming_pulls:
+		skill_header = Used_Pulls[f"s{skill}"]
+		header += ' !'+skill_header+' |'
+	header += 'h'
 	rows.append(header)
-	#playername|prof|skill Name|Chits|hits|% connected|
-	for skill in pull_data['incoming']:
-		for player, player_data in pull_data['incoming'][skill]['player_data'].items():
-			name=player_data['name']
-			prof=player_data['prof']
-			chits=player_data['chits']
-			hits=player_data['hits']
-			percentage=(chits/hits)*100 if hits else 0
-			row = f"|{skill} |{{{{{prof}}}}} {name} | {chits}| {hits}| {percentage:,.0f}%|"
-			rows.append(row)
 
+	for player in pull_data['incoming']:
+		name, prof, acct = player.split("|")
+		name_entry = f"<span data-tooltip='{acct}'>{name}</span>"
+		row = f"|{name_entry} | {{{{{prof}}}}} |"
+		for skill in incoming_pulls:
+			if skill in pull_data['incoming'][player]:
+				chits = pull_data['incoming'][player][skill].get('chits',0)
+				hits = pull_data['incoming'][player][skill].get('hits',0)
+				percentage=(chits/hits)*100 if hits else 0
+				percentage =f"{percentage:,.1f}%"
+			else:
+				chits = "-"
+				hits = "-"
+				percentage= "-"
+			entry = f" <span data-tooltip='{chits} of {hits} hits - ({percentage})'>{chits}</span> |"
+			row += entry
+		rows.append(row)
+	rows.append('\n    </div>\n    <div class="flex-col">\n\n')
+	rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
+	rows.append("| Outgoing Pulls |c")	
+	header = "|!Player | Prof |"
+	for skill in outgoing_pulls:
+		skill_header = Used_Pulls[f"s{skill}"]
+		header += ' !'+skill_header+' |'
+	header += 'h'
+	rows.append(header)
+
+	for player in pull_data['outgoing']:
+		name, prof, acct = player.split("|")
+		name_entry = f"<span data-tooltip='{acct}'>{name}</span>"
+		row = f"|{name_entry} | {{{{{prof}}}}} |"
+		for skill in outgoing_pulls:
+			if skill in pull_data['outgoing'][player]:
+				chits = pull_data['outgoing'][player][skill].get('chits',0)
+				hits = pull_data['outgoing'][player][skill].get('hits',0)
+				percentage=(chits/hits)*100 if hits else 0
+			else:
+				chits = "-"
+				hits = "-"
+				percentage= 0
+			entry = f" <span data-tooltip='{chits} of {hits} hits - ({percentage:,.1f}%)'>{chits}</span> |"
+			row += entry
+		rows.append(row)
+
+	rows.append('\n\n    </div>\n</div>\n\n')
 	text = "\n".join(rows)
 
 	append_tid_for_output(
