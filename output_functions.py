@@ -174,7 +174,7 @@ def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dic
 		name = player["name"]
 		tt_name = f'<span data-tooltip="{account}">{name}</span>'
 		profession = "{{"+player["profession"]+"}}"
-		row = f"|{tt_name} | {profession} | {fight_time/1000:.1f}|"
+		row = f"|{tt_name} | {profession} | {fight_time/1000:,.1f}|"
 
 		for buff_id in gear_buff_ids:
 			if buff_id in player["buffUptimes"]:
@@ -215,7 +215,7 @@ def build_gear_skill_summary(top_stats: dict, gear_skill_ids: list, skill_data: 
 		name = player["name"]
 		tt_name = f'<span data-tooltip="{account}">{name}</span>'
 		profession = "{{"+player["profession"]+"}}"
-		row = f"|{tt_name} | {profession} | {fight_time/1000:.1f}|"
+		row = f"|{tt_name} | {profession} | {fight_time/1000:,.1f}|"
 
 		for skill in gear_skill_ids:
 			_skill = int(skill[1:])
@@ -507,7 +507,7 @@ def build_damage_summary_table(top_stats: dict, caption: str, tid_date_time: str
 		account = player_data["account"]
 		name = player_data["name"]
 		tt_name = f'<span data-tooltip="{account}">{name}</span>'
-		row = f"| {player_data['last_party']} |{tt_name} |"+" {{"+f"{player_data['profession']}"+"}}"+f" {player_data['profession'][:3]} "+f"| {fighttime:.1f}|"
+		row = f"| {player_data['last_party']} |{tt_name} |"+" {{"+f"{player_data['profession']}"+"}}"+f" {player_data['profession'][:3]} "+f"| {fighttime:,.1f}|"
 		row += " {:,}| {:,.0f}| {:,}| {:,.0f}| {:,}| {:,.0f}| {:,}| {:,}| {:,}| {:,}| {:,}|".format(
 			player_data["dpsTargets"]["damage"],
 			player_data["dpsTargets"]["damage"]/fighttime,
@@ -587,7 +587,7 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 			account = player["account"]
 			name = player["name"]
 			tt_name = f'<span data-tooltip="{account}">{name}</span>'
-			row = f"| { player['last_party']} |{tt_name} | {{{{{player['profession']}}}}} {player['profession'][:3]} | {fight_time:.0f}|"
+			row = f"| { player['last_party']} |{tt_name} | {{{{{player['profession']}}}}} {player['profession'][:3]} | {fight_time:,.1f}|"
 			
 			for stat, category in category_stats.items():
 				stat_value = player[category].get(stat, 0)
@@ -679,7 +679,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 			name = player["name"]
 			tt_name = f'<span data-tooltip="{account}">{name}</span>'
 			# Create a row for the player with basic info
-			row = f"| { player['last_party']} |{tt_name} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"| {player['active_time'] / 1000:.1f}|"
+			row = f"| { player['last_party']} |{tt_name} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"| {player['active_time'] / 1000:,.1f}|"
 
 			# Iterate over each boon
 			for boon_id in boons:
@@ -873,7 +873,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 		account = player["account"]
 		name = player["name"]
 		tt_name = f'<span data-tooltip="{account}">{name}</span>'
-		row = f"| {player['last_party']} |{tt_name} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"| {player['active_time'] / 1000:.2f}|"
+		row = f"| {player['last_party']} |{tt_name} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"| {player['active_time'] / 1000:,.1f}|"
 		for boon_id in boons:
 			if boon_id not in buff_data:
 				continue
@@ -967,7 +967,7 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 		account = player["account"]
 		name = player["name"]
 		tt_name = f'<span data-tooltip="{account}">{name}</span>'
-		row = f"| {player['last_party']} |{tt_name} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"| {player['active_time'] / 1000:.2f}|"
+		row = f"| {player['last_party']} |{tt_name} |"+" {{"+f"{player['profession']}"+"}}"+f" {player['profession'][:3]} "+f"| {player['active_time'] / 1000:,.1f}|"
 		applied_counts = 0
 		for boon_id in boons:
 			entry = ""
@@ -1072,25 +1072,25 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
 			if (healer[1]['healing'] + healer[1]['downed_healing'] + healer[1]['barrier']):
 				fighttime = healer[1]['fight_time'] / 1000
 				if toggle == "Total":
-					row = f"| {healer[1]['last_party']} |{tt_name} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"| {fighttime:.2f}|"
+					row = f"| {healer[1]['last_party']} |{tt_name} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"| {fighttime:,.1f}|"
 					row += f" {healer[1]['healing']:,}| {healer[1]['healing'] / fighttime:,.2f}| {healer[1]['barrier']:,}|"
 					row += f"{healer[1]['barrier'] / fighttime:,.2f}| {healer[1]['downed_healing']:,}| {healer[1]['downed_healing'] / fighttime:,.2f}|"
 				elif toggle == "Squad":
-					row = f"| {healer[1]['last_party']} |{tt_name} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"| {fighttime:.2f}|"
+					row = f"| {healer[1]['last_party']} |{tt_name} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"| {fighttime:,.1f}|"
 					row += f" {healer[1]['squad_healing']:,}| {healer[1]['squad_healing'] / fighttime:,.2f}| {healer[1]['squad_barrier']:,}|"
-					row += f"{healer[1]['squad_barrier'] / fighttime:,.2f}| {healer[1]['squad_downed_healing']:,}| {healer[1]['squad_downed_healing'] / fighttime:,.2f}|"
+					row += f"{healer[1]['squad_barrier'] / fighttime:,.2f}| {healer[1]['squad_downed_healing']:,}| {healer[1]['squad_downed_healing'] / fighttime:,.1f}|"
 				elif toggle == "Group":
-					row = f"| {healer[1]['last_party']} |{tt_name} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"| {fighttime:.2f}|"
+					row = f"| {healer[1]['last_party']} |{tt_name} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"| {fighttime:,.1f}|"
 					row += f" {healer[1]['group_healing']:,}| {healer[1]['group_healing'] / fighttime:,.2f}| {healer[1]['group_barrier']:,}|"
-					row += f"{healer[1]['group_barrier'] / fighttime:,.2f}| {healer[1]['group_downed_healing']:,}| {healer[1]['group_downed_healing'] / fighttime:,.2f}|"
+					row += f"{healer[1]['group_barrier'] / fighttime:,.2f}| {healer[1]['group_downed_healing']:,}| {healer[1]['group_downed_healing'] / fighttime:,.1f}|"
 				elif toggle == "Self":
-					row = f"| {healer[1]['last_party']} |{tt_name} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"| {fighttime:.2f}|"
+					row = f"| {healer[1]['last_party']} |{tt_name} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"| {fighttime:,.1f}|"
 					row += f" {healer[1]['self_healing']:,}| {healer[1]['self_healing'] / fighttime:,.2f}| {healer[1]['self_barrier']:,}|"
-					row += f"{healer[1]['self_barrier'] / fighttime:,.2f}| {healer[1]['self_downed_healing']:,}| {healer[1]['self_downed_healing'] / fighttime:,.2f}|"
+					row += f"{healer[1]['self_barrier'] / fighttime:,.2f}| {healer[1]['self_downed_healing']:,}| {healer[1]['self_downed_healing'] / fighttime:,.1f}|"
 				elif toggle == "OffSquad":
-					row = f"| {healer[1]['last_party']} |{tt_name} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"| {fighttime:.2f}|"
+					row = f"| {healer[1]['last_party']} |{tt_name} |"+" {{"+f"{healer[1]['profession']}"+"}}"+f" {healer[1]['profession'][:3]}"+" "+f"| {fighttime:,.1f}|"
 					row += f" {healer[1]['off_squad_healing']:,}| {healer[1]['off_squad_healing'] / fighttime:,.2f}| {healer[1]['off_squad_barrier']:,}|"
-					row += f"{healer[1]['off_squad_barrier'] / fighttime:,.2f}| {healer[1]['off_squad_downed_healing']:,}| {healer[1]['off_squad_downed_healing'] / fighttime:,.2f}|"
+					row += f"{healer[1]['off_squad_barrier'] / fighttime:,.2f}| {healer[1]['off_squad_downed_healing']:,}| {healer[1]['off_squad_downed_healing'] / fighttime:,.1f}|"
 				rows.append(row)
 
 	# Add caption row and finalize table
@@ -1154,7 +1154,7 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
 				name = player_data['name']
 				tt_name = f'<span data-tooltip="{account}">{name}</span>'
 				# Build the row
-				row = f"| {player_data['last_party']} |{tt_name} | {player_data['profession']} | {player_data['active_time'] / 1000:.2f}|"
+				row = f"| {player_data['last_party']} |{tt_name} | {player_data['profession']} | {player_data['active_time'] / 1000:,.1f}|"
 				# Iterate over each modifier and add the details to the row
 				for mod in prof_mod_list:
 					if mod in player_data['damageModifiers']:
@@ -1228,7 +1228,7 @@ def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict,
 	rows.append(header)
 
 	for player in top_stats['player'].values():
-		row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:32]} | {player['active_time'] / 1000:.2f}|"
+		row = f"|{player['name']} |"+" {{"+f"{player['profession']}"+"}} "+f"|{player['account'][:32]} | {player['active_time'] / 1000:,.1f}|"
 		for modifier_id in shared_mod_list:
 			if modifier_id in player['damageModifiers']:
 				modifier_data = player['damageModifiers'][modifier_id]
@@ -1314,7 +1314,7 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 			apm = round(player_data['total']/time_mins)
 			apm_no_auto = round(player_data['total_no_auto']/time_mins)
 		
-			row = f"|{name} |" + " " + f"{profession} " + f"|{account} |" + f"{time_secs:.2f}|" + f" {apm}/{apm_no_auto} |"
+			row = f"|{name} |" + " " + f"{profession} " + f"|{account} |" + f"{time_secs:,.1f}|" + f" {apm}/{apm_no_auto} |"
 			# Add the skill casts per minute to the row
 			i = 0
 			for skill, count in sorted_cast_skills:
@@ -2029,7 +2029,7 @@ def build_personal_buff_summary(top_stats: dict, buff_data: dict, personal_buff_
 				tt_name = f'<span data-tooltip="{account}">{name}</span>'
 
 				# Build the row
-				row = f"| {player_data['last_party']} |{tt_name} | {{{{{player_data['profession']}}}}} | {player_data['active_time'] / 1000:.2f}|"
+				row = f"| {player_data['last_party']} |{tt_name} | {{{{{player_data['profession']}}}}} | {player_data['active_time'] / 1000:,.1f}|"
 
 				for buff_id in prof_buff_list:
 					if buff_id in player_data['buffUptimes']:
@@ -3621,7 +3621,7 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, player_minio
 		interrupted_entry = f'<span data-tooltip="Dmg: {total_interrupted_dmg:,.0f}">{total_interrupted:,.0f}</span>'
 		avg_damage = round(total_mitigation/active_time) if active_time > 0 else 0
 		min_avg_damage = round(total_min_mitigation/active_time) if active_time > 0 else 0
-		rows.append(f"|<span data-tooltip='{player_account}'>{player_name}</span> |{player_profession}| {active_time:,} | {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}| {avg_damage:,.0f}| {total_min_mitigation:,.0f}| {min_avg_damage:,.0f}|")
+		rows.append(f"|<span data-tooltip='{player_account}'>{player_name}</span> |{player_profession}| {active_time:,.1f} | {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}| {avg_damage:,.0f}| {total_min_mitigation:,.0f}| {min_avg_damage:,.0f}|")
 
 	rows.append("</$reveal>\n")
 
@@ -3682,7 +3682,7 @@ def build_defense_damage_mitigation(player_damage_mitigation: dict, player_minio
 			avg_damage = round(total_mitigation/active_time) if active_time > 0 else 0
 			min_avg_damage = round(total_min_mitigation/active_time) if active_time > 0 else 0
 			if total_mitigation:
-				rows.append(f"|<span data-tooltip='{player_account}'>{player_name}</span> |{player_profession}|{minion} | {active_time:,} | {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}| {avg_damage:,.0f}| {total_min_mitigation:,.0f}| {min_avg_damage:,.0f}|")
+				rows.append(f"|<span data-tooltip='{player_account}'>{player_name}</span> |{player_profession}|{minion} | {active_time:,.1f} | {total_hits:,}| {evaded_entry}| {blocked_entry}| {glanced_entry}| {missed_entry}| {invulned_entry}| {interrupted_entry}| {total_mitigation:,.0f}| {avg_damage:,.0f}| {total_min_mitigation:,.0f}| {min_avg_damage:,.0f}|")
 	rows.append("\n\n")
 
 	text = "\n".join(rows)
@@ -3897,7 +3897,7 @@ def build_pull_stats_tid(tid_date_time: str, top_stats: dict, skill_data: dict, 
 	rows.append('\n<div class="flex-row">\n     <div class="flex-col">\n\n')
 	rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
 	rows.append("| Incoming Pulls |c")	
-	header = "|!Player | Prof |"
+	header = "|!Player | Prof | !{{FightTime}}|"
 	for skill in incoming_pulls:
 		skill_header = Used_Pulls[f"s{skill}"]
 		header += ' !'+skill_header+' |'
@@ -3907,7 +3907,8 @@ def build_pull_stats_tid(tid_date_time: str, top_stats: dict, skill_data: dict, 
 	for player in pull_data['incoming']:
 		name, prof, acct = player.split("|")
 		name_entry = f"<span data-tooltip='{acct}'>{name}</span>"
-		row = f"|{name_entry} | {{{{{prof}}}}} |"
+		fight_time = round(top_stats['player'][player]['fight_time']/1000)
+		row = f"|{name_entry} | {{{{{prof}}}}} | {fight_time:,.1f}|"
 		for skill in incoming_pulls:
 			if skill in pull_data['incoming'][player]:
 				chits = pull_data['incoming'][player][skill].get('chits',0)
@@ -3924,7 +3925,7 @@ def build_pull_stats_tid(tid_date_time: str, top_stats: dict, skill_data: dict, 
 	rows.append('\n    </div>\n    <div class="flex-col">\n\n')
 	rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
 	rows.append("| Outgoing Pulls |c")	
-	header = "|!Player | Prof |"
+	header = "|!Player | Prof | !{{FightTime}}|"
 	for skill in outgoing_pulls:
 		skill_header = Used_Pulls[f"s{skill}"]
 		header += ' !'+skill_header+' |'
@@ -3934,7 +3935,8 @@ def build_pull_stats_tid(tid_date_time: str, top_stats: dict, skill_data: dict, 
 	for player in pull_data['outgoing']:
 		name, prof, acct = player.split("|")
 		name_entry = f"<span data-tooltip='{acct}'>{name}</span>"
-		row = f"|{name_entry} | {{{{{prof}}}}} |"
+		fight_time = round(top_stats['player'][player]['fight_time']/1000)
+		row = f"|{name_entry} | {{{{{prof}}}}} | {fight_time:,.1f}|"
 		for skill in outgoing_pulls:
 			if skill in pull_data['outgoing'][player]:
 				chits = pull_data['outgoing'][player][skill].get('chits',0)
