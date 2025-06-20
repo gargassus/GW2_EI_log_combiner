@@ -3894,6 +3894,8 @@ def build_pull_stats_tid(tid_date_time: str, top_stats: dict, skill_data: dict, 
 	title = f"{tid_date_time}-Pull-Skills"
 	caption = "Pull Skill Summary"
 	rows=[]
+	rows.append("!!!@@ Note: Pull data is derived from connected hits for skills with pull effects.@@\n")
+	rows.append("!!!@@It does not reflect actual observed pull events as they are unavailable in the json.@@")
 	rows.append('\n<div class="flex-row">\n     <div class="flex-col">\n\n')
 	rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
 	rows.append("| Incoming Pulls |c")	
