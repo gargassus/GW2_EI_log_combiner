@@ -2094,12 +2094,12 @@ def build_minions_tid(minions: dict, players: dict, skill_data: dict, caption: s
 		for toggle in toggle_options:
 			rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="category_radio" type="match" text="{toggle}" animate="yes">\n')
 			
-			header = "|thead-dark table-caption-top-left table-hover sortable freeze-col|k\n"
-			header += "|,!Player |, Fights|, Fight Time|"
-			sub_header = "|~|~|~|"
+			header = "|thead-dark table-caption-top-left table-hover sortable|k\n"
+			header += "|,Player |, Num|, Active|"
+			sub_header = "|, !Stats |, Fight|, !Time|"
 
 			for minion in minions[profession]['pets_list']:
-				header += f" !{minion} |<|<|"
+				header += f" {minion} |<|<|"
 				sub_header += " !Count | !{{damageTaken}}| {{Healing}}|"
 				
 			header += " Total Minion Data |<|<|h"
@@ -3844,7 +3844,7 @@ def build_pull_stats_tid(tid_date_time: str, top_stats: dict, skill_data: dict, 
 
 	for skill, data in skill_data.items():
 		if data['name'] in Pull_Skills:
-			Used_Pulls[skill] = f'[img width=24 [{data['name']}|{data['icon']}]]'
+			Used_Pulls[skill] = f"[img width=24 [{data['name']}|{data['icon']}]]"
 
 	for player, p_data in top_stats['player'].items():
 		name = p_data['name']
