@@ -468,8 +468,8 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 		"Total": 0,
 		"Ranges": [],
 		}
-		
-	player_dist_to_tag = round(player['statsAll'][0]['distToCom'])
+
+	player_dist_to_tag = round(player['statsAll'][0]['distToCom']) if player['statsAll'][0]['distToCom'] != 'Infinity' else 0
 
 	if player['combatReplayData']['dead'] and player['combatReplayData']['down'] and commander_tag_positions:
 		player_deaths = dict(player['combatReplayData']['dead'])
@@ -1304,7 +1304,9 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 	"""
 	for stat, value in player[stat_category][0].items():
 		if stat in ['boonStripsTime', 'condiCleanseTime'] and value > 999999:
-			value = 0	
+			value = 0
+		if stat in ['distToCom', 'stackDist'] and value == "Infinity":
+			value = 0
 		if stat in config.high_scores:
 			active_time_seconds = player['activeTimes'][0] / 1000
 			high_score_value = round(value / active_time_seconds, 3) if active_time_seconds > 0 else 0
