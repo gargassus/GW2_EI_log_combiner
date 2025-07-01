@@ -1306,6 +1306,7 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 		if stat in ['boonStripsTime', 'condiCleanseTime'] and value > 999999:
 			value = 0
 		if stat in ['distToCom', 'stackDist'] and value == "Infinity":
+			print(f"Invalid stat: {stat} with value: {value} for player: {player['name']}. The log for fight {fight_num} needs review.")
 			value = 0
 		if stat in config.high_scores:
 			active_time_seconds = player['activeTimes'][0] / 1000
