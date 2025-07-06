@@ -4191,9 +4191,9 @@ def generate_leaderboard(stat: str, top_n: int = 25) -> str:
         activity_minutes[player_key] = total_minutes
         guild_members[player_key] = guild_status
         if stat in ('kills', 'downs', 'downed', 'killed', 'resurrects'):
-            avg_norm[player_key] = round(total_stat / (total_minutes), 2) if total_minutes else '-'
+            avg_norm[player_key] = round(total_stat / (total_minutes), 4) if total_minutes else '-'
         else:
-            avg_norm[player_key] = round(total_stat / (total_minutes*60), 2) if total_minutes else '-'
+            avg_norm[player_key] = round(total_stat / (total_minutes*60), 4) if total_minutes else '-'
 
         # Compute activity bucket
     member_bucket = {}
@@ -4208,7 +4208,7 @@ def generate_leaderboard(stat: str, top_n: int = 25) -> str:
     def delta_str(delta):
         if delta is None:
             return ""
-        return f"{'🔺' if delta > 0 else '🔻'} {abs(delta):.1f}"
+        return f"{abs(delta):.1f} {'🔺' if delta > 0 else '🔻'}"
 
     # Build table with activity classification
     table = f"| Rank |Name|Profession| Glicko Rating| Trend| Raids | Guild Member | Avg {stat.title()}|h\n"
@@ -4228,9 +4228,9 @@ def generate_leaderboard(stat: str, top_n: int = 25) -> str:
             avg = f"{avg:,.2f}/min"
         else:
             avg = f"{avg:,.2f}/sec"
-        bucket = member_bucket.get(player_key, '-')
+        membership = member_bucket.get(player_key, '-')
         tt_name = f'<span data-tooltip="{acc}">{name}</span>'
-        table += f"| {rank} |{tt_name} | {{{{{prof}}}}} {prof[:3]} | {round(rating, 1)}| {delta_str(delta)}| {raids} | {bucket} | {avg}|\n"
+        table += f"| {rank} |{tt_name} |{{{{{prof}}}}} {prof} | {round(rating, 1)} | {delta_str(delta)}| {raids} | {membership} | {avg}|\n"
         rank += 1
 
     return table
