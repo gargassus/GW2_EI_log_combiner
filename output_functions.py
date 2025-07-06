@@ -4196,12 +4196,12 @@ def generate_leaderboard(stat: str, top_n: int = 25) -> str:
             avg_norm[player_key] = round(total_stat / (total_minutes*60), 2) if total_minutes else '-'
 
         # Compute activity bucket
-    activity_bucket = {}
-    for player_key, minutes in activity_minutes.items():
-        if minutes == "--==Non Member==--":
-            activity_bucket[player_key] = "❌"
+    member_bucket = {}
+    for player_key, member_status in guild_members.items():
+        if member_status in (None, 0, "--==Non Member==--"):
+            member_bucket[player_key] = "❌"
         else:
-            activity_bucket[player_key] = "✅"
+            member_bucket[player_key] = "✅"
             
     conn.close()
 
@@ -4228,9 +4228,9 @@ def generate_leaderboard(stat: str, top_n: int = 25) -> str:
             avg = f"{avg:,.2f}/min"
         else:
             avg = f"{avg:,.2f}/sec"
-        bucket = activity_bucket.get(player_key, '-')
+        bucket = member_bucket.get(player_key, '-')
         tt_name = f'<span data-tooltip="{acc}">{name}</span>'
-        table += f"| {rank} |{tt_name} | {{{{{prof}}}}} {prof[:3]} | {round(rating, 1)}| {delta_str(delta)}| {raids} |{bucket} | {avg}|\n"
+        table += f"| {rank} |{tt_name} | {{{{{prof}}}}} {prof[:3]} | {round(rating, 1)}| {delta_str(delta)}| {raids} | {bucket} | {avg}|\n"
         rank += 1
 
     return table
