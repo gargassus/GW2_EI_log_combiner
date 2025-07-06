@@ -28,7 +28,7 @@ Currently works with WVW and Detailed WVW logs. Partially working with PVElogs, 
  - Send example arcdps logs generating issues would be appreciated 
  
 **Optional**
- - You can run from source after installing required packages `pip install requests` via cmd line: 
+ - You can run from source after installing required packages `pip install requests glicko2` via cmd line: 
    -  Examples:
       - `python tw5_top_stats.py -i d:\path\to\logs`  # `-i` flag to set the directory of the `EI json logs`
       or

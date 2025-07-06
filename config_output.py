@@ -231,3 +231,32 @@ profession_color = {
 	##NECROMANCERS
 	"Necromancer":"#339966", "Reaper":"#50A77B", "Scourge":"#6DB691", "Harbinger":"#8AC4A7"
 }
+
+leaderboard_stats = {
+    'damage': "DPS",
+    'down_contribution': "Down Contribution",
+    'downs': "Downs",
+    'kills': "Kills",
+    'damage_taken': "Damage Taken",
+    'damage_barrier': "Barrier Damage",
+    'downed': "Downed",
+    'deaths': "Deaths",
+    'cleanses': "Cleanses",
+    'boon_strips': "Boon Strips",
+    'resurrects': "Ressurects",
+    'healing': "Healing",
+    'barrier': "Barrier",
+    'downed_healing': "Downed Healing",
+    'stab_gen': "Stability",
+    'migh_gen': "Might",
+    'fury_gen': "Fury",
+    'quic_gen': "Quickness",
+    'alac_gen': "Alacrity",
+    'prot_gen': "Protection",
+    'rege_gen': "Regeneration",
+    'vigo_gen': "Vigor",
+    'aeg_gen': "Aegis",
+    'swif_gen': "Swiftness",
+    'resi_gen': "Resistance",
+    'reso_gen': "Resolution"
+}

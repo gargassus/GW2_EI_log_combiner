@@ -161,7 +161,7 @@ if __name__ == '__main__':
 	output_tag_summary(tag_data, tid_date_time)
 
 	#create the menu tiddler and append to tid_list
-	build_menu_tid(tid_date_time)
+	build_menu_tid(tid_date_time, db_update)
 
 	build_dashboard_menu_tid(tid_date_time)
 	
@@ -339,13 +339,19 @@ if __name__ == '__main__':
 		build_commander_summary(commander_summary_data, skill_data, buff_data, tid_date_time, tid_list)
 		build_commander_summary_menu(commander_summary_data, tid_date_time, tid_list)
 
-	write_tid_list_to_json(tid_list, args.output_filename)
-
 	if write_all_data_to_json:
 		output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, personal_buff_data, fb_pages, mechanics, minions, mesmer_clone_usage, death_on_tag, DPSStats, commander_summary_data, enemy_avg_damage_per_skill, player_damage_mitigation, player_minion_damage_mitigation, stacking_uptime_Table, IOL_revive, fight_data, args.json_output_filename)
 
 	if db_update:
 		write_data_to_db(top_stats, top_stats['overall']['last_fight'])
+
+		update_glicko_ratings()
+
+		leaderboard_stats = config_output.leaderboard_stats
+		build_leaderboard_tids(tid_date_time, leaderboard_stats , tid_list)
+		build_leaderboard_menu_tid(tid_date_time, leaderboard_stats, tid_list)
+
+	write_tid_list_to_json(tid_list, args.output_filename)
 
 	if team_code_missing:
 		print("Missing team codes: " + str(team_code_missing))

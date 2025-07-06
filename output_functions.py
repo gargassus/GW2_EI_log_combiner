@@ -15,6 +15,8 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import json
 import sqlite3
+from glicko2 import Player as GlickoPlayer
+from collections import defaultdict
 
 #list of tid files to output
 tid_list = []
@@ -1519,7 +1521,7 @@ def build_main_tid(datetime, tag_list, guild_name, description_append):
 		tid_list
 	)
 
-def build_menu_tid(datetime: str) -> None:
+def build_menu_tid(datetime: str, db_update: bool) -> None:
 	"""
 	Build a TID for the main menu.
 
@@ -1532,13 +1534,26 @@ def build_menu_tid(datetime: str) -> None:
 	tags = f"{datetime}"
 	title = f"{datetime}-Menu"
 	caption = "Menu"
-	
-	text = (
+	if db_update:
+		text = (
 		f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] '
 		f'[[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] '
-		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] [[{datetime}-Player-Damage-By-Skill]] [[{datetime}-Squad-Composition]] [[{datetime}-On-Tag-Review]] [[{datetime}-DPS-Stats]] [[{datetime}-Defense-Damage-Mitigation]] [[{datetime}-Attendance]] [[{datetime}-commander-summary-menu]] [[{datetime}-Dashboard]]" '
-		f'"{datetime}-Overview" "$:/temp/menutab1">>'
-	)
+		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] '
+		f'[[{datetime}-Player-Damage-By-Skill]] [[{datetime}-Squad-Composition]] [[{datetime}-On-Tag-Review]] '
+		f'[[{datetime}-DPS-Stats]] [[{datetime}-Defense-Damage-Mitigation]] [[{datetime}-Attendance]] '
+		f'[[{datetime}-commander-summary-menu]] [[{datetime}-Dashboard]] [[{datetime}-Leaderboard]]" '
+		f'"{datetime}-Overview" "$:/temp/menutab1">>'			
+		)
+	else:
+		text = (
+			f'<<tabs "[[{datetime}-Overview]] [[{datetime}-General-Stats]] [[{datetime}-Buffs]] '
+			f'[[{datetime}-Damage-Modifiers]] [[{datetime}-Mechanics]] [[{datetime}-Skill-Usage]] '
+			f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] '
+			f'[[{datetime}-Player-Damage-By-Skill]] [[{datetime}-Squad-Composition]] [[{datetime}-On-Tag-Review]] '
+			f'[[{datetime}-DPS-Stats]] [[{datetime}-Defense-Damage-Mitigation]] [[{datetime}-Attendance]] '
+			f'[[{datetime}-commander-summary-menu]] [[{datetime}-Dashboard]]" '
+			f'"{datetime}-Overview" "$:/temp/menutab1">>'
+		)
 
 	append_tid_for_output(
 		create_new_tid_from_template(title, caption, text, tags, fields={'radio': 'Total', 'boon_radio': 'Total', "category_radio": "Total", "category_heal": "Squad", "stacking_item": "might", 'damage_with_buff': 'might', 'mitigation': 'Player'}),
@@ -3957,6 +3972,201 @@ def build_pull_stats_tid(tid_date_time: str, top_stats: dict, skill_data: dict, 
 
 	append_tid_for_output(
 		create_new_tid_from_template(title, caption, text, tags),
+		tid_list
+	)
+
+#Add Glicko Leaderboard Support
+def update_glicko_ratings():
+    def create_table(cursor):
+        cursor.execute('''CREATE TABLE IF NOT EXISTS player_ratings (
+            date TEXT,
+            account TEXT,
+            name TEXT,
+            profession TEXT,
+            stat TEXT,
+            rating REAL,
+            rd REAL,
+            vol REAL,
+            delta REAL,
+            PRIMARY KEY (date, account, stat)
+        )''')
+
+    def get_stat_fields(cursor):
+        cursor.execute("PRAGMA table_info(player_stats)")
+        all_columns = [col[1] for col in cursor.fetchall()]
+        skip_cols = {'date', 'year', 'month', 'day', 'account', 'guild_status', 'name', 'profession', 'date_name_prof'}
+        return [col for col in all_columns if col not in skip_cols and col not in ('num_fights', 'duration')]
+
+    def get_raid_dates(cursor):
+        cursor.execute("SELECT DISTINCT date FROM player_stats ORDER BY date")
+        return [row[0] for row in cursor.fetchall()]
+
+    def fetch_player_stats(cursor, raid_date, stat_fields):
+        fields = ', '.join(['account', 'name', 'profession', 'duration', 'num_fights'] + stat_fields)
+        cursor.execute(f"SELECT {fields} FROM player_stats WHERE date = ?", (raid_date,))
+        return cursor.fetchall()
+
+    def normalize_stats(rows, stat_fields):
+        stat_values = {stat: [] for stat in stat_fields}
+        for row in rows:
+            account, name, prof, duration, num_fights, *stats = row
+            duration = (duration or 0)
+            normalized_time = max(duration, 60)
+            num_fights = num_fights or 1
+            multiplier = duration or 1
+            for stat, value in zip(stat_fields, stats):
+                normalized = (value or 0) / (normalized_time / 60.0)
+                stat_values[stat].append((account, name, prof, normalized))
+        return stat_values
+
+    def update_player_rating(player_i, opponents, scores):
+        MAX_RD = 350.0
+        rating_list = [min(max(op.getRating(), 100), 3000) for op in opponents]
+        rd_list = [min(op.getRd(), MAX_RD) for op in opponents]
+
+        if player_i.getRd() > MAX_RD:
+            player_i.rd = MAX_RD
+
+        if sum(
+            (pow(player_i._g(rd), 2) * player_i._E(r, rd) * (1 - player_i._E(r, rd))
+             for r, rd in zip(rating_list, rd_list))
+        ) == 0:
+            raise ZeroDivisionError("Avoided zero division in Glicko v calculation")
+
+        player_i.update_player(rating_list, rd_list, scores)
+
+    conn = sqlite3.connect('Top_Stats.db')
+    cursor = conn.cursor()
+
+    create_table(cursor)
+    stat_fields = get_stat_fields(cursor)
+    all_dates = get_raid_dates(cursor)
+
+    ratings = defaultdict(lambda: defaultdict(GlickoPlayer))
+    last_rating = defaultdict(dict)  # will store stat -> previous rating
+
+    for raid_date in all_dates:
+        rows = fetch_player_stats(cursor, raid_date, stat_fields)
+        stat_values = normalize_stats(rows, stat_fields)
+
+        for stat, players in stat_values.items():
+            sorted_players = sorted(players, key=lambda x: x[3], reverse=True)
+            for i, (acc_i, name_i, prof_i, _) in enumerate(sorted_players):
+                player_key_i = f"{name_i}#{prof_i}"
+                player_i = ratings[player_key_i][stat]
+                # replaced by player_key_i above
+                opponents, scores = [], []
+
+                for j, (acc_j, name_j, prof_j, _) in enumerate(sorted_players):
+                    if i == j: continue
+                    player_key_j = f"{name_j}#{prof_j}"
+                    opponents.append(ratings[player_key_j][stat])
+                    scores.append(1 if i < j else 0)
+
+                try:
+                    if opponents:
+                        update_player_rating(player_i, opponents, scores)
+                except (OverflowError, ZeroDivisionError) as e:
+                    print(f"[SKIP] {name_i} stat: {stat} - {type(e).__name__}: {e}")
+                    continue
+
+                new_rating = round(player_i.getRating(), 2)
+                prev_rating = last_rating[player_key_i].get(stat)
+                delta = None if prev_rating is None else round(new_rating - prev_rating, 2)
+                last_rating[player_key_i][stat] = new_rating
+
+                cursor.execute('''INSERT OR REPLACE INTO player_ratings
+                    (date, account, name, profession, stat, rating, rd, vol, delta)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                    (raid_date, acc_i, name_i, prof_i, stat, new_rating,
+                     round(player_i.getRd(), 2), round(player_i.vol, 6), delta)
+                )
+
+    conn.commit()
+    conn.close()
+    print("Glicko ratings (with normalization and trends) updated.")
+
+
+def generate_leaderboard(stat: str, top_n: int = 25) -> str:
+    conn = sqlite3.connect('Top_Stats.db')
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        SELECT account, name, profession, MAX(date), rating, delta
+        FROM player_ratings
+        WHERE stat = ?
+        GROUP BY name, profession
+        ORDER BY rating DESC
+        LIMIT ?
+    ''', (stat, top_n))
+
+    rows = cursor.fetchall()
+
+    # Count raids and average normalized stat per player_key
+    raid_counts = {}
+    avg_norm = {}
+    cursor.execute(f'''
+        SELECT name || '#' || profession AS player_key, COUNT(DISTINCT date), 
+               SUM(CASE WHEN duration > 0 THEN ({stat} / duration) ELSE 0 END)
+        FROM player_stats
+        GROUP BY player_key
+    ''')
+    for player_key, raid_count, total_norm in cursor.fetchall():
+        raid_counts[player_key] = raid_count
+        avg_norm[player_key] = round(total_norm, 2) if raid_count else '-'
+
+    conn.close()
+
+    def delta_str(delta):
+        if delta is None:
+            return ""
+        return f"{'🔺' if delta > 0 else '🔻'} {abs(delta):.1f}"
+
+    table = "<style>\n.tc-width-75 {\n	width: 75em;\n}\n</style>\n\n"
+    table += "|Rank|Name|Profession| Glicko2<br>Rating | Trend| Raids | Avg Stat|h\n"
+    table += "|thead-dark table-hover table-caption-top tc-center tc-max-width-80|k\n"
+    table += f"| {stat.upper()} Leaderboard - Top {top_n} Players |c\n"
+    for i, (acc, name, prof, _, rating, delta) in enumerate(rows, 1):
+        player_key = f"{name}#{prof}"
+        raids = raid_counts.get(player_key, '-')
+        avg = avg_norm.get(player_key, '-')
+        tt_name = f'<span data-tooltip="{acc}">{name}</span>'
+        table += f"| {i} |{tt_name} |{{{{{prof}}}}} {prof} |{round(rating, 1)}| {delta_str(delta)}| {raids} | {avg:,.2f}|\n"
+
+    return table
+
+def build_leaderboard_tids(tid_date_time: str, leaderboard_stats: dict, tid_list: list) -> None:
+	for stat in leaderboard_stats:
+		table = generate_leaderboard(stat)
+		tid_title = f"{tid_date_time}-{stat}-Leaderboard"
+		tid_caption = f"{leaderboard_stats[stat]}"
+		tid_tags = tid_date_time
+
+
+		append_tid_for_output(
+			create_new_tid_from_template(tid_title, tid_caption, table, tid_tags),
+			tid_list
+		)
+
+def build_leaderboard_menu_tid(datetime: str, leaderboard_stats: dict, tid_list: list) -> None:
+	"""
+	Build a TID for the leaderboard menu.
+	"""
+
+	tags = f"{datetime}"
+	title = f"{datetime}-Leaderboard"
+	caption = "WvW Leaderboards"
+	creator = "Drevarr@github.com"
+
+	text = '<body>\n<div style="padding:20px;text-align: center;">\n<h1>🏆 GW2 WvW Leaderboards</h1>\n<h3 class="subtitle">Glicko-based rating system for World vs World performance</h3>\n</div>\n\n'
+
+	text += "<<tabs '"
+	for stat in leaderboard_stats:
+		text += f"[[{datetime}-{stat}-Leaderboard]] "
+	text += (f"' '{datetime}-{stat}-Leaderboard' '$:/temp/tab_leader'>>")
+
+	append_tid_for_output(
+		create_new_tid_from_template(title, caption, text, tags, creator=creator),
 		tid_list
 	)
 
