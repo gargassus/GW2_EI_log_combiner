@@ -351,6 +351,9 @@ if __name__ == '__main__':
 		build_leaderboard_tids(tid_date_time, leaderboard_stats , tid_list)
 		build_leaderboard_menu_tid(tid_date_time, leaderboard_stats, tid_list)
 
+		write_high_scores_to_db(high_scores, top_stats['fight'], skill_data, "Top_Stats.db")
+		build_high_scores_leaderboard_tids(tid_date_time, "Top_Stats.db")
+
 	write_tid_list_to_json(tid_list, args.output_filename)
 
 	if team_code_missing:

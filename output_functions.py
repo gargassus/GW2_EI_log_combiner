@@ -1541,7 +1541,7 @@ def build_menu_tid(datetime: str, db_update: bool) -> None:
 		f'[[{datetime}-Minions]] [[{datetime}-High-Scores]] [[{datetime}-Top-Damage-By-Skill]] '
 		f'[[{datetime}-Player-Damage-By-Skill]] [[{datetime}-Squad-Composition]] [[{datetime}-On-Tag-Review]] '
 		f'[[{datetime}-DPS-Stats]] [[{datetime}-Defense-Damage-Mitigation]] [[{datetime}-Attendance]] '
-		f'[[{datetime}-commander-summary-menu]] [[{datetime}-Dashboard]] [[{datetime}-Leaderboard]]" '
+		f'[[{datetime}-commander-summary-menu]] [[{datetime}-Dashboard]] [[{datetime}-Leaderboard]] [[{datetime}-high_scores_Leaderboard]]" '
 		f'"{datetime}-Overview" "$:/temp/menutab1">>'			
 		)
 	else:
@@ -4235,6 +4235,232 @@ def generate_leaderboard(stat: str, top_n: int = 25) -> str:
 
     return table
 
+
+def save_high_score(
+    db_path: str,
+    account: str,
+    player: str,
+    profession: str,
+    fight_times_stamp: str,
+    fight_log_link: str,
+    stat_category: str,
+    stat_info: str,
+    stat_value: float,
+):
+    # Connect to the database
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    # Create the High_Scores table if it doesn't exist
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS high_scores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account TEXT,
+            player TEXT,
+            profession TEXT,
+            fight_times_stamp TEXT,
+            fight_log_link TEXT,
+            stat_category TEXT,
+            stat_info TEXT,
+            stat_value REAL
+        )
+    """
+    )
+
+    # Insert the new high score entry
+    cur.execute(
+        """
+        INSERT INTO high_scores (
+            account, player, profession,
+            fight_times_stamp, fight_log_link,
+            stat_category, stat_info, stat_value
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """,
+        (
+            account,
+            player,
+            profession,
+            fight_times_stamp,
+            fight_log_link,
+            stat_category,
+            stat_info,
+            stat_value,
+        ),
+    )
+
+    # Keep only the top 25 scores for each stat category
+    cur.execute(
+        f"""
+        DELETE FROM high_scores
+        WHERE id NOT IN (
+            SELECT id FROM high_scores
+            WHERE stat_category = ?
+            ORDER BY stat_value DESC
+            LIMIT 25
+        )
+        AND stat_category = ?
+    """,
+        (stat_category, stat_category),
+    )
+
+    # Commit and close
+    conn.commit()
+    conn.close()
+
+
+def write_high_scores_to_db(highscores, fights, skill_data, db_path):
+    for category, stat_data in highscores.items():
+        STAT_NAME_MAP = {
+            "fight_dps": "Damage per Second",
+            "statTarget_killed": "Kills per Second",
+            "statTarget_downed": "Downs per Second",
+            "statTarget_downContribution": "Down Contrib per Second",
+            "defenses_blockedCount": "Blocks per Second",
+            "defenses_evadedCount": "Evades per Second",
+            "defenses_dodgeCount": "Dodges per Second",
+            "defenses_invulnedCount": "Invulned per Second",
+			"defenses_boonStrips": "Incoming Strips per Second",
+            "support_condiCleanse": "Cleanses per Second",
+            "support_boonStrips": "Strips per Second",
+            "extHealingStats_Healing": "Healing per Second",
+            "extBarrierStats_Barrier": "Barrier per Second",
+            "statTarget_appliedCrowdControl": "Crowd Control-Out per Second",
+            "defenses_receivedCrowdControl": "Crowd Control-In per Second",
+            "statTarget_max": "Highest Outgoing Skill Damage",
+            "totalDamageTaken_max": "Highest Incoming Skill Damage",
+        }
+
+        stat = STAT_NAME_MAP.get(category)
+
+        for player in stat_data:
+            stat_info = ""
+            if " | " in player:
+                player_data = player.split(" | ")[0]
+                if len(player_data.split("-")) > 3:
+                    prof_player, account, fight_num, _ = player_data.split("-")
+                else:
+                    prof_player, account, fight_num = player_data.split("-")
+                stat_value = stat_data[player]
+                if "max" in category:
+                    skill_id = "s" + player.split(" | ")[1]
+                    skill_name = skill_data[skill_id]["name"]
+                    skill_icon = skill_data[skill_id]["icon"]
+                    stat_info = (
+                        f"[img width=24 [{skill_name}|{skill_icon}]] {skill_name}"
+                    )
+
+            else:
+                prof_player, account, fight_num, _ = player.split("-")
+                stat_value = stat_data[player]
+            profession, player = prof_player.split("}}")
+            profession += "}}"
+            fight_time = (
+                f"{fights[int(fight_num)]["fight_date"]} - Fight #{fight_num}"
+            )
+            fight_link = fights[int(fight_num)]["fight_link"]
+            save_high_score(
+                db_path,
+                account,
+                player,
+                profession,
+                fight_time,
+                fight_link,
+                stat,
+                stat_info,
+                stat_value,
+            )
+
+
+def build_high_scores_leaderboard_tids(tid_date_time: str, db_path: str) -> None:
+    """
+    Generate TiddlyWiki-formatted tables for each stat_category in the high_scores table.
+    
+    Returns:
+        A dictionary where keys are stat_category names and values are TiddlyWiki-formatted tables.
+    """
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    # Fetch all unique stat categories
+    cur.execute("SELECT DISTINCT stat_category FROM high_scores")
+    categories = [row[0] for row in cur.fetchall()]
+
+    tables = {}
+
+    for category in categories:
+        # Fetch records for this category ordered by stat_value DESC
+        cur.execute("""
+            SELECT account, player, profession, fight_times_stamp, fight_log_link, stat_info, stat_value
+            FROM high_scores
+            WHERE stat_category = ?
+            ORDER BY stat_value DESC
+        """, (category,))
+        rows = cur.fetchall()
+
+        # Determine if stat_info column should be included
+        include_stat_info = any(row[5] not in (None, "", "NULL") for row in rows)
+
+        # Build header
+        table = f"| {category} High Scores |c\n"
+        table += "|thead-dark table-hover table-caption-top tc-center|k\n"
+        headers = ["Player", "Profession"]
+        if include_stat_info:
+            headers.append("Info")
+        headers.append("Fight")
+        headers.append("Value")
+
+        table += "| " + " | ".join(headers) + " |h\n"
+        #table += "| " + " | ".join(["---"] * len(headers)) + " |\n"
+
+        for row in rows:
+            account, player, profession, timestamp, link, info, value = row
+            profession = f"{profession} {profession[2:-2]}"
+            player_tooltip = f'<span data-tooltip="{account}">{player}</span>'
+            fight_link = f'<a href="{link}">{timestamp}</a>'
+
+            if include_stat_info:
+                table_row =f"|{player_tooltip} |{profession} |{info} |{fight_link} |{value:,.2f} |\n"
+            else:
+                table_row =f"|{player_tooltip} |{profession} |{fight_link} | {value:,.2f}|\n"
+            table += table_row
+
+        tid_title = f"{tid_date_time}-{category}-Leaderboard"
+        tid_caption = f"{category}"
+        tid_tags = tid_date_time
+
+        append_tid_for_output(
+			create_new_tid_from_template(tid_title, tid_caption, table, tid_tags),
+			tid_list
+		)
+
+    build_high_scores_leaderboard_menu_tid(tid_date_time, categories, tid_list)
+    conn.close()
+
+
+def build_high_scores_leaderboard_menu_tid(datetime: str, categories: list, tid_list: list) -> None:
+	"""
+	Build a TID for the high scores leaderboard menu.
+	"""
+
+	tags = f"{datetime}"
+	title = f"{datetime}-high_scores_Leaderboard"
+	caption = "High Scores Leaderboards"
+	creator = "Drevarr@github.com"
+
+	text = '\n<div style="padding:20px;text-align: center;">\n<h1>📈 GW2 WvW High Score Leaderboards</h1>\n<h3 class="subtitle">Historic High Scores for World vs World</h3>\n</div>\n\n'
+
+	text += "<<tabs '"
+	for category in categories:
+		text += f"[[{datetime}-{category}-Leaderboard]] "
+	text += (f"' '{datetime}-{category}-Leaderboard' '$:/temp/tab_leader' 'tc-center tc-max-width-80'>>")
+
+	append_tid_for_output(
+		create_new_tid_from_template(title, caption, text, tags, creator=creator),
+		tid_list
+	)
+	
+
 def build_leaderboard_tids(tid_date_time: str, leaderboard_stats: dict, tid_list: list) -> None:
 	for stat in leaderboard_stats:
 		table = generate_leaderboard(stat)
@@ -4255,15 +4481,15 @@ def build_leaderboard_menu_tid(datetime: str, leaderboard_stats: dict, tid_list:
 
 	tags = f"{datetime}"
 	title = f"{datetime}-Leaderboard"
-	caption = "WvW Leaderboards"
+	caption = "Glicko-based Leaderboards"
 	creator = "Drevarr@github.com"
 
-	text = '<body>\n<div style="padding:20px;text-align: center;">\n<h1>🏆 GW2 WvW Leaderboards</h1>\n<h3 class="subtitle">Glicko-based rating system for World vs World performance</h3>\n</div>\n\n'
+	text = '\n<div style="padding:20px;text-align: center;">\n<h1>🏆 GW2 WvW Leaderboards</h1>\n<h3 class="subtitle">Glicko-based rating system for World vs World performance</h3>\n</div>\n\n'
 
 	text += "<<tabs '"
 	for stat in leaderboard_stats:
 		text += f"[[{datetime}-{stat}-Leaderboard]] "
-	text += (f"' '{datetime}-{stat}-Leaderboard' '$:/temp/tab_leader'>>")
+	text += (f"' '{datetime}-{stat}-Leaderboard' '$:/temp/tab_leader' 'tc-center tc-max-width-80'>>")
 
 	append_tid_for_output(
 		create_new_tid_from_template(title, caption, text, tags, creator=creator),
