@@ -1844,6 +1844,7 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 	"""
 	# Define mapping for categories to their titles
 	caption_dict = {
+		"burst_damage1S": "Highest 1s Burst Damage",
 		"statTarget_max": "Highest Outgoing Skill Damage", 
 		"totalDamageTaken_max": "Highest Incoming Skill Damage",
 		"fight_dps": "Damage per Second", 
