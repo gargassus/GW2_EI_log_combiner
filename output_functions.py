@@ -4427,7 +4427,7 @@ def build_high_scores_leaderboard_tids(tid_date_time: str, db_path: str) -> None
             table += table_row
 
         tid_title = f"{tid_date_time}-{category}-Leaderboard"
-        tid_caption = f"{category}"
+        tid_caption = f"📈 {category}"
         tid_tags = tid_date_time
 
         append_tid_for_output(
@@ -4466,7 +4466,7 @@ def build_leaderboard_tids(tid_date_time: str, leaderboard_stats: dict, tid_list
 	for stat in leaderboard_stats:
 		table = generate_leaderboard(stat)
 		tid_title = f"{tid_date_time}-{stat}-Leaderboard"
-		tid_caption = f"{leaderboard_stats[stat]}"
+		tid_caption = f"🏆 {leaderboard_stats[stat]}"
 		tid_tags = tid_date_time
 
 
