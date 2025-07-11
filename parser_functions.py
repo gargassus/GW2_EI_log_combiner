@@ -98,6 +98,12 @@ def get_fight_data(player, fight_num):
 	for index in range(len(player["damage1S"][0])):
 		current_damage = player["damage1S"][0][index] - player["damage1S"][0][last_index]
 		current_damage_taken = player["damageTaken1S"][0][index] - player["damageTaken1S"][0][last_index]
+		if current_damage > 0:
+			update_high_score(
+					"burst_damage1S",
+					"{{"+player['profession']+"}}"+player['name']+"-"+player['account']+"-"+str(fight_num)+"-burst1S",
+					round(current_damage, 2)
+					)
 
 		fight_data[fight_num]["damage1S"][index] = fight_data[fight_num]["damage1S"].get(index, 0) + current_damage
 		fight_data[fight_num]["damageTaken1S"][index] = fight_data[fight_num]["damageTaken1S"].get(index, 0) + current_damage_taken
@@ -341,18 +347,18 @@ def update_high_score(stat_name: str, key: str, value: float) -> None:
 	if stat_name not in high_scores:
 		high_scores[stat_name] = {}
 
-	if len(high_scores[stat_name]) < 5:
+	if key in high_scores[stat_name]:
+		if value > high_scores[stat_name][key]:
+			high_scores[stat_name][key] = value
+	elif len(high_scores[stat_name]) < 5:
 		high_scores[stat_name][key] = value
-		return
+	else:
+		lowest_key = min(high_scores[stat_name], key=high_scores[stat_name].get)
+		lowest_value = high_scores[stat_name][lowest_key]
+		if value > lowest_value:
+			del high_scores[stat_name][lowest_key]
+			high_scores[stat_name][key] = value
 
-	lowest_key = min(high_scores[stat_name], key=high_scores[stat_name].get)
-	lowest_value = high_scores[stat_name][lowest_key]
-
-	if value >= lowest_value and key not in high_scores[stat_name]:
-		del high_scores[stat_name][lowest_key]
-		high_scores[stat_name][key] = value
-	#elif value > lowest_value and key in high_scores[stat_name]:
-	#	high_scores[stat_name][key] = value
 
 def determine_player_role(player_data: dict) -> str:
 	"""

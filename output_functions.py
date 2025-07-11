@@ -4312,6 +4312,7 @@ def save_high_score(
 def write_high_scores_to_db(highscores, fights, skill_data, db_path):
     for category, stat_data in highscores.items():
         STAT_NAME_MAP = {
+			"burst_damage1S": "1S Burst Damage",
             "fight_dps": "Damage per Second",
             "statTarget_killed": "Kills per Second",
             "statTarget_downed": "Downs per Second",
