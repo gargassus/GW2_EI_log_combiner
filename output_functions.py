@@ -643,7 +643,7 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 		tid_list
 		)
 
-def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: dict, tid_date_time: str) -> None:
+def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: dict, tid_date_time: str, boon_type = None) -> None:
 	"""Print a table of boon uptime stats for all players in the log."""
 	
 	# Initialize a list to hold the rows of the table
@@ -660,7 +660,11 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 		header += "|!Party |!Name | !Prof | !{{FightTime}} |"
 		# Add a column for each boon
 		for boon_id, boon_name in boons.items():
-			header += "!{{"+f"{boon_name}"+"}}|"
+			if boon_type:
+				skillIcon = buff_data[boon_id]["icon"]
+				header += f" ![img width=24 [{boon_name}|{skillIcon}]] |"
+			else:
+				header += "!{{"+f"{boon_name}"+"}}|"
 		header += "h"
 
 		rows.append(header)
@@ -773,6 +777,9 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 	
 	# Join rows into a single text block
 	tid_text = "\n".join(rows)
+
+	if boon_type:
+		caption = f"{boon_type}-{caption}"
 	# Create a title for the table
 	temp_title = f"{tid_date_time}-{caption.replace(' ','-')}"
 
@@ -782,7 +789,7 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 		tid_list
 	)    
 
-def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption: str, tid_date_time: str) -> None:
+def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption: str, tid_date_time: str, boon_type = None) -> None:
 	"""Print a table of boon uptime stats for all players in the log.
 
 	The table will contain the following columns:
@@ -905,6 +912,8 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 	#push table to tid_list for output
 	tid_text = "\n".join(rows)
 
+	if boon_type:
+		caption = f"{boon_type}-{caption}"
 	append_tid_for_output(
 		create_new_tid_from_template(f"{tid_date_time}-{caption.replace(' ','-')}", caption, tid_text),
 		tid_list
@@ -1661,6 +1670,21 @@ def build_boon_stats_tid(datetime):
 		create_new_tid_from_template(buff_stats_title, buff_stats_caption, buff_stats_text, buff_stats_tags, creator=buff_stats_creator),
 		tid_list
 	)
+
+
+def build_other_boon_stats_tid(datetime, boon_type=None):
+	buff_stats_tags = f"{datetime}"
+	buff_stats_title = f"{datetime}-{boon_type}-Buffs"
+	buff_stats_caption = f"{boon_type} Buffs"
+	buff_stats_creator = f"Drevarr@github.com"
+
+	buff_stats_text = f"<<tabs '[[{datetime}-{boon_type}-Uptimes]] [[{datetime}-{boon_type}-Self-Generation]] [[{datetime}-{boon_type}-Group-Generation]] [[{datetime}-{boon_type}-Squad-Generation]]' '{datetime}-{boon_type}-Uptimes' '$:/temp/tab1'>>"
+
+	append_tid_for_output(
+		create_new_tid_from_template(buff_stats_title, buff_stats_caption, buff_stats_text, buff_stats_tags, creator=buff_stats_creator),
+		tid_list
+	)
+
 
 def build_profession_damage_modifier_stats_tid(personal_damage_mod_data: dict, caption: str, tid_date_time: str):
 

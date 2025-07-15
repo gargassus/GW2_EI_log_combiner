@@ -170,6 +170,8 @@ if __name__ == '__main__':
 	build_buffs_stats_tid(tid_date_time)
 
 	build_boon_stats_tid(tid_date_time)
+	for boon_other in ["Defensive", "Offensive", "Support"]:
+		build_other_boon_stats_tid(tid_date_time, boon_other)
 
 	build_damage_modifiers_menu_tid(tid_date_time)
 
@@ -230,7 +232,11 @@ if __name__ == '__main__':
 		if buff in top_stats["overall"]["buffUptimes"]:
 			if top_stats["overall"]["buffUptimes"][buff]["uptime_ms"] > 0:
 				support_buff_list[buff] = support_buffs[buff]
-	build_uptime_summary(top_stats, support_buff_list, buff_data, "Support Buffs", tid_date_time)
+	build_uptime_summary(top_stats, support_buff_list, buff_data, "Support Uptimes", tid_date_time)
+	boon_categories = {"selfBuffs", "groupBuffs", "squadBuffs"}
+	for boon_category in boon_categories:
+		build_boon_summary(top_stats, support_buff_list, boon_category, buff_data, tid_date_time, boon_type="Support")
+
 
 	#get defensive buffs found and output table
 	defensive_buffs = config_output.buffs_defensive
@@ -239,7 +245,10 @@ if __name__ == '__main__':
 		if buff in top_stats["overall"]["buffUptimes"]:
 			if top_stats["overall"]["buffUptimes"][buff]["uptime_ms"] > 0:
 				defensive_buff_list[buff] = defensive_buffs[buff]
-	build_uptime_summary(top_stats, defensive_buff_list, buff_data, "Defensive Buffs", tid_date_time)
+	build_uptime_summary(top_stats, defensive_buff_list, buff_data, "Defensive Uptimes", tid_date_time)
+	boon_categories = {"selfBuffs", "groupBuffs", "squadBuffs"}
+	for boon_category in boon_categories:
+		build_boon_summary(top_stats, defensive_buff_list, boon_category, buff_data, tid_date_time, boon_type="Defensive")
 
 	#get offensive buffs found and output table
 	offensive_buffs = config_output.buffs_offensive
@@ -248,7 +257,11 @@ if __name__ == '__main__':
 		if buff in top_stats["overall"]["buffUptimes"]:
 			if top_stats["overall"]["buffUptimes"][buff]["uptime_ms"] > 0:
 				offensive_buff_list[buff] = offensive_buffs[buff]
-	build_uptime_summary(top_stats, offensive_buff_list, buff_data, "Offensive Buffs", tid_date_time)
+	build_uptime_summary(top_stats, offensive_buff_list, buff_data, "Offensive Uptimes", tid_date_time)
+	boon_categories = {"selfBuffs", "groupBuffs", "squadBuffs"}
+	for boon_category in boon_categories:
+		build_boon_summary(top_stats, offensive_buff_list, boon_category, buff_data, tid_date_time, boon_type="Offensive")
+
 
 	#get offensive debuffs found and output table
 	debuffs_buffs = config_output.buffs_debuff
