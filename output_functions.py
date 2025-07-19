@@ -4361,6 +4361,7 @@ def write_high_scores_to_db(highscores, fights, skill_data, db_path):
 
         for player in stat_data:
             stat_info = ""
+            print(player)
             if " | " in player:
                 player_data = player.split(" | ")[0]
                 if len(player_data.split("-")) > 3:

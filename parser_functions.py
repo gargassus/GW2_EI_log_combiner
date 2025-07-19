@@ -68,6 +68,24 @@ killing_blow_rallies = {
 	'kb_players': {}
 }
 
+
+def get_player_account(player):
+	"""
+	Get the account name of a player
+
+	Args:
+		player (dict): The player data from the log
+
+	Returns:
+		str: The account name of the player
+	"""
+	if len(player['account'].split('-')) >=1:
+		account = player['account'].replace("-", ".")
+	else:
+		account = player['account']
+	return account
+
+
 def get_fight_data(player, fight_num):
 	"""
 	Get the fight data for a player in a given fight
@@ -79,7 +97,8 @@ def get_fight_data(player, fight_num):
 	Returns:
 		None
 	"""
-	player_id = f"{player['account']}-{player['profession']}-{player['name']}"
+	account = get_player_account(player)
+	player_id = f"{account}-{player['profession']}-{player['name']}"
 	if fight_num not in fight_data:
 		fight_data[fight_num] = {
 			"damage1S": {},
@@ -101,7 +120,7 @@ def get_fight_data(player, fight_num):
 		if current_damage > 0:
 			update_high_score(
 					"burst_damage1S",
-					"{{"+player['profession']+"}}"+player['name']+"-"+player['account']+"-"+str(fight_num)+"-burst1S",
+					"{{"+player['profession']+"}}"+player['name']+"-"+account+"-"+str(fight_num)+"-burst1S",
 					round(current_damage, 2)
 					)
 
@@ -179,7 +198,7 @@ def determine_clone_usage(player, skill_map, mesmer_shatter_skills):
 		None
 	"""
 	active_clones = {}
-	name_prof = f"{player['name']}_{player['profession']}_{player['account']}"
+	name_prof = f"{player['name']}_{player['profession']}_{get_player_account(player)}"
 	if name_prof not in mesmer_clone_usage:
 		mesmer_clone_usage[name_prof] = {}
 	if "activeClones" in player:
@@ -422,7 +441,7 @@ def get_commander_tag_data(fight_json):
 
 	for player in fight_json["players"]:
 		if player["hasCommanderTag"] and not player["notInSquad"]:
-			commander_name = f"{player['name']}|{player['profession']}|{player['account']}"
+			commander_name = f"{player['name']}|{player['profession']}|{get_player_account(player)}"
 			if commander_name not in commander_summary_data:
 				commander_summary_data[commander_name] = {
 					'heal_stats': {},
@@ -460,12 +479,12 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 		inch_to_pixel (float): The conversion factor between inches and pixels.
 		polling_rate (int): The rate at which the combat log is polled.
 	"""
-	name_prof = player['name'] + "|" + player['profession'] + "|" + player['account']
+	name_prof = player['name'] + "|" + player['profession'] + "|" + get_player_account(player)
 	if name_prof not in death_on_tag:
 		death_on_tag[name_prof] = {
 		"name": player['name'],
 		"profession": player['profession'],
-		"account": player['account'],
+		"account": get_player_account(player),
 		"distToTag": [],
 		"On_Tag": 0,
 		"Off_Tag": 0,
@@ -738,11 +757,11 @@ def get_stacking_uptime_data(player, damagePS, duration, fight_ticks):
 		'b1122': "Stability", 'b719': "Swiftness", 'b26980': "Resistance", 'b873': "Resolution"
 	}
 
-	player_prof_name = f"{player['name']}|{player['profession']}|{player['account']}"
+	player_prof_name = f"{player['name']}|{player['profession']}|{get_player_account(player)}"
 
 	if player_prof_name not in stacking_uptime_Table:
 		stacking_uptime_Table[player_prof_name] = {}
-		stacking_uptime_Table[player_prof_name]["account"] = player['account']
+		stacking_uptime_Table[player_prof_name]["account"] = get_player_account(player)
 		stacking_uptime_Table[player_prof_name]["name"] = player['name']
 		stacking_uptime_Table[player_prof_name]["profession"] = player['profession']
 		stacking_uptime_Table[player_prof_name]["duration_Might"] = 0
@@ -845,7 +864,7 @@ def calculate_dps_stats(fight_json):
 			for player in fight_json['players']:
 				if player['notInSquad']:
 					continue
-				player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']
+				player_prof_name = player['profession'] + " " + player['name'] + " " + get_player_account(player)
 				if player_prof_name not in damage_ps:
 					damage_ps[player_prof_name] = [0] * fight_ticks
 
@@ -861,7 +880,7 @@ def calculate_dps_stats(fight_json):
 				continue
 			combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 			if combat_time:
-				player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']
+				player_prof_name = player['profession'] + " " + player['name'] + " " + get_player_account(player)
 				player_damage = damage_ps[player_prof_name]
 				squad_damage_on_tick += player_damage[fight_tick + 1] - player_damage[fight_tick]
 		squad_damage_per_tick.append(squad_damage_on_tick)
@@ -876,7 +895,7 @@ def calculate_dps_stats(fight_json):
 	for player in fight_json['players']:
 		if player['notInSquad']:
 			continue
-		player_prof_name = player['profession'] + " " + player['name']+ " " + player['account']
+		player_prof_name = player['profession'] + " " + player['name']+ " " + get_player_account(player)
 		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 		if combat_time:
 			if player_prof_name not in DPSStats:
@@ -956,7 +975,7 @@ def calculate_dps_stats(fight_json):
 							continue
 						combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 						if combat_time:
-							player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']	
+							player_prof_name = player['profession'] + " " + player['name'] + " " + get_player_account(player)	
 							damage_on_target = player["targetDamage1S"][index][0]
 							player_damage = damage_on_target[downIndex] - damage_on_target[startIndex]
 							#player_damage = player["targetDamage1S"][downIndex][0] - player["targetDamage1S"][startIndex][0]
@@ -973,7 +992,7 @@ def calculate_dps_stats(fight_json):
 							continue
 						combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 						if combat_time:
-							player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']
+							player_prof_name = player['profession'] + " " + player['name'] + " " + get_player_account(player)
 
 							DPSStats[player_prof_name]["chunkDamageTotal"][chunk_damage_seconds] += squad_damage_on_target
 
@@ -994,7 +1013,7 @@ def calculate_dps_stats(fight_json):
 								continue
 							combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 							if combat_time:
-								player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']
+								player_prof_name = player['profession'] + " " + player['name'] + " " + get_player_account(player)
 								damage_on_target = player["targetDamage1S"][index][0]
 								carrion_damage = damage_on_target[dmgEnd] - damage_on_target[dmgStart]
 
@@ -1009,7 +1028,7 @@ def calculate_dps_stats(fight_json):
 								continue
 							combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 							if combat_time:
-								player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']
+								player_prof_name = player['profession'] + " " + player['name'] + " " + get_player_account(player)
 								DPSStats[player_prof_name]["carrionDamageTotal"] += total_carrion_damage
 
 	# Burst damage: max damage done in n seconds
@@ -1018,7 +1037,7 @@ def calculate_dps_stats(fight_json):
 			continue
 		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 		if combat_time:
-			player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']
+			player_prof_name = player['profession'] + " " + player['name'] + " " + get_player_account(player)
 			player_damage = damage_ps[player_prof_name]
 			for i in range(1, CHUNK_DAMAGE_SECONDS):
 				for fight_tick in range(i, fight_ticks):
@@ -1031,7 +1050,7 @@ def calculate_dps_stats(fight_json):
 			continue
 		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 		if combat_time:
-			player_prof_name = player['profession'] + " " + player['name'] + " " + player['account']
+			player_prof_name = player['profession'] + " " + player['name'] + " " + get_player_account(player)
 			player_damage_ps = ch5_ca_damage_1s[player_prof_name]
 			player_damage = [0] * len(player_damage_ps)
 			player_damage[0] = player_damage_ps[0]
@@ -1317,14 +1336,14 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 		if stat in config.high_scores:
 			active_time_seconds = player['activeTimes'][0] / 1000
 			high_score_value = round(value / active_time_seconds, 3) if active_time_seconds > 0 else 0
-			update_high_score(f"{stat_category}_{stat}", "{{"+player["profession"]+"}}"+player["name"]+"-"+player["account"]+"-"+str(fight_num)+" | "+stat, high_score_value)
+			update_high_score(f"{stat_category}_{stat}", "{{"+player["profession"]+"}}"+player["name"]+"-"+get_player_account(player)+"-"+str(fight_num)+" | "+stat, high_score_value)
 		top_stats['player'][name_prof][stat_category][stat] = top_stats['player'][name_prof][stat_category].get(stat, 0) + value
 		top_stats['fight'][fight_num][stat_category][stat] = top_stats['fight'][fight_num][stat_category].get(stat, 0) + value
 		top_stats['overall'][stat_category][stat] = top_stats['overall'][stat_category].get(stat, 0) + value
 
 		commander_tag = player['hasCommanderTag']
 		if commander_tag:
-			commander_name = f"{player['name']}|{player['profession']}|{player['account']}"
+			commander_name = f"{player['name']}|{player['profession']}|{get_player_account(player)}"
 			if commander_name not in commander_summary_data:
 				commander_summary_data[commander_name] = {stat_category: {}}
 			elif stat_category not in commander_summary_data[commander_name]:
@@ -1439,7 +1458,7 @@ def get_stat_by_skill(fight_num: int, player: dict, stat_category: str, name_pro
 					top_stats['overall'][stat_category][skill_id][stat] = top_stats['overall'][stat_category][skill_id].get(stat, 0) + value
 
 					if player['hasCommanderTag']:
-						commander_name = f"{player['name']}|{player['profession']}|{player['account']}"
+						commander_name = f"{player['name']}|{player['profession']}|{get_player_account(player)}"
 						if skill_id not in commander_summary_data[commander_name][stat_category]:
 							commander_summary_data[commander_name][stat_category][skill_id] = {}
 						if stat not in commander_summary_data[commander_name][stat_category][skill_id]:
@@ -1694,7 +1713,7 @@ def get_skill_cast_by_prof_role(active_time, player: dict, stat_category: str, n
 			'ActiveTime': 0,
 			'total': 0,
 			'total_no_auto': 0,
-			'account': player['account'],
+			'account': get_player_account(player),
 			'Skills': {}
 		}
 
@@ -2027,7 +2046,7 @@ def get_damage_mod_by_player(fight_num: int, player: dict, name_prof: str) -> No
 
 				# Update commander summary data if the player has a commander tag
 				if commander_tag:
-					commander_name = f"{player['name']}|{player['profession']}|{player['account']}"
+					commander_name = f"{player['name']}|{player['profession']}|{get_player_account(player)}"
 					if mod_id == 'd-58':
 						commander_summary_data[commander_name]['prot_mods']['hitCount'] += mod_hit_count
 						commander_summary_data[commander_name]['prot_mods']['totalHitCount'] += mod_total_hit_count
@@ -2170,7 +2189,7 @@ def get_mechanics_by_fight(fight_number, mechanics_map: dict, players: dict, log
 			for player in players:
 				if player['name'] == actor:
 					# Get the player's profession and name
-					prof_name = player['profession'] + "|" + player['name'] + "|" + player['account']
+					prof_name = player['profession'] + "|" + player['name'] + "|" + get_player_account(player)
 
 			# If the actor is a player, add it to the player list
 			if prof_name:
@@ -2234,7 +2253,7 @@ def get_rally_mechanics_by_fight(mechanics_map, players):
 			kb_time, kb_actor = kb_entry.split('|')
 			for player in players:
 				if player['name'] == kb_actor:
-					kb_actor = f"{player['profession']}|{player['name']}|{player['account']}"
+					kb_actor = f"{player['profession']}|{player['name']}|{get_player_account(player)}"
 			if str(kb_time) == str(rally_time):
 				rally_count = got_up_cnts[gu_entry] if got_up_cnts[gu_entry] < killing_blows_cnts[kb_entry] else killing_blows_cnts[kb_entry]
 				killing_blow_rallies['total'] += rally_count
@@ -2279,7 +2298,7 @@ def get_damage_mitigation_data(fight_num: int, players: dict, targets: dict, ski
 	for player in players:
 		if player['notInSquad']:
 			continue
-		name_prof = f"{player['name']}|{player['profession']}|{player['account']}"
+		name_prof = f"{player['name']}|{player['profession']}|{get_player_account(player)}"
 		if 'totalDamageTaken' in player:
 			if name_prof not in player_damage_mitigation:
 				player_damage_mitigation[name_prof] = {}
@@ -2782,7 +2801,7 @@ def parse_file(file_path, fight_num, guild_data, fight_data_charts):
 
 		name = player['name']
 		profession = player['profession']
-		account = player['account']
+		account = get_player_account(player)
 		group = player['group']
 		group_count = len(top_stats['parties_by_fight'][fight_num][group])
 		squad_count = top_stats['fight'][fight_num]['squad_count']
