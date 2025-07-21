@@ -109,22 +109,28 @@ def get_fight_data(player, fight_num):
 	if player['dpsAll'][0]['dps'] >= 700:
 		if player_id not in fight_data[fight_num]["players"]:
 			fight_data[fight_num]["players"][player_id] = {
-				"damage1S": player["damage1S"][0],
+				"damage1S": {},
 				"damageTaken1S": player["damageTaken1S"][0]
 			}
+			for target in player["targetDamage1S"]:
+				prior_damage = 0
+				for sec_index in range(len(target[0])):
+					cur_damage = target[0][sec_index] - prior_damage
+					fight_data[fight_num]["damage1S"][sec_index] = fight_data[fight_num]["damage1S"].get(sec_index, 0) + cur_damage
+					fight_data[fight_num]["players"][player_id]["damage1S"][sec_index] = fight_data[fight_num]["players"][player_id]["damage1S"].get(sec_index, 0)+cur_damage
+					if cur_damage > 0:
+						update_high_score(
+							"burst_damage1S",
+							"{{"+player['profession']+"}}"+player['name']+"-"+account+"-"+str(fight_num)+"-burst1S",
+							round(cur_damage, 2)
+							)
+			
+					prior_damage = target[0][sec_index]
+					
 	last_index = 0
 
-	for index in range(len(player["damage1S"][0])):
-		current_damage = player["damage1S"][0][index] - player["damage1S"][0][last_index]
+	for index in range(len(player["damageTaken1S"][0])):
 		current_damage_taken = player["damageTaken1S"][0][index] - player["damageTaken1S"][0][last_index]
-		if current_damage > 0:
-			update_high_score(
-					"burst_damage1S",
-					"{{"+player['profession']+"}}"+player['name']+"-"+account+"-"+str(fight_num)+"-burst1S",
-					round(current_damage, 2)
-					)
-
-		fight_data[fight_num]["damage1S"][index] = fight_data[fight_num]["damage1S"].get(index, 0) + current_damage
 		fight_data[fight_num]["damageTaken1S"][index] = fight_data[fight_num]["damageTaken1S"].get(index, 0) + current_damage_taken
 		last_index = index
 

@@ -3831,13 +3831,17 @@ def build_fight_line_chart(fight_data: dict, tid_date_time: str, tid_list: list)
 			}}
 		"""
 		for player in fight_data[fight_num]["players"].keys():
-			if (fight_data[fight_num]["players"][player]['damage1S'][-1]/len(fight_data[fight_num]["players"][player]['damage1S'])) < 750:
-				continue
+			#last_value = max(fight_data[fight_num]["players"][player]['damage1S'].values())
+			#num_keys = len(fight_data[fight_num]["players"][player]['damage1S'])
+
+			#if (last_value/num_keys) < 700:
+			#	continue
+
 			player_name = player.split("-")[1][:3]+" - "+player.split("-")[2]
 			player_damage_data = []
 			last_index = 0
 			for index in range(len(fight_data[fight_num]["players"][player]['damage1S'])):
-				cur_damage = fight_data[fight_num]["players"][player]['damage1S'][index] - fight_data[fight_num]["players"][player]['damage1S'][last_index]
+				cur_damage = fight_data[fight_num]["players"][player]['damage1S'][index] # - fight_data[fight_num]["players"][player]['damage1S'][last_index]
 				
 				player_damage_data.append(cur_damage)
 				last_index = index
@@ -4361,7 +4365,7 @@ def write_high_scores_to_db(highscores, fights, skill_data, db_path):
 
         for player in stat_data:
             stat_info = ""
-            print(player)
+            #print(player)
             if " | " in player:
                 player_data = player.split(" | ")[0]
                 if len(player_data.split("-")) > 3:
