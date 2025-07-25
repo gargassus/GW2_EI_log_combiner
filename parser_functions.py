@@ -906,7 +906,7 @@ def calculate_dps_stats(fight_json):
 		if combat_time:
 			if player_prof_name not in DPSStats:
 				DPSStats[player_prof_name] = {
-					"account": player["account"],
+					"account": get_player_account(player),
 					"name": player["name"],
 					"profession": player["profession"],
 					"duration": 0,
@@ -1398,7 +1398,7 @@ def get_stat_by_target_and_skill(fight_num: int, player: dict, stat_category: st
 					
 				for stat, value in skill.items():
 					if stat == 'max':
-						update_high_score(f"statTarget_{stat}", "{{"+player["profession"]+"}}"+player["name"]+"-"+player["account"]+"-"+str(fight_num)+"-"+str(index)+" | "+str(skill_id), value)
+						update_high_score(f"statTarget_{stat}", "{{"+player["profession"]+"}}"+player["name"]+"-"+get_player_account(player)+"-"+str(fight_num)+"-"+str(index)+" | "+str(skill_id), value)
 						if value > top_stats['player'][name_prof][stat_category][skill_id].get(stat, 0):
 							top_stats['player'][name_prof][stat_category][skill_id][stat] = value
 							top_stats['fight'][fight_num][stat_category][skill_id][stat] = value
@@ -1458,7 +1458,7 @@ def get_stat_by_skill(fight_num: int, player: dict, stat_category: str, name_pro
 			for stat, value in skill.items():
 				if stat != 'id':
 					if stat == 'max':
-						update_high_score(f"{stat_category}_{stat}", "{{"+player["profession"]+"}}"+player["name"]+"-"+player["account"]+"-"+str(fight_num)+" | "+str(skill_id), value)	
+						update_high_score(f"{stat_category}_{stat}", "{{"+player["profession"]+"}}"+player["name"]+"-"+get_player_account(player)+"-"+str(fight_num)+" | "+str(skill_id), value)	
 					top_stats['player'][name_prof][stat_category][skill_id][stat] = top_stats['player'][name_prof][stat_category][skill_id].get(stat, 0) + value
 					top_stats['fight'][fight_num][stat_category][skill_id][stat] = top_stats['fight'][fight_num][stat_category][skill_id].get(stat, 0) + value
 					top_stats['overall'][stat_category][skill_id][stat] = top_stats['overall'][stat_category][skill_id].get(stat, 0) + value
@@ -1854,7 +1854,7 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 				top_stats['overall'][stat_category]['downed_healing'] = (
 					top_stats['overall'][stat_category].get('downed_healing', 0) + downed_healing
 				)
-		update_high_score(f"{stat_category}_Healing", "{{"+player["profession"]+"}}"+player["name"]+"-"+player["account"]+"-"+str(fight_num)+" | Healing", round(fight_healing/(fight_time/1000), 2))	
+		update_high_score(f"{stat_category}_Healing", "{{"+player["profession"]+"}}"+player["name"]+"-"+get_player_account(player)+"-"+str(fight_num)+" | Healing", round(fight_healing/(fight_time/1000), 2))	
 
 	fight_barrier = 0
 	if stat_category == 'extBarrierStats' and 'extBarrierStats' in player:
@@ -1928,7 +1928,7 @@ def get_healStats_data(fight_num: int, player: dict, players: dict, stat_categor
 				top_stats['overall'][stat_category]['outgoing_barrier'] = (
 					top_stats['overall'][stat_category].get('outgoing_barrier', 0) + outgoing_barrier
 				)
-		update_high_score(f"{stat_category}_Barrier", "{{"+player["profession"]+"}}"+player["name"]+"-"+player["account"]+"-"+str(fight_num)+" | Barrier", round(fight_barrier/(fight_time/1000), 2))
+		update_high_score(f"{stat_category}_Barrier", "{{"+player["profession"]+"}}"+player["name"]+"-"+get_player_account(player)+"-"+str(fight_num)+" | Barrier", round(fight_barrier/(fight_time/1000), 2))
 
 def get_healing_skill_data(player: dict, stat_category: str, name_prof: str) -> None:
 	"""
@@ -2502,7 +2502,7 @@ def get_minions_by_player(player_data: dict, player_name: str, profession: str) 
 	Returns:
 		None
 	"""
-	player_name = player_name+"|"+profession+"|"+player_data['account']
+	player_name = player_name+"|"+profession+"|"+get_player_account(player_data)
 	if "minions" in player_data:
 		if profession not in minions:
 			minions[profession] = {"player": {}, "pets_list": [], "pet_skills_list": []}
