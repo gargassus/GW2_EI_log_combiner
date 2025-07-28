@@ -87,5 +87,13 @@ mesmer_shatter_skills = [
 "Mind Wrack",
 "Cry of Frustration",
 "Diversion",
-"Distortion"
+"Distortion",
+"Geistiges Wrack",
+"Schrei der Frustration",
+"Ablenkung",
+"Verzerrung",
+"Sekundenbruchteil",
+"R\u00FCckspuler",
+"Zeitfresser",
+"Kontinuum-Spaltung"
 ]
