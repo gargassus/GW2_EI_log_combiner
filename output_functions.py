@@ -4093,6 +4093,8 @@ def update_glicko_ratings():
             raise ZeroDivisionError("Avoided zero division in Glicko v calculation")
 
         player_i.update_player(rating_list, rd_list, scores)
+		# Clamp player's rating between 100 and 3000
+        player_i.rating = min(max(player_i.getRating(), 100), 3000)
 
     conn = sqlite3.connect("Top_Stats.db")
     cursor = conn.cursor()
