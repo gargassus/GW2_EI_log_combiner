@@ -213,7 +213,7 @@ def determine_clone_usage(player, skill_map, mesmer_shatter_skills):
 	if "rotation" in player:
 		for skill in player["rotation"]:
 			skill_id = f"s{skill['id']}"
-			if skill_map[skill_id]['name'] in mesmer_shatter_skills:
+			if skill_id in mesmer_shatter_skills:
 				skill_name = skill_map[skill_id]['name']
 
 				if skill_name not in mesmer_clone_usage[name_prof]:

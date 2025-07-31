@@ -78,7 +78,7 @@ high_scores = [
 ]
 
 #mesmer F_skills
-mesmer_shatter_skills = [
+old_mesmer_shatter_skills = [
 "Split Second",
 "Rewinder",
 "Time Sink",
@@ -96,4 +96,17 @@ mesmer_shatter_skills = [
 "R\u00FCckspuler",
 "Zeitfresser",
 "Kontinuum-Spaltung"
+]
+mesmer_shatter_skills = [
+    "s56930",#: "Split Second"
+    "s56925",#: "Split Second"
+    "s56928",#: "Rewinder"
+    "s56873",#: "Time Sink"
+    "s10192",#: "Distortion"
+    "s10243",#: "Distortion"
+    "s29830",#: "Continuum Split"
+    "s49068",#: "Mind Wrack"
+    "s10191",#: "Mind Wrack"
+    "s10190",#: "Cry of Frustration"
+    "s10287",#: "Diversion"
 ]
