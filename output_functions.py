@@ -13,6 +13,7 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+import config
 import json
 import sqlite3
 from glicko2 import Player as GlickoPlayer
@@ -3867,15 +3868,7 @@ def build_fight_line_chart(fight_data: dict, tid_date_time: str, tid_list: list)
 		)
 
 def build_pull_stats_tid(tid_date_time: str, top_stats: dict, skill_data: dict, tid_list: list) -> None:
-	Pull_Skills = [
-		"Pull","Wrathful Grasp","Blazing Edge","Temporal Rift","Otherworldly Attraction","Abyssal Blot",
-		"Snap Pull","Barbed Pull","Capture Line","Path of Scars","Tow Line","Undertow","Cyclone",
-		"Into the Void","Vortex","Deadly Catch","Grasping Darkness","Chapter 3: Heated Rebuke",
-		"Magnet","Magnetic Shield","Call to Anguish","Call to Anguish","Glyph of the Tides",
-		"Scorpion Wire","Spectral Grasp","Dragon's Maw","Shadowfall","Whirlpool","Gravity Well",
-		"Hunter's Verdict","Wild Whirl","Prismatic Singularity","Prelude Lash","Throw Magnetic Bomb",
-		"Throw Unstable Reagent","Fang Grapple","Relic of the Wizard's Tower","Magebane Tether"
-		]
+	Pull_Skills = config.pull_skills
 	
 	pull_data = {
 		'incoming': {},
@@ -3887,7 +3880,7 @@ def build_pull_stats_tid(tid_date_time: str, top_stats: dict, skill_data: dict, 
 	outgoing_pulls = []
 
 	for skill, data in skill_data.items():
-		if data['name'] in Pull_Skills:
+		if skill in Pull_Skills:
 			Used_Pulls[skill] = f"[img width=24 [{data['name']}|{data['icon']}]]"
 
 	for player, p_data in top_stats['player'].items():

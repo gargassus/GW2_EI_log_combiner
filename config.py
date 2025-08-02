@@ -110,3 +110,44 @@ mesmer_shatter_skills = [
     "s10190",#: "Cry of Frustration"
     "s10287",#: "Diversion"
 ]
+
+pull_skills = [
+    "s9226",    #Pull
+    "s9193",    #Wrathful Grasp
+    "s45402",   #Blazing Edge
+    "s28409",   #Temporal Rift
+    "s71880",   #Otherworldly Attraction
+    "s72954",   #Abyssal Blot
+    "s72026",   #Snap Pull
+    "s14448",   #Barbed Pull
+    "s50380",   #Capture Line
+    "s12638",   #Path of Scars
+    "s13070",   #Tow Line
+    "s73148",   #Undertow
+    "s30008",   #Cyclone
+    "s10363",   #Into the Void
+    "s10255",   #Vortex
+    "s10695",   #Deadly Catch
+    "s29740",   #Grasping Darkness
+    "s42449",   #"Chapter 3: Heated Rebuke"
+    "s5996",    #Magnet
+    "s5747",    #Magnetic Shield
+    "s27917",   #Call to Anguish
+    "s31100",   #Call to Anguish
+    "s29558",   #Glyph of the Tides
+    "s13020",   #Scorpion Wire
+    "s10620",   #Spectral Grasp
+    "s30273",   #"Dragon's Maw"
+    "s63275",   #Shadowfall
+    "s5602",    #Whirlpool
+    "s30359",   #Gravity Well
+    "s33134",   #"Hunter's Verdict"
+    "s31048",   #Wild Whirl
+    "s41843",   #Prismatic Singularity
+    "s43375",   #Prelude Lash
+    "s49112",   #Throw Magnetic Bomb
+    "s59324",   #Throw Unstable Reagent
+    "s41156",   #Fang Grapple
+    "s70491",   #"Relic of the Wizard's Tower"
+    "s43532",   #Magebane Tether
+    ]
