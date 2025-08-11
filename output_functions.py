@@ -3999,469 +3999,479 @@ def build_pull_stats_tid(tid_date_time: str, top_stats: dict, skill_data: dict, 
 
 #Add Glicko Leaderboard Support
 def update_glicko_ratings():
-    def create_table(cursor):
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS player_ratings (
-            date TEXT,
-            account TEXT,
-            name TEXT,
-            profession TEXT,
-            stat TEXT,
-            rating REAL,
-            rd REAL,
-            vol REAL,
-            delta REAL,
-            PRIMARY KEY (date, account, stat)
-        )"""
-        )
 
-    def get_stat_fields(cursor):
-        cursor.execute("PRAGMA table_info(player_stats)")
-        all_columns = [col[1] for col in cursor.fetchall()]
-        skip_cols = {
-            "date",
-            "year",
-            "month",
-            "day",
-            "account",
-            "guild_status",
-            "name",
-            "profession",
-            "date_name_prof",
-        }
-        return [
-            col
-            for col in all_columns
-            if col not in skip_cols and col not in ("num_fights", "duration")
-        ]
+	def create_table(cursor):
+		cursor.execute(
+			"""CREATE TABLE IF NOT EXISTS player_ratings (
+			date TEXT,
+			account TEXT,
+			name TEXT,
+			profession TEXT,
+			stat TEXT,
+			rating REAL,
+			rd REAL,
+			vol REAL,
+			delta REAL,
+			PRIMARY KEY (date, account, stat)
+		)"""
+		)
 
-    def get_raid_dates(cursor):
-        cursor.execute("SELECT DISTINCT date FROM player_stats ORDER BY date")
-        return [row[0] for row in cursor.fetchall()]
+	def get_stat_fields(cursor):
+		cursor.execute("PRAGMA table_info(player_stats)")
+		all_columns = [col[1] for col in cursor.fetchall()]
+		skip_cols = {
+			"date",
+			"year",
+			"month",
+			"day",
+			"account",
+			"guild_status",
+			"name",
+			"profession",
+			"date_name_prof",
+		}
+		return [
+			col
+			for col in all_columns
+			if col not in skip_cols and col not in ("num_fights", "duration")
+		]
 
-    def fetch_player_stats(cursor, raid_date, stat_fields):
-        fields = ", ".join(
-            ["account", "name", "profession", "duration", "num_fights"] + stat_fields
-        )
-        cursor.execute(
-            f"SELECT {fields} FROM player_stats WHERE date = ?", (raid_date,)
-        )
-        return cursor.fetchall()
+	def get_raid_dates(cursor):
+		cursor.execute("SELECT DISTINCT date FROM player_stats ORDER BY date")
+		return [row[0] for row in cursor.fetchall()]
 
-    def normalize_stats(rows, stat_fields):
-        stat_values = {stat: [] for stat in stat_fields}
-        for row in rows:
-            account, name, prof, duration, num_fights, *stats = row
-            normalized_time = max(
-                duration, 10
-            )  # Avoid division by very small time windows
+	def fetch_player_stats(cursor, raid_date, stat_fields):
+		fields = ", ".join(
+			["account", "name", "profession", "duration", "num_fights"] + stat_fields
+		)
+		cursor.execute(
+			f"SELECT {fields} FROM player_stats WHERE date = ?", (raid_date,)
+		)
+		return cursor.fetchall()
 
-            for stat, value in zip(stat_fields, stats):
-                # Normalize stat per minute of activity
-                normalized = (value or 0) / (normalized_time / 60.0)
-                stat_values[stat].append((account, name, prof, normalized))
-        return stat_values
+	def normalize_stats(rows, stat_fields, smaller_is_better_stats):
+		stat_values = {stat: [] for stat in stat_fields}
+		for row in rows:
+			account, name, prof, duration, num_fights, *stats = row
+			normalized_time = max(
+				duration, 10
+			)  # Avoid division by very small time windows
 
-    def update_player_rating(player_i, opponents, scores):
-        MAX_RD = 350.0
-        rating_list = [min(max(op.getRating(), 100), 3000) for op in opponents]
-        rd_list = [min(op.getRd(), MAX_RD) for op in opponents]
 
-        if player_i.getRd() > MAX_RD:
-            player_i.rd = MAX_RD
-        if player_i.getRd() < 50.0:
-            player_i.rd = 50.0
+			for stat, value in zip(stat_fields, stats):
+				# Check if the stat should be treated as "smaller is better"
+				if stat in smaller_is_better_stats:
+					# Inverse the stat value for smaller-is-better
+					normalized = (max(value or 0, 1) ** -1) / (normalized_time / 60.0)
+				else:
+					# Normalize stat per minute of activity (larger values are better)
+					normalized = (value or 0) / (normalized_time / 60.0)
+				
+				stat_values[stat].append((account, name, prof, normalized))
+		return stat_values
 
-        if (
-            sum(
-                (
-                    pow(player_i._g(rd), 2)
-                    * player_i._E(r, rd)
-                    * (1 - player_i._E(r, rd))
-                    for r, rd in zip(rating_list, rd_list)
-                )
-            )
-            == 0
-        ):
-            raise ZeroDivisionError("Avoided zero division in Glicko v calculation")
+	def update_player_rating(player_i, opponents, scores):
+		MAX_RD = 350.0
+		rating_list = [min(max(op.getRating(), 100), 3000) for op in opponents]
+		rd_list = [min(op.getRd(), MAX_RD) for op in opponents]
 
-        player_i.update_player(rating_list, rd_list, scores)
+		if player_i.getRd() > MAX_RD:
+			player_i.rd = MAX_RD
+		if player_i.getRd() < 50.0:
+			player_i.rd = 50.0
+
+		if (
+			sum(
+				(
+					pow(player_i._g(rd), 2)
+					* player_i._E(r, rd)
+					* (1 - player_i._E(r, rd))
+					for r, rd in zip(rating_list, rd_list)
+				)
+			)
+			== 0
+		):
+			raise ZeroDivisionError("Avoided zero division in Glicko v calculation")
+
+		player_i.update_player(rating_list, rd_list, scores)
 		# Clamp player's rating between 100 and 3000
-        player_i.rating = min(max(player_i.getRating(), 100), 3000)
+		player_i.rating = min(max(player_i.getRating(), 100), 3000)
 
-    conn = sqlite3.connect("Top_Stats.db")
-    cursor = conn.cursor()
 
-    create_table(cursor)
-    stat_fields = get_stat_fields(cursor)
-    all_dates = get_raid_dates(cursor)
+	smaller_is_better_stats = {"damage_taken", "downed", "deaths"} 
+	conn = sqlite3.connect("Top_Stats.db")
+	cursor = conn.cursor()
 
-    ratings = defaultdict(lambda: defaultdict(lambda: GlickoPlayer()))
-    last_rating = defaultdict(dict)  # will store stat -> previous rating
+	create_table(cursor)
+	stat_fields = get_stat_fields(cursor)
+	all_dates = get_raid_dates(cursor)
 
-    for raid_date in all_dates:
-        rows = fetch_player_stats(cursor, raid_date, stat_fields)
-        if not rows:
-            continue
-        max_duration = max((row[3] or 0) for row in rows)
-        min_required = max_duration * 0.4
-        rows = [row for row in rows if (row[3] or 0) >= min_required]
-        stat_values = normalize_stats(rows, stat_fields)
+	ratings = defaultdict(lambda: defaultdict(lambda: GlickoPlayer()))
+	last_rating = defaultdict(dict)  # will store stat -> previous rating
 
-        # Compute activity score for RD estimation
-        activity_seconds = defaultdict(float)
-        for row in rows:
-            acc, name, prof, duration, *_ = row
-            player_key = f"{name}#{prof}"
-            activity_seconds[player_key] += duration or 0
-        activity_score = {k: v / 60.0 for k, v in activity_seconds.items() if v > 0}  # convert to minutes
+	for raid_date in all_dates:
+		rows = fetch_player_stats(cursor, raid_date, stat_fields)
+		if not rows:
+			continue
+		max_duration = max((row[3] or 0) for row in rows)
+		min_required = max_duration * 0.4
+		rows = [row for row in rows if (row[3] or 0) >= min_required]
+		stat_values = normalize_stats(rows, stat_fields, smaller_is_better_stats)
 
-        # Compute raid attendance count for RD estimation
-        player_days = defaultdict(set)
-        for row in rows:
-            acc, name, prof, *_ = row
-            player_days[f"{name}#{prof}"].add(raid_date)
-        raid_counts = {k: len(v) for k, v in player_days.items()}
+		# Compute activity score for RD estimation
+		activity_seconds = defaultdict(float)
+		for row in rows:
+			acc, name, prof, duration, *_ = row
+			player_key = f"{name}#{prof}"
+			activity_seconds[player_key] += duration or 0
+		activity_score = {k: v / 60.0 for k, v in activity_seconds.items() if v > 0}  # convert to minutes
 
-        for stat, players in stat_values.items():
-            sorted_players = sorted(players, key=lambda x: x[3], reverse=True)
-            for i, (acc_i, name_i, prof_i, _) in enumerate(sorted_players):
-                player_key_i = f"{name_i}#{prof_i}"
-                if stat not in ratings[player_key_i]:
-                    #activity = activity_score.get(player_key_i, 1.0)
-                    raid_count = raid_counts.get(player_key_i, 1)
-                    #init_rd = max(80.0, 350.0 / (activity ** 0.5))
-                    init_rd = max(80.0, 350.0 / (raid_count**0.5))
-                    ratings[player_key_i][stat] = GlickoPlayer(
-                        rating=1500, rd=init_rd, vol=0.06
-                    )
+		# Compute raid attendance count for RD estimation
+		player_days = defaultdict(set)
+		for row in rows:
+			acc, name, prof, *_ = row
+			player_days[f"{name}#{prof}"].add(raid_date)
+		raid_counts = {k: len(v) for k, v in player_days.items()}
 
-                player_i = ratings[player_key_i][stat]
-                opponents, scores = [], []
+		for stat, players in stat_values.items():
+			sorted_players = sorted(players, key=lambda x: x[3], reverse=True)
+			for i, (acc_i, name_i, prof_i, _) in enumerate(sorted_players):
+				player_key_i = f"{name_i}#{prof_i}"
+				if stat not in ratings[player_key_i]:
+					#activity = activity_score.get(player_key_i, 1.0)
+					raid_count = raid_counts.get(player_key_i, 1)
+					#init_rd = max(80.0, 350.0 / (activity ** 0.5))
+					init_rd = max(80.0, 350.0 / (raid_count**0.5))
+					ratings[player_key_i][stat] = GlickoPlayer(
+						rating=1500, rd=init_rd, vol=0.06
+					)
 
-                for j, (acc_j, name_j, prof_j, _) in enumerate(sorted_players):
-                    if i == j:
-                        continue
-                    player_key_j = f"{name_j}#{prof_j}"
-                    opponents.append(ratings[player_key_j][stat])
-                    scores.append(1 if i < j else 0)
+				player_i = ratings[player_key_i][stat]
+				opponents, scores = [], []
 
-                try:
-                    if opponents:
-                        update_player_rating(player_i, opponents, scores)
-                except (OverflowError, ZeroDivisionError) as e:
-                    print(f"[SKIP] {name_i} stat: {stat} - {type(e).__name__}: {e}")
-                    continue
+				for j, (acc_j, name_j, prof_j, _) in enumerate(sorted_players):
+					if i == j:
+						continue
+					player_key_j = f"{name_j}#{prof_j}"
+					opponents.append(ratings[player_key_j][stat])
+					scores.append(1 if i < j else 0)
 
-                new_rating = round(player_i.getRating(), 2)
-                prev_rating = last_rating[player_key_i].get(stat)
-                delta = (
-                    None if prev_rating is None else round(new_rating - prev_rating, 2)
-                )
-                last_rating[player_key_i][stat] = new_rating
+				try:
+					if opponents:
+						update_player_rating(player_i, opponents, scores)
+				except (OverflowError, ZeroDivisionError) as e:
+					print(f"[SKIP] {name_i} stat: {stat} - {type(e).__name__}: {e}")
+					continue
 
-                cursor.execute(
-                    """INSERT OR REPLACE INTO player_ratings
-                    (date, account, name, profession, stat, rating, rd, vol, delta)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (
-                        raid_date,
-                        acc_i,
-                        name_i,
-                        prof_i,
-                        stat,
-                        new_rating,
-                        round(player_i.getRd(), 2),
-                        round(player_i.vol, 6),
-                        delta,
-                    ),
-                )
+				new_rating = round(player_i.getRating(), 2)
+				prev_rating = last_rating[player_key_i].get(stat)
+				delta = (
+					None if prev_rating is None else round(new_rating - prev_rating, 2)
+				)
+				last_rating[player_key_i][stat] = new_rating
 
-    conn.commit()
-    conn.close()
-    print("Glicko ratings (with normalization and trends) updated.")
+				cursor.execute(
+					"""INSERT OR REPLACE INTO player_ratings
+					(date, account, name, profession, stat, rating, rd, vol, delta)
+					VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+					(
+						raid_date,
+						acc_i,
+						name_i,
+						prof_i,
+						stat,
+						new_rating,
+						round(player_i.getRd(), 2),
+						round(player_i.vol, 6),
+						delta,
+					),
+				)
+
+	conn.commit()
+	conn.close()
+	print("Glicko ratings (with normalization and trends) updated.")
 
 
 def generate_leaderboard(stat: str, top_n: int = 25) -> str:
-    conn = sqlite3.connect('Top_Stats.db')
-    cursor = conn.cursor()
+	conn = sqlite3.connect('Top_Stats.db')
+	cursor = conn.cursor()
 
-    cursor.execute('''
-        SELECT account, name, profession, MAX(date), rating, delta
-        FROM player_ratings
-        WHERE stat = ?
-        GROUP BY name, profession
-        ORDER BY rating DESC
-        LIMIT ?
-    ''', (stat, top_n))
-    rows = cursor.fetchall()
+	cursor.execute('''
+		SELECT account, name, profession, MAX(date), rating, delta
+		FROM player_ratings
+		WHERE stat = ?
+		GROUP BY name, profession
+		ORDER BY rating DESC
+		LIMIT ?
+	''', (stat, top_n))
+	rows = cursor.fetchall()
 
-    # Collect total activity and normalized stat per player_key
-    raid_counts = {}
-    avg_norm = {}
-    activity_minutes = {}
-    guild_members = {}
-    cursor.execute(f'''
-        SELECT name || '#' || profession AS player_key,
-               COUNT(DISTINCT date),
+	# Collect total activity and normalized stat per player_key
+	raid_counts = {}
+	avg_norm = {}
+	activity_minutes = {}
+	guild_members = {}
+	cursor.execute(f'''
+		SELECT name || '#' || profession AS player_key,
+			   COUNT(DISTINCT date),
 			   guild_status AS guild_status,
-               SUM(CASE WHEN duration > 0 THEN {stat} ELSE 0 END),
-               SUM(duration) / 60.0
-        FROM player_stats
-        GROUP BY player_key
-    ''')
-    for player_key, raid_count, guild_status, total_stat, total_minutes in cursor.fetchall():
-        raid_counts[player_key] = raid_count
-        activity_minutes[player_key] = total_minutes
-        guild_members[player_key] = guild_status
-        if stat in ('kills', 'downs', 'downed', 'killed', 'resurrects'):
-            avg_norm[player_key] = round(total_stat / (total_minutes), 4) if total_minutes else '-'
-        else:
-            avg_norm[player_key] = round(total_stat / (total_minutes*60), 4) if total_minutes else '-'
+			   SUM(CASE WHEN duration > 0 THEN {stat} ELSE 0 END),
+			   SUM(duration) / 60.0
+		FROM player_stats
+		GROUP BY player_key
+	''')
+	for player_key, raid_count, guild_status, total_stat, total_minutes in cursor.fetchall():
+		raid_counts[player_key] = raid_count
+		activity_minutes[player_key] = total_minutes
+		guild_members[player_key] = guild_status
+		if stat in ('kills', 'downs', 'downed', 'killed', 'resurrects'):
+			avg_norm[player_key] = round(total_stat / (total_minutes), 4) if total_minutes else '-'
+		else:
+			avg_norm[player_key] = round(total_stat / (total_minutes*60), 4) if total_minutes else '-'
 
-        # Compute activity bucket
-    member_bucket = {}
-    for player_key, member_status in guild_members.items():
-        if member_status in (None, 0, "--==Non Member==--"):
-            member_bucket[player_key] = "❌"
-        else:
-            member_bucket[player_key] = "✅"
-            
-    conn.close()
+		# Compute activity bucket
+	member_bucket = {}
+	for player_key, member_status in guild_members.items():
+		if member_status in (None, 0, "--==Non Member==--"):
+			member_bucket[player_key] = "❌"
+		else:
+			member_bucket[player_key] = "✅"
+			
+	conn.close()
 
-    def delta_str(delta):
-        if delta is None:
-            return ""
-        return f"{abs(delta):.1f} {'🔺' if delta > 0 else '🔻'}"
+	def delta_str(delta):
+		if delta is None:
+			return ""
+		return f"{abs(delta):.1f} {'🔺' if delta > 0 else '🔻'}"
 
-    # Build table with activity classification
-    table = f"| Rank |Name|Profession| Glicko Rating| Trend| Raids | Guild Member | Avg {stat.title()}|h\n"
-    table += "|thead-dark table-hover table-caption-top tc-center|k\n"
-    table += f"| {stat.title()} Leaderboard - Top {top_n} Players |c\n"
+	# Build table with activity classification
+	table = f"| Rank |Name|Profession| Glicko Rating| Trend| Raids | Guild Member | Avg {stat.title()}|h\n"
+	table += "|thead-dark table-hover table-caption-top tc-center|k\n"
+	table += f"| {stat.title()} Leaderboard - Top {top_n} Players |c\n"
 
-    rank = 1
-    for acc, name, prof, _, rating, delta in rows:
-        player_key = f"{name}#{prof}"
-        raids = raid_counts.get(player_key, '-')
-        avg = avg_norm.get(player_key, '-')
+	rank = 1
+	for acc, name, prof, _, rating, delta in rows:
+		player_key = f"{name}#{prof}"
+		raids = raid_counts.get(player_key, '-')
+		avg = avg_norm.get(player_key, '-')
 
-        if avg in ('-', None) or avg == 0:
-            continue
+		if avg in ('-', None) or avg == 0:
+			continue
 
-        if stat in ('kills', 'downs', 'downed', 'killed', 'resurrects'):
-            avg = f"{avg:,.2f}/min"
-        else:
-            avg = f"{avg:,.2f}/sec"
-        membership = member_bucket.get(player_key, '-')
-        tt_name = f'<span data-tooltip="{acc}">{name}</span>'
-        table += f"| {rank} |{tt_name} |{{{{{prof}}}}} {prof} | {round(rating, 1)} | {delta_str(delta)}| {raids} | {membership} | {avg}|\n"
-        rank += 1
+		if stat in ('kills', 'downs', 'downed', 'killed', 'resurrects'):
+			avg = f"{avg:,.2f}/min"
+		else:
+			avg = f"{avg:,.2f}/sec"
+		membership = member_bucket.get(player_key, '-')
+		tt_name = f'<span data-tooltip="{acc}">{name}</span>'
+		table += f"| {rank} |{tt_name} |{{{{{prof}}}}} {prof} | {round(rating, 1)} | {delta_str(delta)}| {raids} | {membership} | {avg}|\n"
+		rank += 1
 
-    return table
+	return table
 
 
 def save_high_score(
-    db_path: str,
-    account: str,
-    player: str,
-    profession: str,
-    fight_times_stamp: str,
-    fight_log_link: str,
-    stat_category: str,
-    stat_info: str,
-    stat_value: float,
+	db_path: str,
+	account: str,
+	player: str,
+	profession: str,
+	fight_times_stamp: str,
+	fight_log_link: str,
+	stat_category: str,
+	stat_info: str,
+	stat_value: float,
 ):
-    # Connect to the database
-    conn = sqlite3.connect(db_path)
-    cur = conn.cursor()
+	# Connect to the database
+	conn = sqlite3.connect(db_path)
+	cur = conn.cursor()
 
-    # Create the High_Scores table if it doesn't exist
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS high_scores (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            account TEXT,
-            player TEXT,
-            profession TEXT,
-            fight_times_stamp TEXT,
-            fight_log_link TEXT,
-            stat_category TEXT,
-            stat_info TEXT,
-            stat_value REAL
-        )
-    """
-    )
+	# Create the High_Scores table if it doesn't exist
+	cur.execute(
+		"""
+		CREATE TABLE IF NOT EXISTS high_scores (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			account TEXT,
+			player TEXT,
+			profession TEXT,
+			fight_times_stamp TEXT,
+			fight_log_link TEXT,
+			stat_category TEXT,
+			stat_info TEXT,
+			stat_value REAL
+		)
+	"""
+	)
 
-    # Insert the new high score entry
-    cur.execute(
-        """
-        INSERT INTO high_scores (
-            account, player, profession,
-            fight_times_stamp, fight_log_link,
-            stat_category, stat_info, stat_value
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    """,
-        (
-            account,
-            player,
-            profession,
-            fight_times_stamp,
-            fight_log_link,
-            stat_category,
-            stat_info,
-            stat_value,
-        ),
-    )
+	# Insert the new high score entry
+	cur.execute(
+		"""
+		INSERT INTO high_scores (
+			account, player, profession,
+			fight_times_stamp, fight_log_link,
+			stat_category, stat_info, stat_value
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+	""",
+		(
+			account,
+			player,
+			profession,
+			fight_times_stamp,
+			fight_log_link,
+			stat_category,
+			stat_info,
+			stat_value,
+		),
+	)
 
-    # Keep only the top 25 scores for each stat category
-    cur.execute(
-        f"""
-        DELETE FROM high_scores
-        WHERE id NOT IN (
-            SELECT id FROM high_scores
-            WHERE stat_category = ?
-            ORDER BY stat_value DESC
-            LIMIT 25
-        )
-        AND stat_category = ?
-    """,
-        (stat_category, stat_category),
-    )
+	# Keep only the top 25 scores for each stat category
+	cur.execute(
+		f"""
+		DELETE FROM high_scores
+		WHERE id NOT IN (
+			SELECT id FROM high_scores
+			WHERE stat_category = ?
+			ORDER BY stat_value DESC
+			LIMIT 25
+		)
+		AND stat_category = ?
+	""",
+		(stat_category, stat_category),
+	)
 
-    # Commit and close
-    conn.commit()
-    conn.close()
+	# Commit and close
+	conn.commit()
+	conn.close()
 
 
 def write_high_scores_to_db(highscores, fights, skill_data, db_path):
-    for category, stat_data in highscores.items():
-        STAT_NAME_MAP = {
+	for category, stat_data in highscores.items():
+		STAT_NAME_MAP = {
 			"burst_damage1S": "1S Burst Damage",
-            "fight_dps": "Damage per Second",
-            "statTarget_killed": "Kills per Second",
-            "statTarget_downed": "Downs per Second",
-            "statTarget_downContribution": "Down Contrib per Second",
-            "defenses_blockedCount": "Blocks per Second",
-            "defenses_evadedCount": "Evades per Second",
-            "defenses_dodgeCount": "Dodges per Second",
-            "defenses_invulnedCount": "Invulned per Second",
+			"fight_dps": "Damage per Second",
+			"statTarget_killed": "Kills per Second",
+			"statTarget_downed": "Downs per Second",
+			"statTarget_downContribution": "Down Contrib per Second",
+			"defenses_blockedCount": "Blocks per Second",
+			"defenses_evadedCount": "Evades per Second",
+			"defenses_dodgeCount": "Dodges per Second",
+			"defenses_invulnedCount": "Invulned per Second",
 			"defenses_boonStrips": "Incoming Strips per Second",
-            "support_condiCleanse": "Cleanses per Second",
-            "support_boonStrips": "Strips per Second",
-            "extHealingStats_Healing": "Healing per Second",
-            "extBarrierStats_Barrier": "Barrier per Second",
-            "statTarget_appliedCrowdControl": "Crowd Control-Out per Second",
-            "defenses_receivedCrowdControl": "Crowd Control-In per Second",
-            "statTarget_max": "Highest Outgoing Skill Damage",
-            "totalDamageTaken_max": "Highest Incoming Skill Damage",
-        }
+			"support_condiCleanse": "Cleanses per Second",
+			"support_boonStrips": "Strips per Second",
+			"extHealingStats_Healing": "Healing per Second",
+			"extBarrierStats_Barrier": "Barrier per Second",
+			"statTarget_appliedCrowdControl": "Crowd Control-Out per Second",
+			"defenses_receivedCrowdControl": "Crowd Control-In per Second",
+			"statTarget_max": "Highest Outgoing Skill Damage",
+			"totalDamageTaken_max": "Highest Incoming Skill Damage",
+		}
 
-        stat = STAT_NAME_MAP.get(category)
+		stat = STAT_NAME_MAP.get(category)
 
-        for player in stat_data:
-            stat_info = ""
-            #print(player)
-            if " | " in player:
-                player_data = player.split(" | ")[0]
-                if len(player_data.split("-")) > 3:
-                    prof_player, account, fight_num, _ = player_data.split("-")
-                else:
-                    prof_player, account, fight_num = player_data.split("-")
-                stat_value = stat_data[player]
-                if "max" in category:
-                    skill_id = "s" + player.split(" | ")[1]
-                    skill_name = skill_data[skill_id]["name"]
-                    skill_icon = skill_data[skill_id]["icon"]
-                    stat_info = (
-                        f"[img width=24 [{skill_name}|{skill_icon}]] {skill_name}"
-                    )
+		for player in stat_data:
+			stat_info = ""
+			#print(player)
+			if " | " in player:
+				player_data = player.split(" | ")[0]
+				if len(player_data.split("-")) > 3:
+					prof_player, account, fight_num, _ = player_data.split("-")
+				else:
+					prof_player, account, fight_num = player_data.split("-")
+				stat_value = stat_data[player]
+				if "max" in category:
+					skill_id = "s" + player.split(" | ")[1]
+					skill_name = skill_data[skill_id]["name"]
+					skill_icon = skill_data[skill_id]["icon"]
+					stat_info = (
+						f"[img width=24 [{skill_name}|{skill_icon}]] {skill_name}"
+					)
 
-            else:
-                prof_player, account, fight_num, _ = player.split("-")
-                stat_value = stat_data[player]
-            profession, player = prof_player.split("}}")
-            profession += "}}"
-            fight_time = (
-                f"{fights[int(fight_num)]["fight_date"]} - Fight #{fight_num}"
-            )
-            fight_link = fights[int(fight_num)]["fight_link"]
-            save_high_score(
-                db_path,
-                account,
-                player,
-                profession,
-                fight_time,
-                fight_link,
-                stat,
-                stat_info,
-                stat_value,
-            )
+			else:
+				prof_player, account, fight_num, _ = player.split("-")
+				stat_value = stat_data[player]
+			profession, player = prof_player.split("}}")
+			profession += "}}"
+			fight_time = (
+				f"{fights[int(fight_num)]["fight_date"]} - Fight #{fight_num}"
+			)
+			fight_link = fights[int(fight_num)]["fight_link"]
+			save_high_score(
+				db_path,
+				account,
+				player,
+				profession,
+				fight_time,
+				fight_link,
+				stat,
+				stat_info,
+				stat_value,
+			)
 
 
 def build_high_scores_leaderboard_tids(tid_date_time: str, db_path: str) -> None:
-    """
-    Generate TiddlyWiki-formatted tables for each stat_category in the high_scores table.
-    
-    Returns:
-        A dictionary where keys are stat_category names and values are TiddlyWiki-formatted tables.
-    """
-    conn = sqlite3.connect(db_path)
-    cur = conn.cursor()
+	"""
+	Generate TiddlyWiki-formatted tables for each stat_category in the high_scores table.
+	
+	Returns:
+		A dictionary where keys are stat_category names and values are TiddlyWiki-formatted tables.
+	"""
+	conn = sqlite3.connect(db_path)
+	cur = conn.cursor()
 
-    # Fetch all unique stat categories
-    cur.execute("SELECT DISTINCT stat_category FROM high_scores")
-    categories = [row[0] for row in cur.fetchall()]
+	# Fetch all unique stat categories
+	cur.execute("SELECT DISTINCT stat_category FROM high_scores")
+	categories = [row[0] for row in cur.fetchall()]
 
-    tables = {}
+	tables = {}
 
-    for category in categories:
-        # Fetch records for this category ordered by stat_value DESC
-        cur.execute("""
-            SELECT account, player, profession, fight_times_stamp, fight_log_link, stat_info, stat_value
-            FROM high_scores
-            WHERE stat_category = ?
-            ORDER BY stat_value DESC
-        """, (category,))
-        rows = cur.fetchall()
+	for category in categories:
+		# Fetch records for this category ordered by stat_value DESC
+		cur.execute("""
+			SELECT account, player, profession, fight_times_stamp, fight_log_link, stat_info, stat_value
+			FROM high_scores
+			WHERE stat_category = ?
+			ORDER BY stat_value DESC
+		""", (category,))
+		rows = cur.fetchall()
 
-        # Determine if stat_info column should be included
-        include_stat_info = any(row[5] not in (None, "", "NULL") for row in rows)
+		# Determine if stat_info column should be included
+		include_stat_info = any(row[5] not in (None, "", "NULL") for row in rows)
 
-        # Build header
-        table = f"| {category} High Scores |c\n"
-        table += "|thead-dark table-hover table-caption-top tc-center|k\n"
-        headers = ["Player", "Profession"]
-        if include_stat_info:
-            headers.append("Info")
-        headers.append("Fight")
-        headers.append("Value")
+		# Build header
+		table = f"| {category} High Scores |c\n"
+		table += "|thead-dark table-hover table-caption-top tc-center|k\n"
+		headers = ["Player", "Profession"]
+		if include_stat_info:
+			headers.append("Info")
+		headers.append("Fight")
+		headers.append("Value")
 
-        table += "| " + " | ".join(headers) + " |h\n"
-        #table += "| " + " | ".join(["---"] * len(headers)) + " |\n"
+		table += "| " + " | ".join(headers) + " |h\n"
+		#table += "| " + " | ".join(["---"] * len(headers)) + " |\n"
 
-        for row in rows:
-            account, player, profession, timestamp, link, info, value = row
-            profession = f"{profession} {profession[2:-2]}"
-            player_tooltip = f'<span data-tooltip="{account}">{player}</span>'
-            fight_link = f'<a href="{link}">{timestamp}</a>'
+		for row in rows:
+			account, player, profession, timestamp, link, info, value = row
+			profession = f"{profession} {profession[2:-2]}"
+			player_tooltip = f'<span data-tooltip="{account}">{player}</span>'
+			fight_link = f'<a href="{link}">{timestamp}</a>'
 
-            if include_stat_info:
-                table_row =f"|{player_tooltip} |{profession} |{info} |{fight_link} |{value:,.2f} |\n"
-            else:
-                table_row =f"|{player_tooltip} |{profession} |{fight_link} | {value:,.2f}|\n"
-            table += table_row
+			if include_stat_info:
+				table_row =f"|{player_tooltip} |{profession} |{info} |{fight_link} |{value:,.2f} |\n"
+			else:
+				table_row =f"|{player_tooltip} |{profession} |{fight_link} | {value:,.2f}|\n"
+			table += table_row
 
-        tid_title = f"{tid_date_time}-{category}-Leaderboard"
-        tid_caption = f"📈 {category}"
-        tid_tags = tid_date_time
+		tid_title = f"{tid_date_time}-{category}-Leaderboard"
+		tid_caption = f"📈 {category}"
+		tid_tags = tid_date_time
 
-        append_tid_for_output(
+		append_tid_for_output(
 			create_new_tid_from_template(tid_title, tid_caption, table, tid_tags),
 			tid_list
 		)
 
-    build_high_scores_leaderboard_menu_tid(tid_date_time, categories, tid_list)
-    conn.close()
+	build_high_scores_leaderboard_menu_tid(tid_date_time, categories, tid_list)
+	conn.close()
 
 
 def build_high_scores_leaderboard_menu_tid(datetime: str, categories: list, tid_list: list) -> None:
