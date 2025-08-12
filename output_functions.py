@@ -1897,8 +1897,9 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 	rows.append('<div class="flex-row">\n\n')
 
 	# Iterate over each category to build the table
-	for category in caption_dict:
-		table_title = caption_dict[category]
+	for category, table_title in caption_dict.items():
+		if category not in high_scores:
+			continue
 		header = '    <div class="flex-col">\n\n'
 		header += "|thead-dark table-caption-top table-hover|k\n"
 		
@@ -1911,8 +1912,6 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 		rows.append(header)
 
 		# Sort high scores for the current category
-		if category not in high_scores:
-			continue
 		sorted_high_scores = sorted(high_scores[category].items(), key=lambda x: x[1], reverse=True)
 		
 		# Build rows for each player
