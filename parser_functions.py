@@ -127,7 +127,7 @@ def get_fight_data(player, fight_num):
 		current_damage_taken = player["damageTaken1S"][0][index] - player["damageTaken1S"][0][last_index]
 		fight_data[fight_num]["damageTaken1S"][index] = fight_data[fight_num]["damageTaken1S"].get(index, 0) + current_damage_taken
 		last_index = index
-
+	"""
 	for player_id in fight_data[fight_num]["players"]:
 		for sec_index in fight_data[fight_num]["players"][player_id]["damage1S"]:
 			if fight_data[fight_num]["players"][player_id]["damage1S"][sec_index] > 0:
@@ -136,6 +136,23 @@ def get_fight_data(player, fight_num):
 					"{{"+player['profession']+"}}"+player['name']+"-"+account+"-"+str(fight_num)+"-burst1S",
 					round(fight_data[fight_num]["players"][player_id]["damage1S"][sec_index], 2)	
 				)
+	"""
+	players_fight_data = fight_data[fight_num]["players"]
+
+
+def check_burst1S_high_score(fight_data, player, fight_num):
+	for player_id in fight_data[fight_num]["players"]:
+		account, profession, name = player_id.split("-")
+		max_burst1S_key = max(fight_data[fight_num]["players"][player_id]["damage1S"], key=fight_data[fight_num]["players"][player_id]["damage1S"].get)
+		max_burst1S_value = fight_data[fight_num]["players"][player_id]["damage1S"][max_burst1S_key]
+
+		update_high_score(
+			"burst_damage1S",
+			"{{"+profession+"}}"+name+"-"+account+"-"+str(fight_num)+"-burst1S",
+			round(max_burst1S_value, 2)	
+		)
+			
+
 
 def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 	"""
@@ -2863,6 +2880,8 @@ def parse_file(file_path, fight_num, guild_data, fight_data_charts):
 		top_stats['player'][name_prof]['last_party'] = group
 		if fight_data_charts:
 			get_fight_data(player, fight_num)
+
+			check_burst1S_high_score(fight_data, player, fight_num)
 
 		get_firebrand_pages(player, name_prof, name, account,fight_duration_ms)
 
