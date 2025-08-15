@@ -118,13 +118,7 @@ def get_fight_data(player, fight_num):
 					cur_damage = target[0][sec_index] - prior_damage
 					fight_data[fight_num]["damage1S"][sec_index] = fight_data[fight_num]["damage1S"].get(sec_index, 0) + cur_damage
 					fight_data[fight_num]["players"][player_id]["damage1S"][sec_index] = fight_data[fight_num]["players"][player_id]["damage1S"].get(sec_index, 0)+cur_damage
-					if cur_damage > 0:
-						update_high_score(
-							"burst_damage1S",
-							"{{"+player['profession']+"}}"+player['name']+"-"+account+"-"+str(fight_num)+"-burst1S",
-							round(cur_damage, 2)
-							)
-			
+
 					prior_damage = target[0][sec_index]
 					
 	last_index = 0
@@ -133,6 +127,15 @@ def get_fight_data(player, fight_num):
 		current_damage_taken = player["damageTaken1S"][0][index] - player["damageTaken1S"][0][last_index]
 		fight_data[fight_num]["damageTaken1S"][index] = fight_data[fight_num]["damageTaken1S"].get(index, 0) + current_damage_taken
 		last_index = index
+
+	for player_id in fight_data[fight_num]["players"]:
+		for sec_index in fight_data[fight_num]["players"][player_id]["damage1S"]:
+			if fight_data[fight_num]["players"][player_id]["damage1S"][sec_index] > 0:
+				update_high_score(
+					"burst_damage1S",
+					"{{"+player['profession']+"}}"+player['name']+"-"+account+"-"+str(fight_num)+"-burst1S",
+					round(fight_data[fight_num]["players"][player_id]["damage1S"][sec_index], 2)	
+				)
 
 def determine_log_type_and_extract_fight_name(fight_name: str) -> tuple:
 	"""
