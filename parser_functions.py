@@ -127,17 +127,6 @@ def get_fight_data(player, fight_num):
 		current_damage_taken = player["damageTaken1S"][0][index] - player["damageTaken1S"][0][last_index]
 		fight_data[fight_num]["damageTaken1S"][index] = fight_data[fight_num]["damageTaken1S"].get(index, 0) + current_damage_taken
 		last_index = index
-	"""
-	for player_id in fight_data[fight_num]["players"]:
-		for sec_index in fight_data[fight_num]["players"][player_id]["damage1S"]:
-			if fight_data[fight_num]["players"][player_id]["damage1S"][sec_index] > 0:
-				update_high_score(
-					"burst_damage1S",
-					"{{"+player['profession']+"}}"+player['name']+"-"+account+"-"+str(fight_num)+"-burst1S",
-					round(fight_data[fight_num]["players"][player_id]["damage1S"][sec_index], 2)	
-				)
-	"""
-	players_fight_data = fight_data[fight_num]["players"]
 
 
 def check_burst1S_high_score(fight_data, player, fight_num):
