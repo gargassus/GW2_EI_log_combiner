@@ -19,7 +19,7 @@ Currently works with WVW and Detailed WVW logs. Partially working with PVElogs, 
      - Ensure you have `Output as JSON` checked on the Raw output tab
      - There is a provided example EI settings config file you can load via the `load settings` button in the `/EliteInsightConfig` folder
  - Decompress the [latest release](https://github.com/Drevarr/GW2_EI_log_combiner/releases) file to your preferred location
- - Edit the `top_stats_config.ini` file to set the `input_directory` so it points to the location of your saved JSON logs
+ - Edit the `top_stats_config.ini` file to set the `input_directory` so it points to the location of your saved JSON logs. Optional fields `db_output_filename` and `db_path` control the name and location of the SQLite database.
  - Double click the `TopStats.exe` to run
  - Open the file `/Example_Output/Top_Stats_Index.html` in your browser of choice.
  - Drag and Drop the file `Drag_and_Drop_Log_Summary_for_2024yourdatatime.json` onto the opened `Top_Stats_Index.html` in your browser and click `import`

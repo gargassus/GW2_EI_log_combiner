@@ -18,6 +18,7 @@
 import argparse
 import configparser
 import sys
+import os
 import os.path
 from os import listdir
 import datetime
@@ -112,6 +113,11 @@ if __name__ == '__main__':
 	db_update = config_ini.getboolean('TopStatsCfg', 'db_update', fallback=False)
 	write_all_data_to_json = config_ini.getboolean('TopStatsCfg', 'write_all_data_to_json', fallback=False)
 	fight_data_charts = config_ini.getboolean('TopStatsCfg', 'fight_data_charts', fallback=False)
+	db_output_filename = config_ini.get('TopStatsCfg', 'db_output_filename', fallback='Top_Stats.db')
+	db_path = config_ini.get('TopStatsCfg', 'db_path', fallback='.')
+	if not os.path.isdir(db_path):
+		os.makedirs(db_path, exist_ok=True)
+	db_output_full_path = os.path.join(db_path, db_output_filename)
 
 	if args.output_filename is None:
 		args.output_filename = f"{input_directory}/Drag_and_Drop_Log_Summary_for_{tid_date_time}.json"
@@ -356,16 +362,16 @@ if __name__ == '__main__':
 		output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, personal_buff_data, fb_pages, mechanics, minions, mesmer_clone_usage, death_on_tag, DPSStats, commander_summary_data, enemy_avg_damage_per_skill, player_damage_mitigation, player_minion_damage_mitigation, stacking_uptime_Table, IOL_revive, fight_data, args.json_output_filename)
 
 	if db_update:
-		write_data_to_db(top_stats, top_stats['overall']['last_fight'])
+		write_data_to_db(top_stats, top_stats['overall']['last_fight'], db_output_full_path)
 
-		update_glicko_ratings()
+		update_glicko_ratings(db_output_full_path)
 
 		leaderboard_stats = config_output.leaderboard_stats
-		build_leaderboard_tids(tid_date_time, leaderboard_stats , tid_list)
+		build_leaderboard_tids(tid_date_time, leaderboard_stats , tid_list, db_output_full_path)
 		build_leaderboard_menu_tid(tid_date_time, leaderboard_stats, tid_list)
 
-		write_high_scores_to_db(high_scores, top_stats['fight'], skill_data, "Top_Stats.db")
-		build_high_scores_leaderboard_tids(tid_date_time, "Top_Stats.db")
+		write_high_scores_to_db(high_scores, top_stats['fight'], skill_data, db_output_full_path)
+		build_high_scores_leaderboard_tids(tid_date_time, db_output_full_path)
 
 	write_tid_list_to_json(tid_list, args.output_filename)
 
