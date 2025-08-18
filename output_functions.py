@@ -3997,7 +3997,7 @@ def build_pull_stats_tid(tid_date_time: str, top_stats: dict, skill_data: dict, 
 	)
 
 #Add Glicko Leaderboard Support
-def update_glicko_ratings():
+def update_glicko_ratings(db_path: str = "Top_Stats.db"):
 
 	def create_table(cursor):
 		cursor.execute(
@@ -4097,8 +4097,8 @@ def update_glicko_ratings():
 		player_i.rating = min(max(player_i.getRating(), 100), 3000)
 
 
-	smaller_is_better_stats = {"damage_taken", "downed", "deaths"} 
-	conn = sqlite3.connect("Top_Stats.db")
+	smaller_is_better_stats = {"damage_taken", "downed", "deaths"}
+	conn = sqlite3.connect(db_path)
 	cursor = conn.cursor()
 
 	create_table(cursor)
@@ -4191,8 +4191,8 @@ def update_glicko_ratings():
 	print("Glicko ratings (with normalization and trends) updated.")
 
 
-def generate_leaderboard(stat: str, top_n: int = 25) -> str:
-	conn = sqlite3.connect('Top_Stats.db')
+def generate_leaderboard(stat: str, db_path: str, top_n: int = 25) -> str:
+	conn = sqlite3.connect(db_path)
 	cursor = conn.cursor()
 
 	cursor.execute('''
@@ -4496,9 +4496,9 @@ def build_high_scores_leaderboard_menu_tid(datetime: str, categories: list, tid_
 	)
 	
 
-def build_leaderboard_tids(tid_date_time: str, leaderboard_stats: dict, tid_list: list) -> None:
+def build_leaderboard_tids(tid_date_time: str, leaderboard_stats: dict, tid_list: list, db_path: str) -> None:
 	for stat in leaderboard_stats:
-		table = generate_leaderboard(stat)
+		table = generate_leaderboard(stat, db_path)
 		tid_title = f"{tid_date_time}-{stat}-Leaderboard"
 		tid_caption = f"🏆 {leaderboard_stats[stat]}"
 		tid_tags = tid_date_time
@@ -4531,7 +4531,7 @@ def build_leaderboard_menu_tid(datetime: str, leaderboard_stats: dict, tid_list:
 		tid_list
 	)
 
-def write_data_to_db(top_stats: dict, last_fight: str) -> None:
+def write_data_to_db(top_stats: dict, last_fight: str, db_path: str = "Top_Stats.db") -> None:
 		
 	"""
 	Write the top_stats dictionary to the database.
@@ -4546,7 +4546,7 @@ def write_data_to_db(top_stats: dict, last_fight: str) -> None:
 
 	print("Writing raid stats to database")
 	"""Write the top_stats dictionary to the database."""
-	conn = sqlite3.connect('Top_Stats.db')
+	conn = sqlite3.connect(db_path)
 	cursor = conn.cursor()
 
 	cursor.execute('''CREATE TABLE IF NOT EXISTS player_stats (
