@@ -4097,8 +4097,8 @@ def update_glicko_ratings(db_path: str = "Top_Stats.db"):
 		player_i.rating = min(max(player_i.getRating(), 100), 3000)
 
 
-		smaller_is_better_stats = {"damage_taken", "downed", "deaths"}
-		conn = sqlite3.connect(db_path)
+	smaller_is_better_stats = {"damage_taken", "downed", "deaths"}
+	conn = sqlite3.connect(db_path)
 	cursor = conn.cursor()
 
 	create_table(cursor)
