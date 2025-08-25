@@ -514,12 +514,13 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 	if player['combatReplayData']['dead'] and player['combatReplayData']['down'] and commander_tag_positions:
 		player_deaths = dict(player['combatReplayData']['dead'])
 		player_downs = dict(player['combatReplayData']['down'])
+		player_offset = math.floor(player['combatReplayData']['start']/polling_rate)
 
 		for death_key, death_value in player_deaths.items():
 			if death_key < 0:  # Handle death on the field before main squad combat log starts
 				continue
 
-			position_mark = max(1, math.floor(death_key / polling_rate))
+			position_mark = max(0, math.floor(death_key / polling_rate)) - player_offset
 			player_positions = player['combatReplayData']['positions']
 			
 			for down_key, down_value in player_downs.items():
