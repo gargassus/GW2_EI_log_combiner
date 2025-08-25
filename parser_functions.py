@@ -530,8 +530,8 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 						x1, y1 = player_positions[position_mark]
 						x2, y2 = commander_tag_positions[position_mark]
 					else:
-						x1, y1 = player_positions[-1]
-						x2, y2 = commander_tag_positions[-1]
+						x1, y1 = player_positions[(position_mark - 1)]
+						x2, y2 = commander_tag_positions[(position_mark - 1)]
 					death_distance = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 					death_range = round(death_distance / inch_to_pixel)
 					death_on_tag[name_prof]["Total"] += 1
