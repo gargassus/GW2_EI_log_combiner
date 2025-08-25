@@ -523,12 +523,15 @@ def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead
 			player_positions = player['combatReplayData']['positions']
 			
 			for down_key, down_value in player_downs.items():
+				print(f"Player: {name_prof}, death_key: {death_key}, death_value: {death_value}, down_key: {down_key}, down_value: {down_value}, position_mark: {position_mark}")
 				if death_key == down_value:
 					# process data for downKey
-					x1, y1 = player_positions[position_mark]
-					#y1 = player_positions[position_mark][1]
-					x2, y2 = commander_tag_positions[position_mark]
-					#y2 = commander_tag_positions[position_mark][1]
+					if position_mark < len(player_positions):
+						x1, y1 = player_positions[position_mark]
+						x2, y2 = commander_tag_positions[position_mark]
+					else:
+						x1, y1 = player_positions[-1]
+						x2, y2 = commander_tag_positions[-1]
 					death_distance = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 					death_range = round(death_distance / inch_to_pixel)
 					death_on_tag[name_prof]["Total"] += 1

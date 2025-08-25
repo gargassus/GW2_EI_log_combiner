@@ -2996,6 +2996,24 @@ def build_DPS_bubble_chart(top_stats: dict, tid_date_time: str, tid_list: list, 
 		tid_list
 	)
 
+def build_boon_generation_bar_chart(top_stats: dict, boons: dict, tid_date_time: str, tid_list: list) -> None:
+	player_boon_generation = {}
+
+	for player in top_stats['player']:
+		name = player['name']
+		profession = player['profession']
+		prof_name = "{{"+profession+"}} - "+name
+		player_active_time = player['active_time']
+		if prof_name not in player_boon_generation:
+			player_boon_generation[prof_name] = []
+		for boon in boons:
+			if boon in ['b5974', 'b13017', 'b10269']:
+				continue
+			ms_generated = player['squadBuffs'].get(boon, 0)
+			gen_per_sec = ms_generated / player_active_time	
+			player_boon_generation[prof_name].append(gen_per_sec)
+
+			
 def build_mesmer_clone_usage(mesmer_clone_usage: dict, tid_date_time: str, tid_list: list) -> None: 
 	"""
 	Build and append a table of Mesmer clone usage for all players in the log.
