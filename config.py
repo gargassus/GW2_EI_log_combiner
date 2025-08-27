@@ -152,6 +152,3 @@ pull_skills = [
     "s70491",   #"Relic of the Wizard's Tower"
     "s43532",   #Magebane Tether
     ]
-
-#How many skills to display on skill usage
-skill_casts_by_role_limit = 35

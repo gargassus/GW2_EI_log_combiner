@@ -115,6 +115,8 @@ if __name__ == '__main__':
 	fight_data_charts = config_ini.getboolean('TopStatsCfg', 'fight_data_charts', fallback=False)
 	db_output_filename = config_ini.get('TopStatsCfg', 'db_output_filename', fallback='Top_Stats.db')
 	db_path = config_ini.get('TopStatsCfg', 'db_path', fallback='.')
+	skill_casts_by_role_limit = config_ini.getint('TopStatsCfg', 'skill_casts_by_role_limit', fallback=40)
+
 	if not os.path.isdir(db_path):
 		os.makedirs(db_path, exist_ok=True)
 	db_output_full_path = os.path.join(db_path, db_output_filename)
@@ -292,7 +294,7 @@ if __name__ == '__main__':
 	build_personal_damage_modifier_summary(top_stats, personal_damage_mod_data, damage_mod_data, "Damage Modifiers", tid_date_time)
 
 	#get skill casts by profession and role and output table
-	build_skill_cast_summary(top_stats["skill_casts_by_role"], skill_data, "Skill Usage", tid_date_time)
+	build_skill_cast_summary(top_stats["skill_casts_by_role"], skill_data, "Skill Usage", skill_casts_by_role_limit, tid_date_time)
 
 	build_skill_usage_stats_tid(top_stats["skill_casts_by_role"], "Skill Usage", tid_date_time)
 

@@ -21,7 +21,7 @@ from collections import defaultdict
 
 #list of tid files to output
 tid_list = []
-skill_casts_by_role_limit = config.skill_casts_by_role_limit
+
 
 def create_new_tid_from_template(
 	title: str,
@@ -1285,7 +1285,7 @@ def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict,
 		tid_list
 	)
 
-def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, caption: str, tid_date_time: str) -> None:
+def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, caption: str, skill_casts_by_role_limit: int, tid_date_time: str) -> None:
 	"""
 	Print a table of skill cast stats for all players in the log running the extension.
 
