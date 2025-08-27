@@ -21,6 +21,7 @@ from collections import defaultdict
 
 #list of tid files to output
 tid_list = []
+skill_casts_by_role_limit = config.skill_casts_by_role_limit
 
 def create_new_tid_from_template(
 	title: str,
@@ -1313,7 +1314,7 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 		# Add the skill names to the header
 		i = 0
 		for skill, count in sorted_cast_skills:
-			if i < 35:
+			if i < skill_casts_by_role_limit:
 				skill_icon = skill_data[skill]['icon']
 				skill_name = skill_data[skill]['name']
 				skill_auto = skill_data[skill]['auto']
@@ -1343,7 +1344,7 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 			# Add the skill casts per minute to the row
 			i = 0
 			for skill, count in sorted_cast_skills:
-				if i < 35:
+				if i < skill_casts_by_role_limit:
 					if skill in player_data['Skills']:
 						row += f" {(player_data['Skills'][skill] / time_mins):.2f}|"
 					else:
