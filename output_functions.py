@@ -690,6 +690,8 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 
 		# Build the table body by iterating over each player
 		for player in top_stats["player"].values():
+			if player["active_time"] == 0:
+				continue
 			account = player["account"]
 			name = player["name"]
 			tt_name = f'<span data-tooltip="{account}">{name}</span>'
@@ -889,6 +891,8 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 
 	# Build the table body
 	for player in top_stats["player"].values():
+		if player["active_time"] == 0:
+			continue	
 		account = player["account"]
 		name = player["name"]
 		tt_name = f'<span data-tooltip="{account}">{name}</span>'
@@ -1329,7 +1333,7 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 
 		# Iterate over each player and add their data to the table
 		for player, player_data in cast_data.items():
-			if player == 'total':
+			if player == 'total' or player_data['ActiveTime'] == 0:
 				continue
 
 			name, profession, account = player.split("|")
@@ -2081,6 +2085,8 @@ def build_personal_buff_summary(top_stats: dict, buff_data: dict, personal_buff_
 
 		# Build the table body	
 		for player, player_data in top_stats['player'].items():
+			if player_data['active_time'] == 0:
+				continue
 			if player_data['profession'] == profession:
 				account = player_data['account']
 				name = player_data['name']
