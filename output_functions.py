@@ -15,7 +15,9 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import config
 import json
+#import os
 import sqlite3
+import xlsxwriter
 from glicko2 import Player as GlickoPlayer
 from collections import defaultdict
 
@@ -4587,6 +4589,93 @@ def build_leaderboard_menu_tid(datetime: str, leaderboard_stats: dict, tid_list:
 		create_new_tid_from_template(title, caption, text, tags, creator=creator),
 		tid_list
 	)
+
+def write_data_to_excel(top_stats: dict, last_fight: str, excel_path: str = "Top_Stats.xlsx") -> None:
+    """
+    Write the top_stats dictionary to an Excel file using XlsxWriter.
+
+    Parameters
+    ----------
+    top_stats : dict
+        The top_stats dictionary containing all the data to be written to the Excel file.
+    last_fight : str
+        The date and time of the last fight in the format "Year-Month-Day-Hour-Minute-Second".
+    excel_path : str
+        Path to the Excel file to write to (default is 'Top_Stats.xlsx').
+    """
+    print("Writing raid stats to Excel")
+
+    # Define headers
+    headers = [
+        'Date Name Prof', 'Date', 'Year', 'Month', 'Day', 'Num Fights', 'Duration', 'Account', 'Guild Status', 'Name', 'Profession',
+        'Damage', 'Down Contribution', 'Downs', 'Kills', 'Damage Taken', 'Damage Barrier', 'Downed', 'Deaths', 'Cleanses',
+        'Boon Strips', 'Resurrects', 'Healing', 'Barrier', 'Downed Healing', 'Stab gen', 'Might gen', 'Fury gen',
+        'Quick gen', 'Alac gen', 'Prot gen', 'Regen gen', 'Vigor gen', 'Aegis gen', 'Swift gen', 'Resil gen', 'Resol gen'
+    ]
+
+    # Always create a new workbook (XlsxWriter cannot append)
+    workbook = xlsxwriter.Workbook(excel_path)
+    worksheet = workbook.add_worksheet("Player Stats")
+
+    # Create bold format for headers
+    bold_format = workbook.add_format({'bold': True})
+
+    # Write headers
+    for col, header in enumerate(headers):
+        worksheet.write(0, col, header, bold_format)
+
+    year, month, day, *_ = last_fight.split("-")
+
+    # Start writing data from row 1 (row 0 is headers)
+    row_idx = 1
+    for player_name_prof, player_stats in top_stats['player'].items():
+        row = [
+            f"{last_fight}_{player_stats['name']}_{player_stats['profession']}",
+            last_fight,
+            year,
+            month,
+            day,
+            player_stats.get('num_fights', 0),
+            player_stats.get('active_time', 0) / 1000,
+            player_stats.get('account', ''),
+            player_stats.get('guild_status', ''),
+            player_stats.get('name', ''),
+            player_stats.get('profession', ''),
+            player_stats['dpsTargets'].get('damage', 0),
+            player_stats['statsTargets'].get('downContribution', 0),
+            player_stats['statsTargets'].get('downed', 0),
+            player_stats['statsTargets'].get('killed', 0),
+            player_stats['defenses'].get('damageTaken', 0),
+            player_stats['defenses'].get('damageBarrier', 0),
+            player_stats['defenses'].get('downCount', 0),
+            player_stats['defenses'].get('deadCount', 0),
+            player_stats['support'].get('condiCleanse', 0),
+            player_stats['support'].get('boonStrips', 0),
+            player_stats['support'].get('resurrects', 0),
+            player_stats['extHealingStats'].get('outgoing_healing', 0),
+            player_stats['extBarrierStats'].get('outgoing_barrier', 0),
+            player_stats['extHealingStats'].get('downed_healing', 0),
+            round(player_stats['squadBuffs'].get('b1122', {}).get('generation', 0) / 1000, 2),
+            round(player_stats['squadBuffs'].get('b740', {}).get('generation', 0) / 1000, 2),
+            round(player_stats['squadBuffs'].get('b725', {}).get('generation', 0) / 1000, 2),
+            round(player_stats['squadBuffs'].get('b1187', {}).get('generation', 0) / 1000, 2),
+            round(player_stats['squadBuffs'].get('b30328', {}).get('generation', 0) / 1000, 2),
+            round(player_stats['squadBuffs'].get('b717', {}).get('generation', 0) / 1000, 2),
+            round(player_stats['squadBuffs'].get('b718', {}).get('generation', 0) / 1000, 2),
+            round(player_stats['squadBuffs'].get('b726', {}).get('generation', 0) / 1000, 2),
+            round(player_stats['squadBuffs'].get('b743', {}).get('generation', 0) / 1000, 2),
+            round(player_stats['squadBuffs'].get('b719', {}).get('generation', 0) / 1000, 2),
+            round(player_stats['squadBuffs'].get('b26980', {}).get('generation', 0) / 1000, 2),
+            round(player_stats['squadBuffs'].get('b873', {}).get('generation', 0) / 1000, 2)
+        ]
+
+        worksheet.write_row(row_idx, 0, row)
+        row_idx += 1
+
+    # Save file
+    workbook.close()
+    print(f"Excel file created: {excel_path}")
+
 
 def write_data_to_db(top_stats: dict, last_fight: str, db_path: str = "Top_Stats.db") -> None:
 		

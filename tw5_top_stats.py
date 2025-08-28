@@ -110,16 +110,24 @@ if __name__ == '__main__':
 	guild_name = config_ini.get('TopStatsCfg', 'guild_name', fallback=None)
 	guild_id = config_ini.get('TopStatsCfg', 'guild_id', fallback=None)
 	api_key = config_ini.get('TopStatsCfg', 'api_key', fallback=None)
-	db_update = config_ini.getboolean('TopStatsCfg', 'db_update', fallback=False)
+	
 	write_all_data_to_json = config_ini.getboolean('TopStatsCfg', 'write_all_data_to_json', fallback=False)
 	fight_data_charts = config_ini.getboolean('TopStatsCfg', 'fight_data_charts', fallback=False)
+
+	db_update = config_ini.getboolean('TopStatsCfg', 'db_update', fallback=False)
 	db_output_filename = config_ini.get('TopStatsCfg', 'db_output_filename', fallback='Top_Stats.db')
 	db_path = config_ini.get('TopStatsCfg', 'db_path', fallback='.')
+
+	write_excel = config_ini.getboolean('TopStatsCfg', 'write_excel', fallback=False)
+	excel_output_filename = config_ini.get('TopStatsCfg', 'excel_output_filename', fallback='Top_Stats.xlsx')
+	excel_path = config_ini.get('TopStatsCfg', 'excel_path', fallback='.')
+
 	skill_casts_by_role_limit = config_ini.getint('TopStatsCfg', 'skill_casts_by_role_limit', fallback=40)
 
 	if not os.path.isdir(db_path):
 		os.makedirs(db_path, exist_ok=True)
 	db_output_full_path = os.path.join(db_path, db_output_filename)
+	excel_output_full_path = os.path.join(excel_path, excel_output_filename)
 
 	if args.output_filename is None:
 		args.output_filename = f"{input_directory}/Drag_and_Drop_Log_Summary_for_{tid_date_time}.json"
@@ -363,6 +371,9 @@ if __name__ == '__main__':
 	if write_all_data_to_json:
 		output_top_stats_json(top_stats, buff_data, skill_data, damage_mod_data, high_scores, personal_damage_mod_data, personal_buff_data, fb_pages, mechanics, minions, mesmer_clone_usage, death_on_tag, DPSStats, commander_summary_data, enemy_avg_damage_per_skill, player_damage_mitigation, player_minion_damage_mitigation, stacking_uptime_Table, IOL_revive, fight_data, args.json_output_filename)
 
+	if write_excel:
+		write_data_to_excel(top_stats, top_stats['overall']['last_fight'], excel_output_full_path)
+		
 	if db_update:
 		write_data_to_db(top_stats, top_stats['overall']['last_fight'], db_output_full_path)
 
