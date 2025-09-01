@@ -2854,7 +2854,6 @@ def parse_file(file_path, fight_num, guild_data, fight_data_charts):
 		# skip players not in squad
 		if player['notInSquad']:
 			continue
-
 		name = player['name']
 		profession = player['profession']
 		account = get_player_account(player)
@@ -2870,7 +2869,7 @@ def parse_file(file_path, fight_num, guild_data, fight_data_charts):
 		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 		if not combat_time:
 			continue
-
+		
 		if 'teamID' in player:
 			team = player['teamID']
 		else:

@@ -177,6 +177,8 @@ def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dic
 
 	for player in top_stats["player"].values():
 		fight_time = player["active_time"]
+		if fight_time == 0:
+			continue
 		account = player["account"]
 		name = player["name"]
 		tt_name = f'<span data-tooltip="{account}">{name}</span>'
