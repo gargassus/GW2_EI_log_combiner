@@ -1169,14 +1169,8 @@ def get_buffs_data(buff_map: dict) -> None:
 		buff_id = buff
 		name = buff_map[buff]['name']
 		stacking = buff_map[buff]['stacking']
-		if 'icon' in buff_map[buff]:
-			icon = buff_map[buff]['icon']
-		else:
-			icon = "unknown.png"
-		if 'classification' in buff_map[buff]:
-			classification = buff_map[buff]['classification']
-		else:
-			classification = "unknown"
+		icon = buff_map[buff].get('icon', 'unknown.png')
+		classification = buff_map[buff].get('classification', 'unknown')
 		if buff_id not in buff_data:
 			buff_data[buff_id] = {
 				'name': name,

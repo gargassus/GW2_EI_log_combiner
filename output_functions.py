@@ -164,8 +164,8 @@ def extract_gear_buffs_and_skills(buff_data: dict, skill_data: dict) -> tuple:
 
 def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dict, tid_date_time: str) -> str:
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += "|!Name | !Prof | !{{FightTime}} |"
 	for buff_id in gear_buff_ids:
@@ -207,8 +207,8 @@ def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dic
 
 def build_gear_skill_summary(top_stats: dict, gear_skill_ids: list, skill_data: dict, tid_date_time: str) -> str:
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += "|!Name | !Prof | !{{FightTime}} |"
 	
@@ -320,8 +320,8 @@ def build_tag_summary(top_stats):
 def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
 	"""Output a summary of the tag data in a human-readable format."""
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	rows.append("|thead-dark table-caption-top table-hover sortable|k")
 	rows.append("| Summary by Command Tag |c")
 	rows.append(
@@ -400,8 +400,8 @@ def build_fight_summary(top_stats: dict, fight_data_charts, caption: str, tid_da
 		None
 	"""
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover|k\n"
 	header += f"| {caption} |c\n"
 	if fight_data_charts:
@@ -502,8 +502,8 @@ def build_damage_summary_table(top_stats: dict, caption: str, tid_date_time: str
 		None
 	"""
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	# Build the table header
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += f"| {caption} |c\n"
@@ -563,8 +563,8 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 	time_stats = ["resurrectTime", "condiCleanseTime", "condiCleanseTimeSelf", "boonStripsTime", "removedStunDuration", "boonStripDownContributionTime"]
 	defense_hits = {"damageTakenCount": 'damageTaken', "conditionDamageTakenCount": 'conditionDamageTaken', "powerDamageTakenCount": 'powerDamageTaken', "downedDamageTakenCount": 'downedDamageTaken', "damageBarrierCount": 'damageBarrier'}
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	for toggle in ["Total", "Stat/1s", "Stat/60s"]:
 		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="category_radio" type="match" text="{toggle}" animate="yes">\n')
 		# Build the table header
@@ -660,8 +660,8 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 	
 	# Initialize a list to hold the rows of the table
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	
 	# Iterate for "Total" and "Average" views
 	for toggle in ["Total", "Average", "Uptime"]:
@@ -816,8 +816,8 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 	- Average uptime for each boon
 	"""
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	# Build the player table header
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += "|!Party |!Name | !Prof | !{{FightTime}} |"
@@ -957,8 +957,8 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 		tid_date_time (str): A string to use as the date and time for the table id.
 	"""
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	# Build the player table header
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += "|!Party |!Name | !Prof | !{{FightTime}} |"
@@ -1085,8 +1085,8 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
 	
 	# Initialize HTML rows for the table
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	
 	# Build the table header
 	for toggle in ["Total", "Squad", "Group", "Self", "OffSquad"]:
@@ -1158,8 +1158,8 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
 		prof_mod_list = personal_damage_mod_data[profession]
 
 		rows = []
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 		# Build the table header
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		# Add the caption to the header
@@ -1247,8 +1247,8 @@ def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict,
 			shared_mod_list.append(modifier)
 
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += f"| {caption} |c\n"
 	header += "|!Name | !Prof |!Account | !{{FightTime}} |"
@@ -1312,8 +1312,8 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 		cast_skills = cast_data['total']
 		sorted_cast_skills = sorted(cast_skills.items(), key=lambda x: x[1], reverse=True)
 		rows = []
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += f"| {caption} |c\n"
 		header += "|!Name | !Prof |!Account | !{{FightTime}} |!"
@@ -1467,8 +1467,8 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 
 	rows = []
 	rows.append('Tooltip for `Total hits` may be overstated if the skill does more than just downed healing\n\n')
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += "|Party |!@@display:block;width:150px;Name@@| !Prof | !{{FightTime}} |"
 	for skill in sorted_res_skills:
@@ -1794,8 +1794,8 @@ def build_fb_pages_tid(fb_pages: dict, caption: str, tid_date_time: str):
 		"42986": 1, "41968": 1, "41836": 2, "40988": 2, "44455": 2,
 	}
 	rows = []	
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	header = "|table-caption-top|k\n"
 	header += "|Firebrand page utilization, pages/minute|c\n"
 	header += "|thead-dark table-hover sortable|k"
@@ -2005,8 +2005,8 @@ def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_t
 			else:
 				mechanics_list.append(mechanic)
 
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 		header = "|thead-dark table-caption-top-left table-hover sortable freeze-col|k\n"
 		header += "|!Player |"
 		for mechanic in mechanics_list:
@@ -2074,8 +2074,8 @@ def build_personal_buff_summary(top_stats: dict, buff_data: dict, personal_buff_
 		prof_buff_list = personal_buff_data[profession]
 
 		rows = []
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 		# Build the table header
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += "|!Party |!Name | !Prof | !{{FightTime}} |"
@@ -2156,8 +2156,8 @@ def build_minions_tid(minions: dict, players: dict, skill_data: dict, caption: s
 
 	for profession in minions:
 		rows = []
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 		toggle_options = ["Total", "Stat/1s", "Stat/60s"]
 
 		for toggle in toggle_options:
@@ -2304,8 +2304,8 @@ def build_top_damage_by_skill(total_damage_taken: dict, target_damage_dist: dict
 
 	# Prepare HTML rows for the table
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	rows.append("|thead-dark table-borderless w-75 table-center|k")
 	rows.append("|!Top 25 Skills by Damage Output|")
 	rows.append("\n\n")
@@ -2393,8 +2393,8 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 		rows = []
 
 		rows.append("---\n\n")
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 		rows.append("|thead-dark table-borderless w-75 table-center|k")
 		rows.append("|!Healer Outgoing Stats - excludes downed healing|")
 		rows.append("\n\n")
@@ -2570,8 +2570,8 @@ def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict
 		name, profession, account = player.split("|")
 
 		# Build the table header
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')		
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')		
 		header = "|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
 		header += "|{{"+profession+"}}"+f" - {name} - {account}|c\n"
 		header += "|!Skill Name | !Damage | !Hits | !Dmg/Hit | !% of Total|h"
@@ -2711,8 +2711,8 @@ def build_on_tag_review(death_on_tag, tid_date_time):
 	tid_tags = tid_date_time
 
 	# Add the select component to the table
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
 	rows.append("| On Tag Review |c")
 	header = "|!Player |!Profession | !Avg Dist| !On-Tag<br>{{deadCount}} | !Off-Tag<br>{{deadCount}} | !After-Tag<br>{{deadCount}} | !Run-Back<br>{{deadCount}} | !Total<br>{{deadCount}} |!OffTag Ranges|h"
@@ -3126,8 +3126,8 @@ def build_attendance_table(top_stats: dict, tid_date_time: str, tid_list: list) 
 	tid_caption = "Attendance"
 	tid_tags = tid_date_time
 
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	rows.append("\n\n|thead-dark table-caption-top table-hover|k")
 	rows.append("| Attendance Review |c")
 	rows.append("|Account|Name|Profession| Num Fights| Active Time| Status |h")
@@ -3231,8 +3231,8 @@ def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff
 		conditionCleanses = cmd_data["defenses"].get("conditionCleanses",0)
 		receivedCrowdControl = cmd_data["defenses"].get("receivedCrowdControl",0)
 		damageGain = int(prot_data["damageGain"])
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: #343a40; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 		rows.append('<div class="flex-row">\n    <div class="flex-col">\n\n')
 		rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
 		if tag_prof == tag_name:
