@@ -1173,11 +1173,16 @@ def get_buffs_data(buff_map: dict) -> None:
 			icon = buff_map[buff]['icon']
 		else:
 			icon = "unknown.png"
+		if 'classification' in buff_map[buff]:
+			classification = buff_map[buff]['classification']
+		else:
+			classification = "unknown"
 		if buff_id not in buff_data:
 			buff_data[buff_id] = {
 				'name': name,
 				'stacking': stacking,
-				'icon': icon
+				'icon': icon,
+				'classification': classification
 			}
 		
 def get_skills_data(skill_map: dict) -> None:
