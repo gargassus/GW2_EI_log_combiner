@@ -1620,7 +1620,7 @@ def build_dashboard_menu_tid(datetime: str) -> None:
 	caption = "Dashboard"
 	creator = "Drevarr@github.com"
 
-	text = (f"<<tabs '[[{datetime}-Support-Bubble-Chart]] [[{datetime}-DPS-Bubble-Chart]] [[{datetime}-Utility-Bubble-Chart]]' "
+	text = (f"<<tabs '[[{datetime}-Support-Bubble-Chart]] [[{datetime}-DPS-Bubble-Chart]] [[{datetime}-Utility-Bubble-Chart]] [[{datetime}-Total-Squad-Boon-Generation]]' "
 			f"'{datetime}-Support-Bubble-Chart' '$:/temp/tab1'>>")
 
 	append_tid_for_output(
@@ -3035,23 +3035,143 @@ def build_DPS_bubble_chart(top_stats: dict, tid_date_time: str, tid_list: list, 
 	)
 
 def build_boon_generation_bar_chart(top_stats: dict, boons: dict, tid_date_time: str, tid_list: list) -> None:
-	player_boon_generation = {}
+	total_boon_generation = []
 
-	for player in top_stats['player']:
-		name = player['name']
-		profession = player['profession']
+	for player, player_data in top_stats['player'].items():
+		print(f"Processing player: {player_data['name']}, player active time: {player_data['active_time']}, active time type: {type(player_data['active_time'])}")
+		player_active_time = int(player_data['active_time'])
+		if player_active_time == 0:
+			continue
+		player_boon_generation = []
+		name = player_data['name']
+		profession = player_data['profession']
 		prof_name = "{{"+profession+"}} - "+name
-		player_active_time = player['active_time']
-		if prof_name not in player_boon_generation:
-			player_boon_generation[prof_name] = []
+		player_total = 0
+		player_boon_generation.append(prof_name)
 		for boon in boons:
 			if boon in ['b5974', 'b13017', 'b10269']:
 				continue
-			ms_generated = player['squadBuffs'].get(boon, 0)
-			gen_per_sec = ms_generated / player_active_time	
-			player_boon_generation[prof_name].append(gen_per_sec)
+			generation_ms = player_data['squadBuffs'].get(boon, {}).get('generation', 0)
+			gen_per_sec = generation_ms / player_active_time	
+			player_boon_generation.append(f"{gen_per_sec:.3g}")
+			player_total += gen_per_sec
+		player_boon_generation.append(f"{player_total:.3g}")
+		player_boon_generation.append(profession)
 
-			
+		total_boon_generation.append(player_boon_generation)
+	
+	chart_text = f"""
+<$echarts $text=```
+const dataset = [
+  {{
+    dimensions: [
+      'Player',"Might", "Fury", "Quickness", "Alacrity", "Protection", "Regeneration", "Vigor", "Aegis", "Stability", "Swiftness", "Resistance", "Resolution",'Total','Profession'
+    ],
+    source: {total_boon_generation}
+  }}
+];
+function buildSeries(datasetIndex = 1) {{
+  // List of dimensions we don't want as boons
+  const skip = ['Player', 'Total', 'Profession'];
+
+  // Grab dimensions from your dataset
+  const dimensions = dataset[0].dimensions;
+
+  // Capitalize helper
+  const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
+
+  // Build the series for each boon
+  return dimensions
+    .filter(dim => !skip.includes(dim)) // skip unwanted dimensions
+    .map(dim => ({{
+      type: 'bar',
+      stack: 'totalBoons',
+      name: capitalize(dim),
+      encode: {{ y: 'Player', x: dim }},
+      datasetIndex
+    }}));
+}}
+
+boonSeries = buildSeries(1);
+
+const boonColors = [
+  '#e41a1c', // red
+  '#377eb8', // blue
+  '#4daf4a', // green
+  '#984ea3', // purple
+  '#ff7f00', // orange
+  '#ffff33', // yellow
+  '#a65628', // brown
+  '#f781bf', // pink
+  '#999999', // gray
+  '#66c2a5', // teal
+  '#fc8d62', // salmon
+  '#8da0cb'  // lavender/blue
+];
+
+option = {{
+  title:{{
+    text: 'Total Squad Boon Generation',
+    subtext: 'Generation per Second',
+    top: 'top',
+    right: 'center'
+  }},  
+  color: boonColors,
+  legend: {{
+    type: 'scroll',
+    orient: 'vertical',
+    left: 10,
+    top: 20,
+    bottom: 20,
+    }},
+  tooltip: {{trigger: 'axis'}},
+  grid: {{left: '25%', top: '10%'}},
+  dataset: [
+    {{
+      dimensions: dataset[0].dimensions,
+      source: dataset[0].source
+    }},
+    {{
+      transform: {{
+        type: 'sort',
+        config: [
+          {{ dimension: 'Total', order: 'asc' }},
+          {{ dimension: 'Profession', order: 'desc' }}
+          
+        ]
+      }}
+    }}
+  ],
+  yAxis: {{
+    type: 'category',
+    axisLabel: {{ interval: 0, rotate: 0 }}
+  }},
+  xAxis: {{}},
+  dataZoom: [
+    {{
+      type: 'slider',
+      yAxisIndex: 0,
+      filterMode: 'none'
+    }},
+    {{
+      type: 'inside',
+      yAxisIndex: 0,
+      filterMode: 'none'
+    }}
+  ],    
+  series: boonSeries
+}};
+```$height="500px" $width="100%" $theme="dark"/>
+"""
+	tid_title = f"{tid_date_time}-Total-Squad-Boon-Generation"
+	tid_caption = "Total Squad Boon Generation"
+	tid_tags = tid_date_time
+	append_tid_for_output(
+		create_new_tid_from_template(tid_title, tid_caption, chart_text, tid_tags),
+		tid_list
+	)
+
+
 def build_mesmer_clone_usage(mesmer_clone_usage: dict, tid_date_time: str, tid_list: list) -> None: 
 	"""
 	Build and append a table of Mesmer clone usage for all players in the log.
