@@ -1620,7 +1620,7 @@ def build_dashboard_menu_tid(datetime: str) -> None:
 	caption = "Dashboard"
 	creator = "Drevarr@github.com"
 
-	text = (f"<<tabs '[[{datetime}-Support-Bubble-Chart]] [[{datetime}-DPS-Bubble-Chart]] [[{datetime}-Utility-Bubble-Chart]] [[{datetime}-Total-Squad-Boon-Generation]]' "
+	text = (f"<<tabs '[[{datetime}-Support-Bubble-Chart]] [[{datetime}-DPS-Bubble-Chart]] [[{datetime}-Utility-Bubble-Chart]] [[{datetime}-Total-Squad-Boon-Generation]] [[{datetime}-Total-Condition-Output-Generation]]' "
 			f"'{datetime}-Support-Bubble-Chart' '$:/temp/tab1'>>")
 
 	append_tid_for_output(
@@ -2860,7 +2860,7 @@ def build_utility_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_
 		for condition in boons:
 			if condition in player_data["targetBuffs"] and player_data["targetBuffs"][condition]["uptime_ms"] > 0:
 				condi_name = boons[condition]['name'].lower()
-				condi_wt = int(weights["Condition_Weights"].get(condi_name, 0))				
+				condi_wt = float(weights["Condition_Weights"].get(condi_name, 0))				
 				condi_generated = (player_data["targetBuffs"][condition]["uptime_ms"] / 1000) * condi_wt
 				cps += round(condi_generated / fight_time, 2)
 
@@ -2871,7 +2871,7 @@ def build_utility_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_
 		for boon in boons:
 			if boon in player_data["squadBuffs"] and player_data["squadBuffs"][boon]["generation"] > 0:
 				boon_name = boons[boon]['name'].lower()
-				boon_wt = int(weights["Boon_Weights"].get(boon_name, 0))
+				boon_wt = float(weights["Boon_Weights"].get(boon_name, 0))
 				generated = (player_data["squadBuffs"][boon]["generation"] / 1000) * boon_wt
 				boon_ps += round(generated / fight_time, 2)
 		player_entry.append(round(boon_ps, 2))
@@ -2947,7 +2947,7 @@ def build_support_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_
 		for boon in boons:
 			if boon in player_data["squadBuffs"] and player_data["squadBuffs"][boon]["generation"] > 0:
 				boon_name = boons[boon]['name'].lower()
-				boon_wt = int(weights["Boon_Weights"].get(boon_name, 0))
+				boon_wt = float(weights["Boon_Weights"].get(boon_name, 0))
 				generated = (player_data["squadBuffs"][boon]["generation"] / 1000) * boon_wt
 				boon_ps += round(generated / fight_time, 2)
 		player_entry.append(round(boon_ps, 2))
@@ -3053,7 +3053,7 @@ def build_boon_generation_bar_chart(top_stats: dict, boons: dict, weights: dict,
 				continue
 			generation_ms = player_data['squadBuffs'].get(boon, {}).get('generation', 0)
 			boon_weight = float(weights['Boon_Weights'].get(boons[boon].lower(), 0))
-			print(f"Boon Wt Type: {type(boon_weight)}")
+			#print(f"Boon Wt Type: {type(boon_weight)}")
 			gen_per_sec = (generation_ms / player_active_time)
 			wt_gen_per_sec = gen_per_sec * boon_weight
 			player_boon_generation.append(f"{wt_gen_per_sec:.3g}")
@@ -3168,6 +3168,148 @@ option = {{
 """
 	tid_title = f"{tid_date_time}-Total-Squad-Boon-Generation"
 	tid_caption = "Total Squad Boon Generation"
+	tid_tags = tid_date_time
+	append_tid_for_output(
+		create_new_tid_from_template(tid_title, tid_caption, chart_text, tid_tags),
+		tid_list
+	)
+
+def build_condition_generation_bar_chart(top_stats: dict, conditions: dict, weights: dict, tid_date_time: str, tid_list: list) -> None:
+	total_condition_generation = []
+
+	for player, player_data in top_stats['player'].items():
+		player_active_time = int(player_data['active_time'])
+		if player_active_time == 0:
+			continue
+		player_condition_generation = []
+		name = player_data['name']
+		profession = player_data['profession']
+		prof_name = "{{"+profession+"}} - "+name
+		player_total = 0
+		player_condition_generation.append(prof_name)
+		
+		for boon in conditions:			
+			if boon in ['b5974', 'b13017', 'b10269']:
+				continue
+			generation_ms = player_data['targetBuffs'].get(boon, {}).get('uptime_ms', 0)
+			boon_weight = float(weights['Condition_Weights'].get(conditions[boon].lower(), 0))
+			#print(f"Condition Wt Type: {type(boon_weight)}")
+			gen_per_sec = (generation_ms / player_active_time)
+			wt_gen_per_sec = gen_per_sec * boon_weight
+			player_condition_generation.append(f"{wt_gen_per_sec:.3g}")
+			player_total += (wt_gen_per_sec)
+		player_condition_generation.append(f"{player_total:.3g}")
+		player_condition_generation.append(profession)
+
+		total_condition_generation.append(player_condition_generation)
+	
+	chart_text = f"""
+<$echarts $text=```
+const dataset = [
+  {{
+    dimensions: [
+      'Player',"Bleeding", "Burning", "Confusion", "Poison", "Torment", "Blind", "Chilled", "Crippled", "Fear", "Immobile", "Slow", "Weakness", "Taunt",  "Vulnerability",'Total','Profession'
+    ],
+    source: {total_condition_generation}
+  }}
+];
+function buildSeries(datasetIndex = 1) {{
+  // List of dimensions we don't want as boons
+  const skip = ['Player', 'Total', 'Profession'];
+
+  // Grab dimensions from your dataset
+  const dimensions = dataset[0].dimensions;
+
+  // Capitalize helper
+  const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
+
+  // Build the series for each boon
+  return dimensions
+    .filter(dim => !skip.includes(dim)) // skip unwanted dimensions
+    .map(dim => ({{
+      type: 'bar',
+      stack: 'totalBoons',
+      name: capitalize(dim),
+      encode: {{ y: 'Player', x: dim }},
+      datasetIndex
+    }}));
+}}
+
+boonSeries = buildSeries(1);
+
+const boonColors = [
+    '#e69f00',  // Orange
+    '#56b4e9',  // Sky blue
+    '#009e73',  // Bluish green
+    '#f0e442',  // Yellow
+    '#0072b2',  // Blue
+    '#d55e00',  // Vermillion
+    '#cc79a7',  // Reddish purple
+    '#999999',  // Gray
+    '#6a3d9a',  // Deep purple
+    '#b15928',  // Brown
+    '#17becf',  // Cyan
+    '#bcbd22',  // Olive green
+    '#fb8072',  // Coral (warm light red-pink)
+    '#80b1d3',  // Light steel blue
+];
+
+option = {{
+  title:{{
+    text: 'Weighted Total Condition Output Generation',
+    subtext: 'Generation per Second',
+    top: 'top',
+    right: 'center'
+  }},  
+  color: boonColors,
+  legend: {{
+    type: 'scroll',
+    orient: 'vertical',
+    left: 10,
+    top: 20,
+    bottom: 20,
+    }},
+  tooltip: {{trigger: 'axis'}},
+  grid: {{left: '25%', top: '10%'}},
+  dataset: [
+    {{
+      dimensions: dataset[0].dimensions,
+      source: dataset[0].source
+    }},
+    {{
+      transform: {{
+        type: 'sort',
+        config: [
+          {{ dimension: 'Total', order: 'asc' }},
+          {{ dimension: 'Profession', order: 'desc' }}
+          
+        ]
+      }}
+    }}
+  ],
+  yAxis: {{
+    type: 'category',
+    axisLabel: {{ interval: 0, rotate: 0 }}
+  }},
+  xAxis: {{}},
+  dataZoom: [
+    {{
+      type: 'slider',
+      yAxisIndex: 0,
+      filterMode: 'none'
+    }},
+    {{
+      type: 'inside',
+      yAxisIndex: 0,
+      filterMode: 'none'
+    }}
+  ],    
+  series: boonSeries
+}};
+```$height="500px" $width="100%" $theme="dark"/>
+"""
+	tid_title = f"{tid_date_time}-Total-Condition-Output-Generation"
+	tid_caption = "Total Condition Output Generation"
 	tid_tags = tid_date_time
 	append_tid_for_output(
 		create_new_tid_from_template(tid_title, tid_caption, chart_text, tid_tags),
