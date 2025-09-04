@@ -345,7 +345,7 @@ if __name__ == '__main__':
 	build_DPS_bubble_chart(top_stats, tid_date_time, tid_list, profession_color)
 	build_utility_bubble_chart(top_stats, buff_data, weights, tid_date_time, tid_list, profession_color)
 	boons = config_output.boons
-	build_boon_generation_bar_chart(top_stats, boons, tid_date_time, tid_list)
+	build_boon_generation_bar_chart(top_stats, boons, weights, tid_date_time, tid_list)
 	
 	build_dps_stats_tids(DPSStats, tid_date_time, tid_list)
 	build_dps_stats_menu(tid_date_time)

@@ -3034,11 +3034,10 @@ def build_DPS_bubble_chart(top_stats: dict, tid_date_time: str, tid_list: list, 
 		tid_list
 	)
 
-def build_boon_generation_bar_chart(top_stats: dict, boons: dict, tid_date_time: str, tid_list: list) -> None:
+def build_boon_generation_bar_chart(top_stats: dict, boons: dict, weights: dict, tid_date_time: str, tid_list: list) -> None:
 	total_boon_generation = []
 
 	for player, player_data in top_stats['player'].items():
-		print(f"Processing player: {player_data['name']}, player active time: {player_data['active_time']}, active time type: {type(player_data['active_time'])}")
 		player_active_time = int(player_data['active_time'])
 		if player_active_time == 0:
 			continue
@@ -3048,13 +3047,17 @@ def build_boon_generation_bar_chart(top_stats: dict, boons: dict, tid_date_time:
 		prof_name = "{{"+profession+"}} - "+name
 		player_total = 0
 		player_boon_generation.append(prof_name)
-		for boon in boons:
+		
+		for boon in boons:			
 			if boon in ['b5974', 'b13017', 'b10269']:
 				continue
 			generation_ms = player_data['squadBuffs'].get(boon, {}).get('generation', 0)
-			gen_per_sec = generation_ms / player_active_time	
-			player_boon_generation.append(f"{gen_per_sec:.3g}")
-			player_total += gen_per_sec
+			boon_weight = float(weights['Boon_Weights'].get(boons[boon].lower(), 0))
+			print(f"Boon Wt Type: {type(boon_weight)}")
+			gen_per_sec = (generation_ms / player_active_time)
+			wt_gen_per_sec = gen_per_sec * boon_weight
+			player_boon_generation.append(f"{wt_gen_per_sec:.3g}")
+			player_total += (wt_gen_per_sec)
 		player_boon_generation.append(f"{player_total:.3g}")
 		player_boon_generation.append(profession)
 
@@ -3095,23 +3098,23 @@ function buildSeries(datasetIndex = 1) {{
 boonSeries = buildSeries(1);
 
 const boonColors = [
-  '#e41a1c', // red
-  '#377eb8', // blue
-  '#4daf4a', // green
-  '#984ea3', // purple
-  '#ff7f00', // orange
-  '#ffff33', // yellow
-  '#a65628', // brown
-  '#f781bf', // pink
-  '#999999', // gray
-  '#66c2a5', // teal
-  '#fc8d62', // salmon
-  '#8da0cb'  // lavender/blue
+    '#e69f00',  // Orange
+    '#56b4e9',  // Sky blue
+    '#009e73',  // Bluish green
+    '#f0e442',  // Yellow
+    '#0072b2',  // Blue
+    '#d55e00',  // Vermillion
+    '#cc79a7',  // Reddish purple
+    '#999999',  // Gray
+    '#6a3d9a',  // Deep purple
+    '#b15928',  // Brown
+    '#17becf',  // Cyan
+    '#bcbd22',  // Olive green
 ];
 
 option = {{
   title:{{
-    text: 'Total Squad Boon Generation',
+    text: 'Weighted Total Squad Boon Generation',
     subtext: 'Generation per Second',
     top: 'top',
     right: 'center'
