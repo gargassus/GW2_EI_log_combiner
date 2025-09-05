@@ -3238,20 +3238,20 @@ function buildSeries(datasetIndex = 1) {{
 boonSeries = buildSeries(1);
 
 const boonColors = [
-    '#e69f00',  // Orange
-    '#56b4e9',  // Sky blue
-    '#009e73',  // Bluish green
-    '#f0e442',  // Yellow
-    '#0072b2',  // Blue
-    '#d55e00',  // Vermillion
-    '#cc79a7',  // Reddish purple
-    '#999999',  // Gray
-    '#6a3d9a',  // Deep purple
-    '#b15928',  // Brown
-    '#17becf',  // Cyan
-    '#bcbd22',  // Olive green
-    '#fb8072',  // Coral (warm light red-pink)
-    '#80b1d3',  // Light steel blue
+  "#D21404",  // Bleeding
+  "#FD6124",  // Burning
+  "#FF66CC",  // Confusion
+  "#00FF00",  // Poison
+  "#800000",  // Torment
+  "#C0C0C0",  // Blind
+  "#00adff",  // Chill
+  "#00008B",  // Cripple
+  "#006400",  // Fear
+  "#FFFFFF",  // Immobilize
+  "#710193",  // Slow
+  "#ECAF26",  // Weakness
+  "#8B4513",  // Taunt
+  "#494F55",  // Vulnerability
 ];
 
 option = {{
