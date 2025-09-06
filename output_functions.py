@@ -3238,20 +3238,18 @@ function buildSeries(datasetIndex = 1) {{
 boonSeries = buildSeries(1);
 
 const boonColors = [
-  "#D21404",  // Bleeding
-  "#FD6124",  // Burning
-  "#FF66CC",  // Confusion
-  "#00FF00",  // Poison
-  "#800000",  // Torment
-  "#C0C0C0",  // Blind
-  "#00adff",  // Chill
-  "#00008B",  // Cripple
-  "#006400",  // Fear
-  "#FFFFFF",  // Immobilize
-  "#710193",  // Slow
-  "#ECAF26",  // Weakness
-  "#8B4513",  // Taunt
-  "#494F55",  // Vulnerability
+	'#b22222', //Might
+	'#FD6124', //Fury
+	'#800000', //Quickness
+	'#710193', //Alacrity
+	'#848482', //Protection
+	'#228B22', //Regeneration
+	'#00008B', //Vigor
+	'#0095B6', //Aegis
+	'#494F55', //Stability
+	'#F1C40F', //Swiftness
+	'#d3d3d3', //Resistance
+	'#D891EF', //Resolution
 ];
 
 option = {{
