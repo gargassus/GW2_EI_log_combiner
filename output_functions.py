@@ -3036,11 +3036,13 @@ def build_DPS_bubble_chart(top_stats: dict, tid_date_time: str, tid_list: list, 
 
 def build_boon_generation_bar_chart(top_stats: dict, boons: dict, weights: dict, tid_date_time: str, tid_list: list) -> None:
 	total_boon_generation = []
+	playerCount = 0
 
 	for player, player_data in top_stats['player'].items():
 		player_active_time = int(player_data['active_time'])
 		if player_active_time == 0:
 			continue
+		playerCount += 1
 		player_boon_generation = []
 		name = player_data['name']
 		profession = player_data['profession']
@@ -3062,7 +3064,8 @@ def build_boon_generation_bar_chart(top_stats: dict, boons: dict, weights: dict,
 		player_boon_generation.append(profession)
 
 		total_boon_generation.append(player_boon_generation)
-	
+
+	calcHeight = str(playerCount*25)
 	chart_text = f"""
 <$echarts $text=```
 const dataset = [
@@ -3164,7 +3167,7 @@ option = {{
   ],    
   series: boonSeries
 }};
-```$height="500px" $width="100%" $theme="dark"/>
+```$height="{calcHeight}px" $width="100%" $theme="dark"/>
 """
 	tid_title = f"{tid_date_time}-Total-Squad-Boon-Generation"
 	tid_caption = "Total Squad Boon Generation"
@@ -3176,11 +3179,13 @@ option = {{
 
 def build_condition_generation_bar_chart(top_stats: dict, conditions: dict, weights: dict, tid_date_time: str, tid_list: list) -> None:
 	total_condition_generation = []
+	playerCount = 0
 
 	for player, player_data in top_stats['player'].items():
 		player_active_time = int(player_data['active_time'])
 		if player_active_time == 0:
 			continue
+		playerCount += 1
 		player_condition_generation = []
 		name = player_data['name']
 		profession = player_data['profession']
@@ -3202,7 +3207,7 @@ def build_condition_generation_bar_chart(top_stats: dict, conditions: dict, weig
 		player_condition_generation.append(profession)
 
 		total_condition_generation.append(player_condition_generation)
-	
+	calcHeight = str(playerCount*25)
 	chart_text = f"""
 <$echarts $text=```
 const dataset = [
@@ -3304,7 +3309,7 @@ option = {{
   ],    
   series: boonSeries
 }};
-```$height="500px" $width="100%" $theme="dark"/>
+```$height="{calcHeight}px" $width="100%" $theme="dark"/>
 """
 	tid_title = f"{tid_date_time}-Total-Condition-Output-Generation"
 	tid_caption = "Total Condition Output Generation"
