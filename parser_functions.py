@@ -1383,7 +1383,7 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 		name_prof (str): The name of the profession.
 	"""
 	for stat, value in player[stat_category][0].items():
-		if stat in ['boonStripsTime', 'condiCleanseTime'] and value > 999999:
+		if stat in ['boonStripsTime', 'condiCleanseTime', 'condiCleanseTimeSelf'] and value > 999999:
 			value = 0
 		if stat in ['distToCom', 'stackDist'] and value == "Infinity":
 			print(f"Invalid stat: {stat} with value: {value} for player: {player['name']}. The log for fight {fight_num} needs review.")
