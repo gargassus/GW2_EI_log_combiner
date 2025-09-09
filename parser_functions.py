@@ -1393,28 +1393,34 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 		stat_category (str): The category of stats to collect.
 		name_prof (str): The name of the profession.
 	"""
-	for stat, value in player[stat_category][0].items():
+	player_stats = player[stat_category][0]
+	active_time_seconds = player['activeTimes'][0] / 1000 if player['activeTimes'] else 0
+
+	for stat, value in player_stats.items():
 		if stat in ['boonStripsTime', 'condiCleanseTime', 'condiCleanseTimeSelf'] and value > 999999:
 			value = 0
 		if stat in ['distToCom', 'stackDist'] and value == "Infinity":
 			print(f"Invalid stat: {stat} with value: {value} for player: {player['name']}. The log for fight {fight_num} needs review.")
 			value = 0
 		if stat in config.high_scores:
-			active_time_seconds = player['activeTimes'][0] / 1000
 			high_score_value = round(value / active_time_seconds, 3) if active_time_seconds > 0 else 0
-			update_high_score(f"{stat_category}_{stat}", "{{"+player["profession"]+"}}"+player["name"]+"-"+get_player_account(player)+"-"+str(fight_num)+" | "+stat, high_score_value)
+			update_high_score(
+				f"{stat_category}_{stat}",
+				f"{{{{{player['profession']}}}}}{player['name']}-{get_player_account(player)}-{str(fight_num)} | {stat}",
+				high_score_value
+			)
 		top_stats['player'][name_prof][stat_category][stat] = top_stats['player'][name_prof][stat_category].get(stat, 0) + value
 		top_stats['fight'][fight_num][stat_category][stat] = top_stats['fight'][fight_num][stat_category].get(stat, 0) + value
 		top_stats['overall'][stat_category][stat] = top_stats['overall'][stat_category].get(stat, 0) + value
 
-		commander_tag = player['hasCommanderTag']
-		if commander_tag:
+		if player.get('hasCommanderTag'):
 			commander_name = f"{player['name']}|{player['profession']}|{get_player_account(player)}"
 			if commander_name not in commander_summary_data:
 				commander_summary_data[commander_name] = {stat_category: {}}
 			elif stat_category not in commander_summary_data[commander_name]:
 				commander_summary_data[commander_name][stat_category] = {}
 			commander_summary_data[commander_name][stat_category][stat] = commander_summary_data[commander_name][stat_category].get(stat, 0) + value
+
 
 def get_defense_hits_and_glances(fight_num: int, player: dict, stat_category: str, name_prof: str) -> None:
 	"""
