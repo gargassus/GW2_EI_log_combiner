@@ -19,8 +19,6 @@ import argparse
 import configparser
 import sys
 import os
-import os.path
-from os import listdir
 import datetime
 
 from collections import OrderedDict
@@ -31,89 +29,69 @@ from output_functions import *
 
 
 if __name__ == '__main__':
-	input_directory = './'
-	parser = argparse.ArgumentParser(description='This reads a set of arcdps reports in xml format and generates top stats.')
+	parser = argparse.ArgumentParser(
+		description='This reads a set of arcdps reports in xml format and generates top stats.'
+	)
 	parser.add_argument('-i', '--input', dest='input_directory', help='Directory containing .json files from Elite Insights')
-	parser.add_argument('-o', '--output', dest="output_filename", help="Not required. Override json file name to write the computed summary")
-	parser.add_argument('-x', '--xls_output', dest="xls_output_filename", help="Not required. Override .xls file to write the computed summary")    
-	parser.add_argument('-j', '--json_output', dest="json_output_filename", help="Not required. Override .json file to write the computed stats data")    
-	parser.add_argument('-c', '--config_file', dest="config_file", help="Not required. Select a specific config file. Otherwise uses top_stats_config.ini")
-	parser.add_argument('-d', '--description_append', dest="description_append", help="Not required. Appended to the description of the summary caption.")
+	parser.add_argument('-o', '--output', dest="output_filename", help="Override json file name to write the computed summary")
+	parser.add_argument('-x', '--xls_output', dest="xls_output_filename", help="Override .xls file to write the computed summary")
+	parser.add_argument('-j', '--json_output', dest="json_output_filename", help="Override .json file to write the computed stats data")
+	parser.add_argument('-c', '--config_file', dest="config_file", help="Select a specific config file. Defaults to top_stats_config.ini")
+	parser.add_argument('-d', '--description_append', dest="description_append", help="Appended to the description of the summary caption.")
 
 	args = parser.parse_args()
 
 	parse_date = datetime.datetime.now()
 	tid_date_time = parse_date.strftime("%Y%m%d%H%M")
 
-             
-	if args.config_file is None:
-		args.config_file = "top_stats_config.ini"
-	if args.description_append is None:
-		args.description_append = False
-	# Change input_directory to match json log location
-	input_directory = args.input_directory
+	args.config_file = args.config_file or "top_stats_config.ini"
+	args.description_append = args.description_append or False
 
 	config_ini = configparser.ConfigParser()
 	config_ini.read(args.config_file)
-	weights ={
-		'Boon_Weights': {
-			'Aegis': 1,
-			'Alacrity': 1,
-			'Fury': 1,
-			'Might': 1,
-			'Protection': 1,
-			'Quickness': 1,
-			'Regeneration': 1,
-			'Resistance': 1,
-			'Resolution': 1,
-			'Stability': 1,
-			'Swiftness': 1,
-			'Vigor': 1,
-			'Superspeed': 1
-		},
-		'Condition_Weights': {
-			'Bleed': 1,
-			'Burning': 1,
-			'Confusion': 1,
-			'Poisoned': 1,
-			'Torment': 1,
-			'Blinded': 1,
-			'Chilled': 1,
-			'Crippled': 1,
-			'Fear': 1,
-			'Immobilized': 1,
-			'Slow': 1,
-			'Taunt': 1,
-			'Weakness': 1,
-			'Vulnerability': 1
-		}
+
+	# Resolve input_directory
+	input_directory = args.input_directory or config_ini.get('TopStatsCfg', 'input_directory', fallback='./')
+	if not os.path.isdir(input_directory):
+		print(f"Directory {input_directory} is not a directory or does not exist!")
+		sys.exit()
+
+	# Load weights from config or use defaults
+	default_weights = {
+		'Boon_Weights': ['Aegis', 'Alacrity', 'Fury', 'Might', 'Protection', 'Quickness',
+						 'Regeneration', 'Resistance', 'Resolution', 'Stability',
+						 'Swiftness', 'Vigor', 'Superspeed'],
+		'Condition_Weights': ['Bleed', 'Burning', 'Confusion', 'Poisoned', 'Torment',
+							  'Blinded', 'Chilled', 'Crippled', 'Fear', 'Immobilized',
+							  'Slow', 'Taunt', 'Weakness', 'Vulnerability']
+	}
+
+	weights = {
+		section: {k: 1 for k in keys}
+		for section, keys in default_weights.items()
 	}
 
 	for section in config_ini.sections():
-		if section == "Boon_Weights":
-			weights[section] = dict(config_ini[section])
-		if section == "Condition_Weights":
+		if section in weights:
 			weights[section] = dict(config_ini[section])
 
-	if args.input_directory is None:
-		args.input_directory = config_ini.get('TopStatsCfg', 'input_directory', fallback='./')
-	if not os.path.isdir(args.input_directory):
-		print("Directory ",args.input_directory," is not a directory or does not exist!")
-		sys.exit()
-	# Change input_directory to match json log location
-	input_directory = args.input_directory
-	if args.xls_output_filename is None:
-		args.xls_output_filename = args.input_directory+"/TW5_top_stats_"+tid_date_time+".xls"
-	if args.json_output_filename is None:
-		args.json_output_filename = args.input_directory+"/TW5_top_stats_"+tid_date_time+".json"   
+	# Output filenames
+	if not args.xls_output_filename:
+		args.xls_output_filename = os.path.join(input_directory, f"TW5_top_stats_{tid_date_time}.xls")
+	if not args.json_output_filename:
+		args.json_output_filename = os.path.join(input_directory, f"TW5_top_stats_{tid_date_time}.json")
+	if not args.output_filename:
+		args.output_filename = os.path.join(input_directory, f"Drag_and_Drop_Log_Summary_for_{tid_date_time}.json")
+	else:
+		args.output_filename = os.path.join(input_directory, args.output_filename)
 
+	# Config values
 	guild_name = config_ini.get('TopStatsCfg', 'guild_name', fallback=None)
 	guild_id = config_ini.get('TopStatsCfg', 'guild_id', fallback=None)
 	api_key = config_ini.get('TopStatsCfg', 'api_key', fallback=None)
-	
+
 	write_all_data_to_json = config_ini.getboolean('TopStatsCfg', 'write_all_data_to_json', fallback=False)
 	fight_data_charts = config_ini.getboolean('TopStatsCfg', 'fight_data_charts', fallback=False)
-
 	db_update = config_ini.getboolean('TopStatsCfg', 'db_update', fallback=False)
 	db_output_filename = config_ini.get('TopStatsCfg', 'db_output_filename', fallback='Top_Stats.db')
 	db_path = config_ini.get('TopStatsCfg', 'db_path', fallback='.')
@@ -124,30 +102,24 @@ if __name__ == '__main__':
 
 	skill_casts_by_role_limit = config_ini.getint('TopStatsCfg', 'skill_casts_by_role_limit', fallback=40)
 
-	if not os.path.isdir(db_path):
-		os.makedirs(db_path, exist_ok=True)
+	# Ensure output directories exist
+	os.makedirs(db_path, exist_ok=True)
+	os.makedirs(excel_path, exist_ok=True)
+
 	db_output_full_path = os.path.join(db_path, db_output_filename)
 	excel_output_full_path = os.path.join(excel_path, excel_output_filename)
 
-	if args.output_filename is None:
-		args.output_filename = f"{input_directory}/Drag_and_Drop_Log_Summary_for_{tid_date_time}.json"
-	else:
-		args.output_filename = input_directory+"/"+args.output_filename
-
-	files = listdir(input_directory)
-	sorted_files = sorted(files)
-
+	# Process files
+	sorted_files = sorted(os.listdir(input_directory))
 	file_date = datetime.datetime.now()
-
 	fight_num = 0
 
-	print_string = "Using input directory "+input_directory+", writing output to "+args.output_filename
-	print(print_string)
+	print(f"Using input directory {input_directory}, writing output to {args.output_filename}")
 
 	guild_data = None
 	if guild_id and api_key:
-		guild_data = fetch_guild_data(guild_id, api_key, max_retries = 3, backoff_factor = 0.5)
-	
+		guild_data = fetch_guild_data(guild_id, api_key, max_retries=3, backoff_factor=0.5)
+
 	print("guild_id: ", guild_id)
 	print("API_KEY: ", api_key)
 
@@ -170,7 +142,7 @@ if __name__ == '__main__':
 	print("Parsing Complete")
 
 	tag_data, tag_list = build_tag_summary(top_stats)
-
+	
 	#create the main tiddler and append to tid_list
 	build_main_tid(tid_date_time, tag_list, guild_name, args.description_append)
 
