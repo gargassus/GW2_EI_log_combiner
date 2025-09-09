@@ -1248,21 +1248,32 @@ def get_personal_mod_data(personal_damage_mods: dict) -> None:
 
 def get_personal_buff_data(personal_buffs: dict) -> None:
 	"""
-	Populate the personal_buff_data dictionary with buffs from personal_buffs.
+	Populate the global personal_buff_data dictionary with buffs from personal_buffs.
+
+	- Buff IDs are normalized into the format 'b<ID>'.
+	- Each profession gets its own list of buffs.
+	- A special 'total' list contains all unique buffs across professions.
 
 	Args:
-		personal_buffs (dict): A dictionary where keys are professions and values are lists of buff IDs.
+		personal_buffs (dict): Keys are professions, values are lists of buff IDs.
 	"""
+	if "total" not in personal_buff_data:
+		personal_buff_data["total"] = []
+
 	for profession, buffs in personal_buffs.items():
 		if profession not in personal_buff_data:
 			personal_buff_data[profession] = []
+
 		for buff_id in buffs:
-			# Convert the buff ID to the format used in buff_data
-			buff_id = "b" + str(buff_id)
-			if buff_id not in personal_buff_data[profession]:
-				personal_buff_data[profession].append(buff_id)
-				# Add the buff to the total list
-				personal_buff_data['total'].append(buff_id)
+			normalized = f"b{buff_id}"
+
+			# Add to profession if not already present
+			if normalized not in personal_buff_data[profession]:
+				personal_buff_data[profession].append(normalized)
+
+			# Add to total if not already present
+			if normalized not in personal_buff_data["total"]:
+				personal_buff_data["total"].append(normalized)
 
 def get_enemies_by_fight(fight_num: int, targets: dict) -> None:
 	"""
