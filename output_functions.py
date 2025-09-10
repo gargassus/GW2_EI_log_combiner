@@ -587,6 +587,8 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 				header += " !{{appliedCrowdControl}}{{downed}} |"
 			elif stat == "appliedCrowdControlDurationDownContribution":
 				header += " !{{appliedCrowdControlDuration}}{{downed}} |"
+			elif stat == "damageBarrier":
+				header += " !{{"+f"{stat}"+"}} | !{{"+f"{stat}"+"}} % |"
 			else:
 				header += " !{{"+f"{stat}"+"}} |"
 		header += "h"
@@ -633,6 +635,15 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 						stat_value = f"{stat_value/(fight_time/60):.2f}| {(total_hits-stat_value)/(fight_time/60):.2f}"
 					else:
 						stat_value = f"{stat_value:,}| {(total_hits-stat_value):,}"
+				elif stat == "damageBarrier":
+					player_damage_Taken = player[category].get("damageTaken", 0)
+					barrier_percentage = round((stat_value / player_damage_Taken) * 100, 1) if player_damage_Taken != 0 else 0
+					if toggle == "Stat/1s":
+						stat_value = f"{stat_value/fight_time:,.2f}| {barrier_percentage:.1f}%"
+					elif toggle == "Stat/60s":
+						stat_value = f"{stat_value/(fight_time/60):,.2f}| {barrier_percentage:.1f}%"
+					else:
+						stat_value = f"{stat_value:,}| {barrier_percentage:.1f}%"
 				else:
 					if toggle == "Stat/1s":
 						stat_value = f"{stat_value/fight_time:,.2f}"
