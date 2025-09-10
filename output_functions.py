@@ -153,7 +153,7 @@ def extract_gear_buffs_and_skills(buff_data: dict, skill_data: dict) -> tuple:
 	gear_skill_ids = []
 
 	for buff, buff_data in buff_data.items():
-		if "Relic of" in buff_data["name"] or "Superior Sigil of" in buff_data["name"]:
+		if "Relic of" in buff_data["name"] or "Superior Sigil of" in buff_data["name"] or "Gear" in buff_data["classification"]:
 			gear_buff_ids.append(buff)
 
 	for skill, skill_data in skill_data.items():
