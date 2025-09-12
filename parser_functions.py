@@ -1190,10 +1190,7 @@ def get_skills_data(skill_map: dict) -> None:
 		skill_id = skill
 		name = skill_map[skill]['name']
 		auto_attack = skill_map[skill]['autoAttack']
-		if 'icon' in skill_map[skill]:
-			icon = skill_map[skill]['icon']
-		else:
-			icon = "unknown.png"
+		icon = skill_map[skill].get('icon', 'unknown.png')
 		if skill_id not in skill_data:
 			skill_data[skill_id] = {
 				'name': name,
