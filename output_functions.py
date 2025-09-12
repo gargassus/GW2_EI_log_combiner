@@ -188,7 +188,7 @@ def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dic
 		for buff_id in gear_buff_ids:
 			if buff_id in player["buffUptimes"]:
 				buff_uptime_ms = player["buffUptimes"][buff_id]['uptime_ms']
-				uptime_pct = f"{((buff_uptime_ms / fight_time) * 100):.2f}%"
+				uptime_pct = f"{((buff_uptime_ms / fight_time) * 100):.1f}%"
 			else:
 				uptime_pct = " - "
 
