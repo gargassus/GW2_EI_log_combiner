@@ -2412,7 +2412,7 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 		rows.append('\n<div class="flex-row">\n\n    <div class="flex-col">\n\n')
 
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
-		header += "|!Skill Name |!Hits | !Total Healing| !Avg Healing| !Max Heal| !Pct|h"
+		header += "|!Skill Name |!Hits | !Total| !Avg| !Max| !Pct|h"
 		rows.append(header)
 
 		outgoing_healing = top_stats['player'][healer]['extHealingStats'].get('outgoing_healing', 0)
@@ -2439,7 +2439,7 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += "| Total Barrier |c\n"
-		header += "|!Skill Name |!Hits | !Total Barrier| !Avg Barrier| !Max Barrier| !Pct|h"
+		header += "|!Skill Name |!Hits | !Total| !Avg| !Max| !Pct|h"
 		rows.append(header)
 
 		outgoing_barrier = top_stats['player'][healer]['extBarrierStats'].get('outgoing_barrier', 0)
@@ -2465,7 +2465,7 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += "| Heal/Barrier by Target |c\n"
-		header += "|!Player |!Total Healing | !Downed Healing| !Total Barrier|h"
+		header += "|!Player |!Healing | !Downed Healing| !Barrier|h"
 		rows.append(header)
 
 		targets_used = []
