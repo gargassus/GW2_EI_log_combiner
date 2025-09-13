@@ -181,7 +181,7 @@ def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dic
 			continue
 		account = player["account"]
 		name = player["name"]
-		tt_name = f'<span data-tooltip="{account}">{name}</span>'
+		tt_name = f'<div class="xtooltip"> {name} <span class="xtooltiptext" style="padding-left: 5px"> {account} </span></div>'
 		profession = "{{"+player["profession"]+"}}"
 		row = f"|{tt_name} | {profession} | {fight_time/1000:,.1f}|"
 
@@ -223,7 +223,7 @@ def build_gear_skill_summary(top_stats: dict, gear_skill_ids: list, skill_data: 
 		fight_time = player["active_time"]
 		account = player["account"]
 		name = player["name"]
-		tt_name = f'<span data-tooltip="{account}">{name}</span>'
+		tt_name = f'<div class="xtooltip"> {name} <span class="xtooltiptext" style="padding-left: 5px"> {account} </span></div>'
 		profession = "{{"+player["profession"]+"}}"
 		row = f"|{tt_name} | {profession} | {fight_time/1000:,.1f}|"
 
@@ -236,7 +236,7 @@ def build_gear_skill_summary(top_stats: dict, gear_skill_ids: list, skill_data: 
 				crit_pct = f"{crit/connectedHits*100:.2f}" if crit > 0 else "0"
 				critDamage = player["targetDamageDist"][_skill]["critDamage"]
 				tooltip = f"Connected Hits: {connectedHits} <br>Crit: {crit} - ({crit_pct}%) <br>Crit Damage: {critDamage:,.0f}"
-				detailEntry = f'<div class="xtooltip"> {totalDamage:,.0f} <span class="xtooltiptext">'+tooltip+'</span></div>'
+				detailEntry = f'<div class="xtooltip"> {totalDamage:,.0f} <span class="xtooltiptext" style="padding-left: 5px">'+tooltip+'</span></div>'
 			else:
 				detailEntry = " - "
 			row += f" {detailEntry} |"
@@ -342,7 +342,7 @@ def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
 		kills = tag_data["enemy_killed"]
 		downed = tag_data["squad_downed"]
 		deaths = tag_data["squad_deaths"]
-		tt_name = f'<span data-tooltip="{account}">{name}</span>'
+		tt_name = f'<span class="tooltip tooltip-right" data-tooltip="{account}">  {name}  </span>'
 		kdr = kills / deaths if deaths else kills
 		rows.append(
 			f"|{tt_name} | {profession} | {fights} | {downs} | {kills} | {downed} | {deaths} | {kdr:.2f}|"
@@ -866,7 +866,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 			uptime_percentage = f"{uptime_percentage:.3f}%"
 			tooltip = f"Uptime without resist reduction:<br>{uptime_percentage}"
 			# Add the tooltip to the row
-			detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext">'+tooltip+'</span></div>'
+			detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext" style="padding-left: 5px">'+tooltip+'</span></div>'
 		else:
 			uptime_ms = top_stats["overall"]["buffUptimes"][boon_id]["uptime_ms"]
 			uptime_percentage = round((uptime_ms / top_stats['overall']["active_time"]) * 100, 3)
@@ -895,7 +895,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 				uptime_percentage = f"{uptime_percentage:.3f}%"
 				tooltip = f"Uptime without resist reduction:<br>{uptime_percentage}"
 				# Add the tooltip to the row
-				detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext">'+tooltip+'</span></div>'
+				detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext" style="padding-left: 5px">'+tooltip+'</span></div>'
 			else:
 				uptime_ms = top_stats["overall"]["buffUptimes"]['group'][group][boon_id]["uptime_ms"]
 				uptime_percentage = round((uptime_ms / top_stats['overall']['group_data'][group]['fight_time']) * 100, 3)
@@ -927,7 +927,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 				uptime_percentage = f"{uptime_percentage:.3f}%"
 				tooltip = f"Uptime without resist reduction:<br>{uptime_percentage}"
 				# Add the tooltip to the row
-				detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext">'+tooltip+'</span></div>'
+				detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext" style="padding-left: 5px">'+tooltip+'</span></div>'
 			else:
 				uptime_ms = player["buffUptimes"][boon_id]["uptime_ms"]
 				uptime_percentage = round(uptime_ms / player['active_time'] * 100, 3)
@@ -1219,7 +1219,7 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
 						# Build the tooltip
 						tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain:,.0f}<br>"
 						# Add the tooltip to the row
-						detailEntry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext">'+tooltip+'</span></div>'
+						detailEntry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext" style="padding-left: 5px">'+tooltip+'</span></div>'
 						row += f" {detailEntry}|"
 					else:
 						# If the modifier is not active, add a - to the row
@@ -1286,8 +1286,8 @@ def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict,
 				hit_pct = 0
 				if total_count > 0:
 					hit_pct = hit_count / total_count * 100
-				tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain:,.0f}<br>"
-				detail_entry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext">{tooltip}</span></div>'
+				tooltip = f" {hit_count} of {total_count} ({hit_pct:.2f}% hits)<br> Damage Gained: {damage_gain:,.0f}"
+				detail_entry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext" style="padding-left: 5px"> {tooltip} </span></div>'
 				row += f" {detail_entry}|"
 			else:
 				row += f" - |"
@@ -1328,7 +1328,7 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += f"| {caption} |c\n"
 		header += "|!Name | !Prof |!Account | !{{FightTime}} |!"
-		apm_entry = f'<div class="xtooltip"> APM <span class="xtooltiptext">Total Actions per Minute /<br>APM without Autos</span></div>'
+		apm_entry = f'<div class="xtooltip"> APM <span class="xtooltiptext" style="padding-left: 5px">Total Actions per Minute /<br>APM without Autos</span></div>'
 		header += f" {apm_entry}|"
 		# Add the skill names to the header
 		i = 0
@@ -1973,9 +1973,9 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 					skill_icon = "unknown.png"
 				
 				detailEntry = f'[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}'
-				row = f"|<span data-tooltip='{acct}'> {prof_name} </span>-{fight}|{detailEntry} | {score:03,.2f}|"
+				row = f"|<span class='tooltip tooltip-right' data-tooltip='{acct}'> {prof_name} </span>-{fight}|{detailEntry} | {score:03,.2f}|"
 			else:
-				row = f"|<span data-tooltip='{acct}'> {prof_name} </span>-{fight}| {score:03,.2f}|"
+				row = f"|<span class='tooltip tooltip-right' data-tooltip='{acct}'> {prof_name} </span>-{fight}| {score:03,.2f}|"
 			rows.append(row)
 
 		# Add table title and close the div
@@ -2018,11 +2018,11 @@ def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_t
 
 		
 		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
-		header = "|thead-dark table-caption-top-left table-hover sortable freeze-col|k\n"
+		header = "|thead-dark table-caption-top-left table-hover sortable|k\n"
 		header += "|!Player |"
 		for mechanic in mechanics_list:
 			tooltip = f"{mechanics[fight][mechanic]['tip']}"
-			detailed_entry = f"<span class=\"tooltip\" title=\"{tooltip}\">{mechanic}</span>"
+			detailed_entry = f"<span class='tooltip' data-tooltip='{tooltip}'> {mechanic} </span>"
 			header += f" !{detailed_entry} |"
 
 		header += "h"
@@ -2034,7 +2034,7 @@ def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_t
 				prof_name = "{{"+prof+"}} "+account
 			else:
 				prof_name = "{{"+prof+"}} "+name
-			row = f"|<span data-tooltip='{account}'> {prof_name} </span>|"
+			row = f"|<span class='tooltip tooltip-right' data-tooltip='{account}'> {prof_name} </span>|"
 			for mechanic in mechanics_list:
 				if player in mechanics[fight][mechanic]['data']:
 					row += f" {mechanics[fight][mechanic]['data'][player]} |"
@@ -2115,7 +2115,7 @@ def build_personal_buff_summary(top_stats: dict, buff_data: dict, personal_buff_
 						buff_id_uptime = round((player_data['buffUptimes'][buff_id]['uptime_ms'] / player_data['active_time']) * 100, 2)
 						state_changes = player_data['buffUptimes'][buff_id]['state_changes']
 						tooltip = f"{state_changes} state changes"
-						detail_entry = f'<div class="xtooltip"> {buff_id_uptime:.2f}% <span class="xtooltiptext">{tooltip}</span></div>'
+						detail_entry = f'<span data-tooltip="{tooltip}"> {buff_id_uptime:.2f}% </span>'
 
 						row += f" {detail_entry} |"
 					else:
@@ -2199,9 +2199,9 @@ def build_minions_tid(minions: dict, players: dict, skill_data: dict, caption: s
 				fight_minutes = total_fight_time / 60
 
 				if player_name == player_profession:
-					row = f'|<span data-tooltip="{player_account}">{player_account}</span>| {fights}| {fight_time_str}|'
+					row = f'|<span class="tooltip tooltip-right" data-tooltip="{player_account}">{player_account}</span>| {fights}| {fight_time_str}|'
 				else:
-					row = f'|<span data-tooltip="{player_account}">{player_name}</span>| {fights}| {fight_time_str}|'
+					row = f'|<span class="tooltip tooltip-right" data-tooltip="{player_account}">{player_name}</span>| {fights}| {fight_time_str}|'
 
 				for minion in minions[profession]['pets_list']:
 					minion_count = 0
@@ -2241,7 +2241,7 @@ def build_minions_tid(minions: dict, players: dict, skill_data: dict, caption: s
 		rows.append("---")
 		rows.append("\n\n")
 
-		header3 = "|thead-dark table-caption-top-left table-hover sortable freeze-col|k\n"
+		header3 = "|thead-dark table-caption-top-left table-hover sortable|k\n"
 		header3 += "| Skill Casts / Minute |c\n"
 		header3 += "|!Player | !Fights| !Fight Time|!Minion |"
 		for pet_skill in minions[profession]['pet_skills_list']:
@@ -2264,9 +2264,9 @@ def build_minions_tid(minions: dict, players: dict, skill_data: dict, caption: s
 			for minion in minions[profession]['pets_list']:
 				if minion in minions[profession]['player'][player]:
 					if name == profession:
-						row = f'|<span data-tooltip="{account}">{account}</span>| {fights}| {fight_time}|{minion} |'
+						row = f'|<span class="tooltip tooltip-right" data-tooltip="{account}">{account}</span>| {fights}| {fight_time}|{minion} |'
 					else:
-						row = f'|<span data-tooltip="{account}">{name}</span>| {fights}| {fight_time}|{minion} |'
+						row = f'|<span class="tooltip tooltip-right" data-tooltip="{account}">{name}</span>| {fights}| {fight_time}|{minion} |'
 					for pet_skill in minions[profession]['pet_skills_list']:
 						if pet_skill in minions[profession]['player'][player][f"{minion}Skills"]:
 							skill_count = minions[profession]['player'][player][f"{minion}Skills"][pet_skill]
@@ -2323,8 +2323,8 @@ def build_top_damage_by_skill(total_damage_taken: dict, target_damage_dist: dict
 	rows.append('\n<div class="flex-row">\n\n    <div class="flex-col">\n\n')
 
 	# Header for damage output table
-	header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
-	header += "|!Skill Name | Damage Taken | % of Total|h"
+	header = "|thead-dark table-caption-top-left table-hover table-center sortable|k\n"
+	header += "|!Skill Name | !Damage Taken | !% of Total|h"
 	rows.append(header)
 	
 	# Populate the table with top 25 skills by damage output
@@ -2340,8 +2340,8 @@ def build_top_damage_by_skill(total_damage_taken: dict, target_damage_dist: dict
 	rows.append('\n\n</div>\n\n    <div class="flex-col">\n\n')
 
 	# Header for damage taken table
-	header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
-	header += "|!Skill Name | Damage Taken | % of Total|h"
+	header = "|thead-dark table-caption-top-left table-hover table-center sortable|k\n"
+	header += "|!Skill Name | !Damage Taken | !% of Total|h"
 	rows.append(header)
 
 	# Populate the table with top 25 skills by damage taken
@@ -2652,7 +2652,7 @@ def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list)
 				profession, name = player.split("|")
 				profession = "{{"+profession+"}}"
 				tooltip = f" {name} "
-				detailEntry = f'<div class="xtooltip"> {profession} <span class="xtooltiptext">'+name+'</span></div>'
+				detailEntry = f'<div class="xtooltip"> {profession} <span class="xtooltiptext" style="padding_left: 5px;">'+name+'</span></div>'
 				row += f" {detailEntry} |"
 			rows.append(row)			
 		rows.append("</div>\n\n")
@@ -2742,7 +2742,7 @@ def build_on_tag_review(death_on_tag, tid_date_time):
 		run_back = death_on_tag[name_prof]['Run_Back']
 		total = death_on_tag[name_prof]['Total']
 		off_tag_ranges = death_on_tag[name_prof]['Ranges']
-		row = f"|<span data-tooltip='{account}'>{player}</span> | {{{{{profession}}}}} {profession[:3]} | {avg_dist} | {on_tag} | {off_tag} | {after_tag} | {run_back} | {total} |{off_tag_ranges} |"
+		row = f"|<span class='tooltip tooltip-right' data-tooltip=' {account}'> {player} </span> | {{{{{profession}}}}} {profession[:3]} | {avg_dist} | {on_tag} | {off_tag} | {after_tag} | {run_back} | {total} |{off_tag_ranges} |"
 		rows.append(row)
 
 	rows.append("</div>\n\n\n")
@@ -3360,7 +3360,7 @@ def build_mesmer_clone_usage(mesmer_clone_usage: dict, tid_date_time: str, tid_l
 	for player, data in mesmer_clone_usage.items():
 		name=player.split("_")[0]
 		prof="{{"+player.split("_")[1]+"}}"
-		rows.append('\n<div class="flex-col-1 border py-3 px-5 border">\n')
+		rows.append('\n<div class="flex-col-1 py-3 px-5">\n')
 		rows.append(f'\n|{prof} {name} | <span class="dot"></span><span class="dot"></span><span class="dot"></span> | <span class="dot1"></span><span class="dot"></span><span class="dot"></span> | <span class="dot1"></span><span class="dot1"></span><span class="dot"></span> | <span class="dot1"></span><span class="dot1"></span><span class="dot1"></span> | Total |h')
 
 		for spell in data:
@@ -3534,7 +3534,7 @@ def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff
 			healing = int(data["outgoing_healing"])
 			barrier = int(data["outgoing_barrier"])
 			downed = int(data["downed_healing"])
-			rows.append(f"|{healer_profession} <span data-tooltip='{healer_account}'> {healer_name} </span>| {healing:,}| {barrier:,}| {downed:,}|")
+			rows.append(f"|{healer_profession} <span class='tooltip tooltip-right' data-tooltip='{healer_account}'> {healer_name} </span>| {healing:,}| {barrier:,}| {downed:,}|")
 		rows.append("\n\n")
 		rows.append('</div>\n    <div class="flex-col">\n\n')
 		rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
