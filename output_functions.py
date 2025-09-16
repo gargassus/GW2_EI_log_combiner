@@ -1549,7 +1549,7 @@ def build_main_tid(datetime, tag_list, guild_name, description_append):
 
 	main_created = f"{datetime}"
 	main_modified = f"{datetime}"
-	main_tags = f'{datetime[0:4]} {datetime[0:4]}-{datetime[4:6]} Logs'
+	main_tags = f'{datetime[0:4]} {datetime[0:7]} Logs'
 	main_title = f"{datetime}-Log-Summary"
 	
 	if description_append:

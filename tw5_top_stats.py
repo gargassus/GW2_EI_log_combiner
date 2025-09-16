@@ -142,6 +142,7 @@ if __name__ == '__main__':
 	print("Parsing Complete")
 
 	tag_data, tag_list = build_tag_summary(top_stats)
+	tid_date_time = top_stats['overall']['last_fight']
 	
 	#create the main tiddler and append to tid_list
 	build_main_tid(tid_date_time, tag_list, guild_name, args.description_append)
