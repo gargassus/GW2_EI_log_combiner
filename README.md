@@ -17,7 +17,10 @@ Currently works with WVW and Detailed WVW logs. Partially working with PVElogs, 
  - Parse your [ArcDps](https://www.deltaconnected.com/arcdps/x64/) WvW logs with [GW2 Elite Insight Parser](https://github.com/baaron4/GW2-Elite-Insights-Parser/releases) 
      - Ensure all options are checked under `Encounter` on the general tab 
      - Ensure you have `Output as JSON` checked on the Raw output tab
-     - There is a provided example EI settings config file you can load via the `load settings` button in the `/EliteInsightConfig` folder
+     - There are provided example EI settings config file you can load via the `load settings` button:
+       -  `Example Elite Insight v3_13_0_0 and earlier Config file for log parsing.conf` for versions prior to 3.14.0.0
+       -  `Example Elite Insight v3_14_0_0 Config file for log parsing.conf` for versions starting at 3.14.0.0
+       -  Be sure to update your `DPSReportUserToken=YourUserTokenFromDpsReports` in the config.
  - Decompress the [latest release](https://github.com/Drevarr/GW2_EI_log_combiner/releases) file to your preferred location
  - Edit the `top_stats_config.ini` file to set the `input_directory` so it points to the location of your saved JSON logs. Optional fields `db_output_filename` and `db_path` control the name and location of the SQLite database.
  - Double click the `TopStats.exe` to run
