@@ -56,6 +56,7 @@ team_colors = {
     705: "Red",
     706: "Red",
     882: "Red",
+    885: "Red",
     2520: "Red",
     2739: "Green",
     2741: "Green",
