@@ -153,7 +153,7 @@ def extract_gear_buffs_and_skills(buff_data: dict, skill_data: dict) -> tuple:
 	gear_skill_ids = []
 
 	for buff, buff_data in buff_data.items():
-		if "Relic of" in buff_data["name"] or "Superior Sigil of" in buff_data["name"]:
+		if "Relic of" in buff_data["name"] or "Superior Sigil of" in buff_data["name"] or "Gear" in buff_data["classification"]:
 			gear_buff_ids.append(buff)
 
 	for skill, skill_data in skill_data.items():
@@ -164,8 +164,8 @@ def extract_gear_buffs_and_skills(buff_data: dict, skill_data: dict) -> tuple:
 
 def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dict, tid_date_time: str) -> str:
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += "|!Name | !Prof | !{{FightTime}} |"
 	for buff_id in gear_buff_ids:
@@ -177,16 +177,18 @@ def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dic
 
 	for player in top_stats["player"].values():
 		fight_time = player["active_time"]
+		if fight_time == 0:
+			continue
 		account = player["account"]
 		name = player["name"]
-		tt_name = f'<span data-tooltip="{account}">{name}</span>'
+		tt_name = f'<div class="xtooltip"> {name} <span class="xtooltiptext" style="padding-left: 5px"> {account} </span></div>'
 		profession = "{{"+player["profession"]+"}}"
 		row = f"|{tt_name} | {profession} | {fight_time/1000:,.1f}|"
 
 		for buff_id in gear_buff_ids:
 			if buff_id in player["buffUptimes"]:
 				buff_uptime_ms = player["buffUptimes"][buff_id]['uptime_ms']
-				uptime_pct = f"{((buff_uptime_ms / fight_time) * 100):.2f}%"
+				uptime_pct = f"{((buff_uptime_ms / fight_time) * 100):.1f}%"
 			else:
 				uptime_pct = " - "
 
@@ -205,8 +207,8 @@ def build_gear_buff_summary(top_stats: dict, gear_buff_ids: list, buff_data: dic
 
 def build_gear_skill_summary(top_stats: dict, gear_skill_ids: list, skill_data: dict, tid_date_time: str) -> str:
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += "|!Name | !Prof | !{{FightTime}} |"
 	
@@ -221,7 +223,7 @@ def build_gear_skill_summary(top_stats: dict, gear_skill_ids: list, skill_data: 
 		fight_time = player["active_time"]
 		account = player["account"]
 		name = player["name"]
-		tt_name = f'<span data-tooltip="{account}">{name}</span>'
+		tt_name = f'<div class="xtooltip"> {name} <span class="xtooltiptext" style="padding-left: 5px"> {account} </span></div>'
 		profession = "{{"+player["profession"]+"}}"
 		row = f"|{tt_name} | {profession} | {fight_time/1000:,.1f}|"
 
@@ -234,7 +236,7 @@ def build_gear_skill_summary(top_stats: dict, gear_skill_ids: list, skill_data: 
 				crit_pct = f"{crit/connectedHits*100:.2f}" if crit > 0 else "0"
 				critDamage = player["targetDamageDist"][_skill]["critDamage"]
 				tooltip = f"Connected Hits: {connectedHits} <br>Crit: {crit} - ({crit_pct}%) <br>Crit Damage: {critDamage:,.0f}"
-				detailEntry = f'<div class="xtooltip"> {totalDamage:,.0f} <span class="xtooltiptext">'+tooltip+'</span></div>'
+				detailEntry = f'<div class="xtooltip"> {totalDamage:,.0f} <span class="xtooltiptext" style="padding-left: 5px">'+tooltip+'</span></div>'
 			else:
 				detailEntry = " - "
 			row += f" {detailEntry} |"
@@ -318,8 +320,8 @@ def build_tag_summary(top_stats):
 def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
 	"""Output a summary of the tag data in a human-readable format."""
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	rows.append("|thead-dark table-caption-top table-hover sortable|k")
 	rows.append("| Summary by Command Tag |c")
 	rows.append(
@@ -340,7 +342,7 @@ def output_tag_summary(tag_summary: dict, tid_date_time) -> None:
 		kills = tag_data["enemy_killed"]
 		downed = tag_data["squad_downed"]
 		deaths = tag_data["squad_deaths"]
-		tt_name = f'<span data-tooltip="{account}">{name}</span>'
+		tt_name = f'<span class="tooltip tooltip-right" data-tooltip="{account}">  {name}  </span>'
 		kdr = kills / deaths if deaths else kills
 		rows.append(
 			f"|{tt_name} | {profession} | {fights} | {downs} | {kills} | {downed} | {deaths} | {kdr:.2f}|"
@@ -398,8 +400,8 @@ def build_fight_summary(top_stats: dict, fight_data_charts, caption: str, tid_da
 		None
 	"""
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover|k\n"
 	header += f"| {caption} |c\n"
 	if fight_data_charts:
@@ -500,8 +502,8 @@ def build_damage_summary_table(top_stats: dict, caption: str, tid_date_time: str
 		None
 	"""
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	# Build the table header
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += f"| {caption} |c\n"
@@ -561,8 +563,8 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 	time_stats = ["resurrectTime", "condiCleanseTime", "condiCleanseTimeSelf", "boonStripsTime", "removedStunDuration", "boonStripDownContributionTime"]
 	defense_hits = {"damageTakenCount": 'damageTaken', "conditionDamageTakenCount": 'conditionDamageTaken', "powerDamageTakenCount": 'powerDamageTaken', "downedDamageTakenCount": 'downedDamageTaken', "damageBarrierCount": 'damageBarrier'}
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	for toggle in ["Total", "Stat/1s", "Stat/60s"]:
 		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="category_radio" type="match" text="{toggle}" animate="yes">\n')
 		# Build the table header
@@ -585,6 +587,8 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 				header += " !{{appliedCrowdControl}}{{downed}} |"
 			elif stat == "appliedCrowdControlDurationDownContribution":
 				header += " !{{appliedCrowdControlDuration}}{{downed}} |"
+			elif stat == "damageBarrier":
+				header += " !{{"+f"{stat}"+"}} | !{{"+f"{stat}"+"}} % |"
 			else:
 				header += " !{{"+f"{stat}"+"}} |"
 		header += "h"
@@ -631,6 +635,15 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 						stat_value = f"{stat_value/(fight_time/60):.2f}| {(total_hits-stat_value)/(fight_time/60):.2f}"
 					else:
 						stat_value = f"{stat_value:,}| {(total_hits-stat_value):,}"
+				elif stat == "damageBarrier":
+					player_damage_Taken = player[category].get("damageTaken", 0)
+					barrier_percentage = round((stat_value / player_damage_Taken) * 100, 1) if player_damage_Taken != 0 else 0
+					if toggle == "Stat/1s":
+						stat_value = f"{stat_value/fight_time:,.2f}| {barrier_percentage:.1f}%"
+					elif toggle == "Stat/60s":
+						stat_value = f"{stat_value/(fight_time/60):,.2f}| {barrier_percentage:.1f}%"
+					else:
+						stat_value = f"{stat_value:,}| {barrier_percentage:.1f}%"
 				else:
 					if toggle == "Stat/1s":
 						stat_value = f"{stat_value/fight_time:,.2f}"
@@ -658,8 +671,8 @@ def build_boon_summary(top_stats: dict, boons: dict, category: str, buff_data: d
 	
 	# Initialize a list to hold the rows of the table
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	
 	# Iterate for "Total" and "Average" views
 	for toggle in ["Total", "Average", "Uptime"]:
@@ -814,8 +827,8 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 	- Average uptime for each boon
 	"""
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	# Build the player table header
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += "|!Party |!Name | !Prof | !{{FightTime}} |"
@@ -853,7 +866,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 			uptime_percentage = f"{uptime_percentage:.3f}%"
 			tooltip = f"Uptime without resist reduction:<br>{uptime_percentage}"
 			# Add the tooltip to the row
-			detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext">'+tooltip+'</span></div>'
+			detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext" style="padding-left: 5px">'+tooltip+'</span></div>'
 		else:
 			uptime_ms = top_stats["overall"]["buffUptimes"][boon_id]["uptime_ms"]
 			uptime_percentage = round((uptime_ms / top_stats['overall']["active_time"]) * 100, 3)
@@ -882,7 +895,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 				uptime_percentage = f"{uptime_percentage:.3f}%"
 				tooltip = f"Uptime without resist reduction:<br>{uptime_percentage}"
 				# Add the tooltip to the row
-				detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext">'+tooltip+'</span></div>'
+				detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext" style="padding-left: 5px">'+tooltip+'</span></div>'
 			else:
 				uptime_ms = top_stats["overall"]["buffUptimes"]['group'][group][boon_id]["uptime_ms"]
 				uptime_percentage = round((uptime_ms / top_stats['overall']['group_data'][group]['fight_time']) * 100, 3)
@@ -914,7 +927,7 @@ def build_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, caption:
 				uptime_percentage = f"{uptime_percentage:.3f}%"
 				tooltip = f"Uptime without resist reduction:<br>{uptime_percentage}"
 				# Add the tooltip to the row
-				detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext">'+tooltip+'</span></div>'
+				detailEntry = f'<div class="xtooltip"> @@color:green; {offset_uptime_percentage}% @@ <span class="xtooltiptext" style="padding-left: 5px">'+tooltip+'</span></div>'
 			else:
 				uptime_ms = player["buffUptimes"][boon_id]["uptime_ms"]
 				uptime_percentage = round(uptime_ms / player['active_time'] * 100, 3)
@@ -955,8 +968,8 @@ def build_debuff_uptime_summary(top_stats: dict, boons: dict, buff_data: dict, c
 		tid_date_time (str): A string to use as the date and time for the table id.
 	"""
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	# Build the player table header
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += "|!Party |!Name | !Prof | !{{FightTime}} |"
@@ -1083,8 +1096,8 @@ def build_healing_summary(top_stats: dict, caption: str, tid_date_time: str) -> 
 	
 	# Initialize HTML rows for the table
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	
 	# Build the table header
 	for toggle in ["Total", "Squad", "Group", "Self", "OffSquad"]:
@@ -1156,8 +1169,8 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
 		prof_mod_list = personal_damage_mod_data[profession]
 
 		rows = []
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 		# Build the table header
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		# Add the caption to the header
@@ -1206,7 +1219,7 @@ def build_personal_damage_modifier_summary(top_stats: dict, personal_damage_mod_
 						# Build the tooltip
 						tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain:,.0f}<br>"
 						# Add the tooltip to the row
-						detailEntry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext">'+tooltip+'</span></div>'
+						detailEntry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext" style="padding-left: 5px">'+tooltip+'</span></div>'
 						row += f" {detailEntry}|"
 					else:
 						# If the modifier is not active, add a - to the row
@@ -1245,8 +1258,8 @@ def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict,
 			shared_mod_list.append(modifier)
 
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += f"| {caption} |c\n"
 	header += "|!Name | !Prof |!Account | !{{FightTime}} |"
@@ -1273,8 +1286,8 @@ def build_shared_damage_modifier_summary(top_stats: dict, damage_mod_data: dict,
 				hit_pct = 0
 				if total_count > 0:
 					hit_pct = hit_count / total_count * 100
-				tooltip = f"{hit_count} of {total_count} ({hit_pct:.2f}% hits)<br>Damage Gained: {damage_gain:,.0f}<br>"
-				detail_entry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext">{tooltip}</span></div>'
+				tooltip = f" {hit_count} of {total_count} ({hit_pct:.2f}% hits)<br> Damage Gained: {damage_gain:,.0f}"
+				detail_entry = f'<div class="xtooltip"> {damage_pct:.2f}% <span class="xtooltiptext" style="padding-left: 5px"> {tooltip} </span></div>'
 				row += f" {detail_entry}|"
 			else:
 				row += f" - |"
@@ -1310,12 +1323,12 @@ def build_skill_cast_summary(skill_casts_by_role: dict, skill_data: dict, captio
 		cast_skills = cast_data['total']
 		sorted_cast_skills = sorted(cast_skills.items(), key=lambda x: x[1], reverse=True)
 		rows = []
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += f"| {caption} |c\n"
 		header += "|!Name | !Prof |!Account | !{{FightTime}} |!"
-		apm_entry = f'<div class="xtooltip"> APM <span class="xtooltiptext">Total Actions per Minute /<br>APM without Autos</span></div>'
+		apm_entry = f'<div class="xtooltip"> APM <span class="xtooltiptext" style="padding-left: 5px">Total Actions per Minute /<br>APM without Autos</span></div>'
 		header += f" {apm_entry}|"
 		# Add the skill names to the header
 		i = 0
@@ -1465,8 +1478,8 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 
 	rows = []
 	rows.append('Tooltip for `Total hits` may be overstated if the skill does more than just downed healing\n\n')
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	header = "|thead-dark table-caption-top table-hover sortable|k\n"
 	header += "|Party |!@@display:block;width:150px;Name@@| !Prof | !{{FightTime}} |"
 	for skill in sorted_res_skills:
@@ -1536,7 +1549,7 @@ def build_main_tid(datetime, tag_list, guild_name, description_append):
 
 	main_created = f"{datetime}"
 	main_modified = f"{datetime}"
-	main_tags = f'{datetime[0:4]} {datetime[0:4]}-{datetime[4:6]} Logs'
+	main_tags = f'{datetime[0:4]} {datetime[0:7]} Logs'
 	main_title = f"{datetime}-Log-Summary"
 	
 	if description_append:
@@ -1618,7 +1631,7 @@ def build_dashboard_menu_tid(datetime: str) -> None:
 	caption = "Dashboard"
 	creator = "Drevarr@github.com"
 
-	text = (f"<<tabs '[[{datetime}-Support-Bubble-Chart]] [[{datetime}-DPS-Bubble-Chart]] [[{datetime}-Utility-Bubble-Chart]]' "
+	text = (f"<<tabs '[[{datetime}-Support-Bubble-Chart]] [[{datetime}-DPS-Bubble-Chart]] [[{datetime}-Utility-Bubble-Chart]] [[{datetime}-Total-Squad-Boon-Generation]] [[{datetime}-Total-Condition-Output-Generation]]' "
 			f"'{datetime}-Support-Bubble-Chart' '$:/temp/tab1'>>")
 
 	append_tid_for_output(
@@ -1792,8 +1805,8 @@ def build_fb_pages_tid(fb_pages: dict, caption: str, tid_date_time: str):
 		"42986": 1, "41968": 1, "41836": 2, "40988": 2, "44455": 2,
 	}
 	rows = []	
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	header = "|table-caption-top|k\n"
 	header += "|Firebrand page utilization, pages/minute|c\n"
 	header += "|thead-dark table-hover sortable|k"
@@ -1960,9 +1973,9 @@ def build_high_scores_tid(high_scores: dict, skill_data: dict, buff_data: dict, 
 					skill_icon = "unknown.png"
 				
 				detailEntry = f'[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}'
-				row = f"|<span data-tooltip='{acct}'> {prof_name} </span>-{fight}|{detailEntry} | {score:03,.2f}|"
+				row = f"|<span class='tooltip tooltip-right' data-tooltip='{acct}'> {prof_name} </span>-{fight}|{detailEntry} | {score:03,.2f}|"
 			else:
-				row = f"|<span data-tooltip='{acct}'> {prof_name} </span>-{fight}| {score:03,.2f}|"
+				row = f"|<span class='tooltip tooltip-right' data-tooltip='{acct}'> {prof_name} </span>-{fight}| {score:03,.2f}|"
 			rows.append(row)
 
 		# Add table title and close the div
@@ -2003,13 +2016,13 @@ def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_t
 			else:
 				mechanics_list.append(mechanic)
 
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
-		header = "|thead-dark table-caption-top-left table-hover sortable freeze-col|k\n"
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+		header = "|thead-dark table-caption-top-left table-hover sortable|k\n"
 		header += "|!Player |"
 		for mechanic in mechanics_list:
 			tooltip = f"{mechanics[fight][mechanic]['tip']}"
-			detailed_entry = f"<span class=\"tooltip\" title=\"{tooltip}\">{mechanic}</span>"
+			detailed_entry = f"<span class='tooltip' data-tooltip='{tooltip}'> {mechanic} </span>"
 			header += f" !{detailed_entry} |"
 
 		header += "h"
@@ -2021,7 +2034,7 @@ def build_mechanics_tid(mechanics: dict, players: dict, caption: str, tid_date_t
 				prof_name = "{{"+prof+"}} "+account
 			else:
 				prof_name = "{{"+prof+"}} "+name
-			row = f"|<span data-tooltip='{account}'> {prof_name} </span>|"
+			row = f"|<span class='tooltip tooltip-right' data-tooltip='{account}'> {prof_name} </span>|"
 			for mechanic in mechanics_list:
 				if player in mechanics[fight][mechanic]['data']:
 					row += f" {mechanics[fight][mechanic]['data'][player]} |"
@@ -2072,8 +2085,8 @@ def build_personal_buff_summary(top_stats: dict, buff_data: dict, personal_buff_
 		prof_buff_list = personal_buff_data[profession]
 
 		rows = []
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 		# Build the table header
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += "|!Party |!Name | !Prof | !{{FightTime}} |"
@@ -2102,7 +2115,7 @@ def build_personal_buff_summary(top_stats: dict, buff_data: dict, personal_buff_
 						buff_id_uptime = round((player_data['buffUptimes'][buff_id]['uptime_ms'] / player_data['active_time']) * 100, 2)
 						state_changes = player_data['buffUptimes'][buff_id]['state_changes']
 						tooltip = f"{state_changes} state changes"
-						detail_entry = f'<div class="xtooltip"> {buff_id_uptime:.2f}% <span class="xtooltiptext">{tooltip}</span></div>'
+						detail_entry = f'<span data-tooltip="{tooltip}"> {buff_id_uptime:.2f}% </span>'
 
 						row += f" {detail_entry} |"
 					else:
@@ -2154,8 +2167,8 @@ def build_minions_tid(minions: dict, players: dict, skill_data: dict, caption: s
 
 	for profession in minions:
 		rows = []
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 		toggle_options = ["Total", "Stat/1s", "Stat/60s"]
 
 		for toggle in toggle_options:
@@ -2186,9 +2199,9 @@ def build_minions_tid(minions: dict, players: dict, skill_data: dict, caption: s
 				fight_minutes = total_fight_time / 60
 
 				if player_name == player_profession:
-					row = f'|<span data-tooltip="{player_account}">{player_account}</span>| {fights}| {fight_time_str}|'
+					row = f'|<span class="tooltip tooltip-right" data-tooltip="{player_account}">{player_account}</span>| {fights}| {fight_time_str}|'
 				else:
-					row = f'|<span data-tooltip="{player_account}">{player_name}</span>| {fights}| {fight_time_str}|'
+					row = f'|<span class="tooltip tooltip-right" data-tooltip="{player_account}">{player_name}</span>| {fights}| {fight_time_str}|'
 
 				for minion in minions[profession]['pets_list']:
 					minion_count = 0
@@ -2228,7 +2241,7 @@ def build_minions_tid(minions: dict, players: dict, skill_data: dict, caption: s
 		rows.append("---")
 		rows.append("\n\n")
 
-		header3 = "|thead-dark table-caption-top-left table-hover sortable freeze-col|k\n"
+		header3 = "|thead-dark table-caption-top-left table-hover sortable|k\n"
 		header3 += "| Skill Casts / Minute |c\n"
 		header3 += "|!Player | !Fights| !Fight Time|!Minion |"
 		for pet_skill in minions[profession]['pet_skills_list']:
@@ -2251,9 +2264,9 @@ def build_minions_tid(minions: dict, players: dict, skill_data: dict, caption: s
 			for minion in minions[profession]['pets_list']:
 				if minion in minions[profession]['player'][player]:
 					if name == profession:
-						row = f'|<span data-tooltip="{account}">{account}</span>| {fights}| {fight_time}|{minion} |'
+						row = f'|<span class="tooltip tooltip-right" data-tooltip="{account}">{account}</span>| {fights}| {fight_time}|{minion} |'
 					else:
-						row = f'|<span data-tooltip="{account}">{name}</span>| {fights}| {fight_time}|{minion} |'
+						row = f'|<span class="tooltip tooltip-right" data-tooltip="{account}">{name}</span>| {fights}| {fight_time}|{minion} |'
 					for pet_skill in minions[profession]['pet_skills_list']:
 						if pet_skill in minions[profession]['player'][player][f"{minion}Skills"]:
 							skill_count = minions[profession]['player'][player][f"{minion}Skills"][pet_skill]
@@ -2302,16 +2315,16 @@ def build_top_damage_by_skill(total_damage_taken: dict, target_damage_dist: dict
 
 	# Prepare HTML rows for the table
 	rows = []
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	rows.append("|thead-dark table-borderless w-75 table-center|k")
 	rows.append("|!Top 25 Skills by Damage Output|")
 	rows.append("\n\n")
 	rows.append('\n<div class="flex-row">\n\n    <div class="flex-col">\n\n')
 
 	# Header for damage output table
-	header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
-	header += "|!Skill Name | Damage Taken | % of Total|h"
+	header = "|thead-dark table-caption-top-left table-hover table-center sortable|k\n"
+	header += "|!Skill Name | !Damage Taken | !% of Total|h"
 	rows.append(header)
 	
 	# Populate the table with top 25 skills by damage output
@@ -2327,8 +2340,8 @@ def build_top_damage_by_skill(total_damage_taken: dict, target_damage_dist: dict
 	rows.append('\n\n</div>\n\n    <div class="flex-col">\n\n')
 
 	# Header for damage taken table
-	header = "|thead-dark table-caption-top-left table-hover table-center sortable freeze-col|k\n"
-	header += "|!Skill Name | Damage Taken | % of Total|h"
+	header = "|thead-dark table-caption-top-left table-hover table-center sortable|k\n"
+	header += "|!Skill Name | !Damage Taken | !% of Total|h"
 	rows.append(header)
 
 	# Populate the table with top 25 skills by damage taken
@@ -2391,15 +2404,15 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 		rows = []
 
 		rows.append("---\n\n")
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 		rows.append("|thead-dark table-borderless w-75 table-center|k")
 		rows.append("|!Healer Outgoing Stats - excludes downed healing|")
 		rows.append("\n\n")
 		rows.append('\n<div class="flex-row">\n\n    <div class="flex-col">\n\n')
 
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
-		header += "|!Skill Name |!Hits | !Total Healing| !Avg Healing| !Max Heal| !Pct|h"
+		header += "|!Skill Name |!Hits | !Total| !Avg| !Max| !Pct|h"
 		rows.append(header)
 
 		outgoing_healing = top_stats['player'][healer]['extHealingStats'].get('outgoing_healing', 0)
@@ -2426,7 +2439,7 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += "| Total Barrier |c\n"
-		header += "|!Skill Name |!Hits | !Total Barrier| !Avg Barrier| !Max Barrier| !Pct|h"
+		header += "|!Skill Name |!Hits | !Total| !Avg| !Max| !Pct|h"
 		rows.append(header)
 
 		outgoing_barrier = top_stats['player'][healer]['extBarrierStats'].get('outgoing_barrier', 0)
@@ -2452,7 +2465,7 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 
 		header = "|thead-dark table-caption-top table-hover sortable|k\n"
 		header += "| Heal/Barrier by Target |c\n"
-		header += "|!Player |!Total Healing | !Downed Healing| !Total Barrier|h"
+		header += "|!Player |!Healing | !Downed Healing| !Barrier|h"
 		rows.append(header)
 
 		targets_used = []
@@ -2568,8 +2581,8 @@ def build_damage_outgoing_by_player_skill_tids(top_stats: dict, skill_data: dict
 		name, profession, account = player.split("|")
 
 		# Build the table header
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')		
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')		
 		header = "|thead-dark table-caption-top table-hover sortable w-75 table-center|k\n"
 		header += "|{{"+profession+"}}"+f" - {name} - {account}|c\n"
 		header += "|!Skill Name | !Damage | !Hits | !Dmg/Hit | !% of Total|h"
@@ -2639,7 +2652,7 @@ def build_squad_composition(top_stats: dict, tid_date_time: str, tid_list: list)
 				profession, name = player.split("|")
 				profession = "{{"+profession+"}}"
 				tooltip = f" {name} "
-				detailEntry = f'<div class="xtooltip"> {profession} <span class="xtooltiptext">'+name+'</span></div>'
+				detailEntry = f'<div class="xtooltip"> {profession} <span class="xtooltiptext" style="padding_left: 5px;">'+name+'</span></div>'
 				row += f" {detailEntry} |"
 			rows.append(row)			
 		rows.append("</div>\n\n")
@@ -2709,8 +2722,8 @@ def build_on_tag_review(death_on_tag, tid_date_time):
 	tid_tags = tid_date_time
 
 	# Add the select component to the table
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
 	rows.append("| On Tag Review |c")
 	header = "|!Player |!Profession | !Avg Dist| !On-Tag<br>{{deadCount}} | !Off-Tag<br>{{deadCount}} | !After-Tag<br>{{deadCount}} | !Run-Back<br>{{deadCount}} | !Total<br>{{deadCount}} |!OffTag Ranges|h"
@@ -2729,7 +2742,7 @@ def build_on_tag_review(death_on_tag, tid_date_time):
 		run_back = death_on_tag[name_prof]['Run_Back']
 		total = death_on_tag[name_prof]['Total']
 		off_tag_ranges = death_on_tag[name_prof]['Ranges']
-		row = f"|<span data-tooltip='{account}'>{player}</span> | {{{{{profession}}}}} {profession[:3]} | {avg_dist} | {on_tag} | {off_tag} | {after_tag} | {run_back} | {total} |{off_tag_ranges} |"
+		row = f"|<span class='tooltip tooltip-right' data-tooltip=' {account}'> {player} </span> | {{{{{profession}}}}} {profession[:3]} | {avg_dist} | {on_tag} | {off_tag} | {after_tag} | {run_back} | {total} |{off_tag_ranges} |"
 		rows.append(row)
 
 	rows.append("</div>\n\n\n")
@@ -2858,7 +2871,7 @@ def build_utility_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_
 		for condition in boons:
 			if condition in player_data["targetBuffs"] and player_data["targetBuffs"][condition]["uptime_ms"] > 0:
 				condi_name = boons[condition]['name'].lower()
-				condi_wt = int(weights["Condition_Weights"].get(condi_name, 0))				
+				condi_wt = float(weights["Condition_Weights"].get(condi_name, 0))				
 				condi_generated = (player_data["targetBuffs"][condition]["uptime_ms"] / 1000) * condi_wt
 				cps += round(condi_generated / fight_time, 2)
 
@@ -2869,7 +2882,7 @@ def build_utility_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_
 		for boon in boons:
 			if boon in player_data["squadBuffs"] and player_data["squadBuffs"][boon]["generation"] > 0:
 				boon_name = boons[boon]['name'].lower()
-				boon_wt = int(weights["Boon_Weights"].get(boon_name, 0))
+				boon_wt = float(weights["Boon_Weights"].get(boon_name, 0))
 				generated = (player_data["squadBuffs"][boon]["generation"] / 1000) * boon_wt
 				boon_ps += round(generated / fight_time, 2)
 		player_entry.append(round(boon_ps, 2))
@@ -2945,7 +2958,7 @@ def build_support_bubble_chart(top_stats: dict, boons: dict, weights: dict, tid_
 		for boon in boons:
 			if boon in player_data["squadBuffs"] and player_data["squadBuffs"][boon]["generation"] > 0:
 				boon_name = boons[boon]['name'].lower()
-				boon_wt = int(weights["Boon_Weights"].get(boon_name, 0))
+				boon_wt = float(weights["Boon_Weights"].get(boon_name, 0))
 				generated = (player_data["squadBuffs"][boon]["generation"] / 1000) * boon_wt
 				boon_ps += round(generated / fight_time, 2)
 		player_entry.append(round(boon_ps, 2))
@@ -3032,24 +3045,292 @@ def build_DPS_bubble_chart(top_stats: dict, tid_date_time: str, tid_list: list, 
 		tid_list
 	)
 
-def build_boon_generation_bar_chart(top_stats: dict, boons: dict, tid_date_time: str, tid_list: list) -> None:
-	player_boon_generation = {}
+def build_boon_generation_bar_chart(top_stats: dict, boons: dict, weights: dict, tid_date_time: str, tid_list: list) -> None:
+	total_boon_generation = []
+	playerCount = 0
 
-	for player in top_stats['player']:
-		name = player['name']
-		profession = player['profession']
+	for player, player_data in top_stats['player'].items():
+		player_active_time = int(player_data['active_time'])
+		if player_active_time == 0:
+			continue
+		playerCount += 1
+		player_boon_generation = []
+		name = player_data['name']
+		profession = player_data['profession']
 		prof_name = "{{"+profession+"}} - "+name
-		player_active_time = player['active_time']
-		if prof_name not in player_boon_generation:
-			player_boon_generation[prof_name] = []
-		for boon in boons:
+		player_total = 0
+		player_boon_generation.append(prof_name)
+		
+		for boon in boons:			
 			if boon in ['b5974', 'b13017', 'b10269']:
 				continue
-			ms_generated = player['squadBuffs'].get(boon, 0)
-			gen_per_sec = ms_generated / player_active_time	
-			player_boon_generation[prof_name].append(gen_per_sec)
+			generation_ms = player_data['squadBuffs'].get(boon, {}).get('generation', 0)
+			boon_weight = float(weights['Boon_Weights'].get(boons[boon].lower(), 0))
+			#print(f"Boon Wt Type: {type(boon_weight)}")
+			gen_per_sec = (generation_ms / player_active_time)
+			wt_gen_per_sec = gen_per_sec * boon_weight
+			player_boon_generation.append(f"{wt_gen_per_sec:.3g}")
+			player_total += (wt_gen_per_sec)
+		player_boon_generation.append(f"{player_total:.3g}")
+		player_boon_generation.append(profession)
 
-			
+		total_boon_generation.append(player_boon_generation)
+
+	calcHeight = str(playerCount*25)
+	chart_text = f"""
+<$echarts $text=```
+const dataset = [
+  {{
+    dimensions: [
+      'Player',"Might", "Fury", "Quickness", "Alacrity", "Protection", "Regeneration", "Vigor", "Aegis", "Stability", "Swiftness", "Resistance", "Resolution",'Total','Profession'
+    ],
+    source: {total_boon_generation}
+  }}
+];
+function buildSeries(datasetIndex = 1) {{
+  // List of dimensions we don't want as boons
+  const skip = ['Player', 'Total', 'Profession'];
+
+  // Grab dimensions from your dataset
+  const dimensions = dataset[0].dimensions;
+
+  // Capitalize helper
+  const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
+
+  // Build the series for each boon
+  return dimensions
+    .filter(dim => !skip.includes(dim)) // skip unwanted dimensions
+    .map(dim => ({{
+      type: 'bar',
+      stack: 'totalBoons',
+      name: capitalize(dim),
+      encode: {{ y: 'Player', x: dim }},
+      datasetIndex
+    }}));
+}}
+
+boonSeries = buildSeries(1);
+
+const boonColors = [
+    '#e69f00',  // Orange
+    '#56b4e9',  // Sky blue
+    '#009e73',  // Bluish green
+    '#f0e442',  // Yellow
+    '#0072b2',  // Blue
+    '#d55e00',  // Vermillion
+    '#cc79a7',  // Reddish purple
+    '#999999',  // Gray
+    '#6a3d9a',  // Deep purple
+    '#b15928',  // Brown
+    '#17becf',  // Cyan
+    '#bcbd22',  // Olive green
+];
+
+option = {{
+  title:{{
+    text: 'Weighted Total Squad Boon Generation',
+    subtext: 'Generation per Second',
+    top: 'top',
+    right: 'center'
+  }},  
+  color: boonColors,
+  legend: {{
+    type: 'scroll',
+    orient: 'vertical',
+    left: 10,
+    top: 20,
+    bottom: 20,
+    }},
+  tooltip: {{trigger: 'axis'}},
+  grid: {{left: '25%', top: '10%'}},
+  dataset: [
+    {{
+      dimensions: dataset[0].dimensions,
+      source: dataset[0].source
+    }},
+    {{
+      transform: {{
+        type: 'sort',
+        config: [
+          {{ dimension: 'Total', order: 'asc' }},
+          {{ dimension: 'Profession', order: 'desc' }}
+          
+        ]
+      }}
+    }}
+  ],
+  yAxis: {{
+    type: 'category',
+    axisLabel: {{ interval: 0, rotate: 0 }}
+  }},
+  xAxis: {{}},
+  dataZoom: [
+    {{
+      type: 'slider',
+      yAxisIndex: 0,
+      filterMode: 'none'
+    }},
+    {{
+      type: 'inside',
+      yAxisIndex: 0,
+      filterMode: 'none'
+    }}
+  ],    
+  series: boonSeries
+}};
+```$height="{calcHeight}px" $width="100%" $theme="dark"/>
+"""
+	tid_title = f"{tid_date_time}-Total-Squad-Boon-Generation"
+	tid_caption = "Total Squad Boon Generation"
+	tid_tags = tid_date_time
+	append_tid_for_output(
+		create_new_tid_from_template(tid_title, tid_caption, chart_text, tid_tags),
+		tid_list
+	)
+
+def build_condition_generation_bar_chart(top_stats: dict, conditions: dict, weights: dict, tid_date_time: str, tid_list: list) -> None:
+	total_condition_generation = []
+	playerCount = 0
+
+	for player, player_data in top_stats['player'].items():
+		player_active_time = int(player_data['active_time'])
+		if player_active_time == 0:
+			continue
+		playerCount += 1
+		player_condition_generation = []
+		name = player_data['name']
+		profession = player_data['profession']
+		prof_name = "{{"+profession+"}} - "+name
+		player_total = 0
+		player_condition_generation.append(prof_name)
+		
+		for boon in conditions:			
+			if boon in ['b5974', 'b13017', 'b10269']:
+				continue
+			generation_ms = player_data['targetBuffs'].get(boon, {}).get('uptime_ms', 0)
+			boon_weight = float(weights['Condition_Weights'].get(conditions[boon].lower(), 0))
+			#print(f"Condition Wt Type: {type(boon_weight)}")
+			gen_per_sec = (generation_ms / player_active_time)
+			wt_gen_per_sec = gen_per_sec * boon_weight
+			player_condition_generation.append(f"{wt_gen_per_sec:.3g}")
+			player_total += (wt_gen_per_sec)
+		player_condition_generation.append(f"{player_total:.3g}")
+		player_condition_generation.append(profession)
+
+		total_condition_generation.append(player_condition_generation)
+	calcHeight = str(playerCount*25)
+	chart_text = f"""
+<$echarts $text=```
+const dataset = [
+  {{
+    dimensions: [
+      'Player',"Bleeding", "Burning", "Confusion", "Poison", "Torment", "Blind", "Chilled", "Crippled", "Fear", "Immobile", "Slow", "Weakness", "Taunt",  "Vulnerability",'Total','Profession'
+    ],
+    source: {total_condition_generation}
+  }}
+];
+function buildSeries(datasetIndex = 1) {{
+  // List of dimensions we don't want as boons
+  const skip = ['Player', 'Total', 'Profession'];
+
+  // Grab dimensions from your dataset
+  const dimensions = dataset[0].dimensions;
+
+  // Capitalize helper
+  const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
+
+  // Build the series for each boon
+  return dimensions
+    .filter(dim => !skip.includes(dim)) // skip unwanted dimensions
+    .map(dim => ({{
+      type: 'bar',
+      stack: 'totalBoons',
+      name: capitalize(dim),
+      encode: {{ y: 'Player', x: dim }},
+      datasetIndex
+    }}));
+}}
+
+boonSeries = buildSeries(1);
+
+const boonColors = [
+	'#b22222', //Might
+	'#FD6124', //Fury
+	'#800000', //Quickness
+	'#710193', //Alacrity
+	'#848482', //Protection
+	'#228B22', //Regeneration
+	'#00008B', //Vigor
+	'#0095B6', //Aegis
+	'#494F55', //Stability
+	'#F1C40F', //Swiftness
+	'#d3d3d3', //Resistance
+	'#D891EF', //Resolution
+];
+
+option = {{
+  title:{{
+    text: 'Weighted Total Condition Output Generation',
+    subtext: 'Generation per Second',
+    top: 'top',
+    right: 'center'
+  }},  
+  color: boonColors,
+  legend: {{
+    type: 'scroll',
+    orient: 'vertical',
+    left: 10,
+    top: 20,
+    bottom: 20,
+    }},
+  tooltip: {{trigger: 'axis'}},
+  grid: {{left: '25%', top: '10%'}},
+  dataset: [
+    {{
+      dimensions: dataset[0].dimensions,
+      source: dataset[0].source
+    }},
+    {{
+      transform: {{
+        type: 'sort',
+        config: [
+          {{ dimension: 'Total', order: 'asc' }},
+          {{ dimension: 'Profession', order: 'desc' }}
+          
+        ]
+      }}
+    }}
+  ],
+  yAxis: {{
+    type: 'category',
+    axisLabel: {{ interval: 0, rotate: 0 }}
+  }},
+  xAxis: {{}},
+  dataZoom: [
+    {{
+      type: 'slider',
+      yAxisIndex: 0,
+      filterMode: 'none'
+    }},
+    {{
+      type: 'inside',
+      yAxisIndex: 0,
+      filterMode: 'none'
+    }}
+  ],    
+  series: boonSeries
+}};
+```$height="{calcHeight}px" $width="100%" $theme="dark"/>
+"""
+	tid_title = f"{tid_date_time}-Total-Condition-Output-Generation"
+	tid_caption = "Total Condition Output Generation"
+	tid_tags = tid_date_time
+	append_tid_for_output(
+		create_new_tid_from_template(tid_title, tid_caption, chart_text, tid_tags),
+		tid_list
+	)
+
+
 def build_mesmer_clone_usage(mesmer_clone_usage: dict, tid_date_time: str, tid_list: list) -> None: 
 	"""
 	Build and append a table of Mesmer clone usage for all players in the log.
@@ -3079,7 +3360,7 @@ def build_mesmer_clone_usage(mesmer_clone_usage: dict, tid_date_time: str, tid_l
 	for player, data in mesmer_clone_usage.items():
 		name=player.split("_")[0]
 		prof="{{"+player.split("_")[1]+"}}"
-		rows.append('\n<div class="flex-col-1 border py-3 px-5 border">\n')
+		rows.append('\n<div class="flex-col-1 py-3 px-5">\n')
 		rows.append(f'\n|{prof} {name} | <span class="dot"></span><span class="dot"></span><span class="dot"></span> | <span class="dot1"></span><span class="dot"></span><span class="dot"></span> | <span class="dot1"></span><span class="dot1"></span><span class="dot"></span> | <span class="dot1"></span><span class="dot1"></span><span class="dot1"></span> | Total |h')
 
 		for spell in data:
@@ -3124,8 +3405,8 @@ def build_attendance_table(top_stats: dict, tid_date_time: str, tid_list: list) 
 	tid_caption = "Attendance"
 	tid_tags = tid_date_time
 
-	rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-	rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+	
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	rows.append("\n\n|thead-dark table-caption-top table-hover|k")
 	rows.append("| Attendance Review |c")
 	rows.append("|Account|Name|Profession| Num Fights| Active Time| Status |h")
@@ -3229,8 +3510,8 @@ def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff
 		conditionCleanses = cmd_data["defenses"].get("conditionCleanses",0)
 		receivedCrowdControl = cmd_data["defenses"].get("receivedCrowdControl",0)
 		damageGain = int(prot_data["damageGain"])
-		rows.append('<style>\nthead th {position: sticky; top: 1.4em; background-color: #343a40; z-index: 1;}\ntable caption {position: sticky; top: 0; background-color: <<colour tab-background>>; z-index: 2;}\n</style>\n')
-		rows.append('<div style="max-height: 600px; overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+		
+		rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 		rows.append('<div class="flex-row">\n    <div class="flex-col">\n\n')
 		rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
 		if tag_prof == tag_name:
@@ -3253,7 +3534,7 @@ def build_commander_summary(commander_summary_data: dict, skill_data: dict, buff
 			healing = int(data["outgoing_healing"])
 			barrier = int(data["outgoing_barrier"])
 			downed = int(data["downed_healing"])
-			rows.append(f"|{healer_profession} <span data-tooltip='{healer_account}'> {healer_name} </span>| {healing:,}| {barrier:,}| {downed:,}|")
+			rows.append(f"|{healer_profession} <span class='tooltip tooltip-right' data-tooltip='{healer_account}'> {healer_name} </span>| {healing:,}| {barrier:,}| {downed:,}|")
 		rows.append("\n\n")
 		rows.append('</div>\n    <div class="flex-col">\n\n')
 		rows.append("\n\n|thead-dark table-caption-top table-hover sortable|k")
