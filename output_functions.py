@@ -16,6 +16,7 @@
 import config
 import json
 #import os
+import requests
 import sqlite3
 import xlsxwriter
 from glicko2 import Player as GlickoPlayer
@@ -4870,6 +4871,110 @@ def build_leaderboard_menu_tid(datetime: str, leaderboard_stats: dict, tid_list:
 		create_new_tid_from_template(title, caption, text, tags, creator=creator),
 		tid_list
 	)
+
+def build_boon_support_data(top_stats: dict, support_profs: dict, boon_dict: dict) -> None:
+	"""
+	Build data for the boon support stats to Discord.
+	"""
+	boon_support_data = {}
+	print("Building data for boon support stats to Discord")
+	# Iterate over the support professions
+	for profession, support_boons in support_profs.items():
+		# Initialize the support data for this profession
+		profession = profession.title()
+		boon_support_data[profession] = []
+		header=["Name", "#F", "Time"]
+		for boon in support_boons:
+			header.append(boon_dict[boon][:4])
+		boon_support_data[profession].append(header)
+
+		# Iterate over the players of this profession
+		for player, data in top_stats["player"].items():
+			if data["profession"] == profession and data["fight_time"]:
+				# Initialize the support data for this player
+				player_data = []
+				player_data.append(data["name"])
+				player_data.append(data["num_fights"])
+				#player_data.append(data["guild_status"])
+				player_data.append(round(data["fight_time"]/1000,1))
+				# Iterate over the support boons
+				for boon in support_boons:
+					# Set the generation for this boon to 0 if not found
+					boon_gen_sec = round(data['squadBuffs'].get(boon, {}).get('generation', 0)/data["fight_time"],2)
+					player_data.append(boon_gen_sec)
+				boon_support_data[profession].append(player_data)
+
+	return boon_support_data
+
+
+def send_profession_boon_support_embed(webhook_url: str, profession: str, prof_icon: str, prof_color: str, tid_date_time: str, data: list) -> None:
+    """
+    Build and send a Discord embed containing a profession name and ASCII table.
+    """
+	
+    # Limit name field to 12 characters
+    for row in data[1:]:
+        row[0] = str(row[0])[:12]
+
+    # Format buffs with 2 decimals
+    for row in data[1:]:
+        for i in range(3, len(row)):
+            row[i] = f"{float(row[i]):.2f}"
+
+    # Column widths
+    column_widths = [max(len(str(item)) for item in col) for col in zip(*data)]
+
+    # Max digit length for Fights
+    fight_digit_len = max((len(str(row[1])) for row in data[1:]), default=1)
+
+    def format_cell(item, idx, width):
+        if idx == 0:  # Name
+            return f"{str(item):<{width}}"
+        elif idx == 1:  # Fights → zero-filled & centered
+            if isinstance(item, str) and not item.isdigit():
+                return f"{item:^{width}}"
+            num_str = str(item).zfill(fight_digit_len)
+            return f"{num_str:^{width}}"
+        #elif idx == 2:  # Time → centered
+        #    return f"{str(item):^{width}}"
+        else:  # Buffs → right-aligned
+            return f"{str(item):>{width}}"
+
+    # Build ASCII table
+    lines = []
+    header_line = " | ".join(format_cell(item, idx, width)
+                             for idx, (item, width) in enumerate(zip(data[0], column_widths)))
+    lines.append(header_line)
+    lines.append("-+-".join("-" * width for width in column_widths))
+
+    for row in data[1:]:
+        data_line = " | ".join(format_cell(item, idx, width)
+                               for idx, (item, width) in enumerate(zip(row, column_widths)))
+        lines.append(data_line)
+
+    ascii_table = "\n".join(lines)
+
+    # Construct the embed
+    embed = {
+        "author": {
+        "name": profession,  # shows bold text with the icon
+        "icon_url": prof_icon
+    },
+        "title": f"Support Boon Generation/Second on {tid_date_time}",
+        "description": f"```\n{ascii_table}\n```",
+        "footer": {
+            "text": "TopStats - GW2_EI_Log_Combiner",
+            "icon_url": "https://avatars.githubusercontent.com/u/16168556?s=48&v=4"
+    }
+	}
+
+    # Send to Discord
+    payload = {"embeds": [embed]}
+    response = requests.post(webhook_url, json=payload)
+
+    if response.status_code != 204:
+        raise Exception(f"Failed to send embed: {response.status_code}, {response.text}")
+
 
 def write_data_to_excel(top_stats: dict, last_fight: str, excel_path: str = "Top_Stats.xlsx") -> None:
     """

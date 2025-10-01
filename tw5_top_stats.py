@@ -75,6 +75,16 @@ if __name__ == '__main__':
 		if section in weights:
 			weights[section] = dict(config_ini[section])
 
+	# Load support professions and boons to track
+	if "SupportProfs" in config_ini:
+		support_profs = {}
+		for prof, boons in config_ini["SupportProfs"].items():
+			support_profs[prof] = [b.strip() for b in boons.split(",")]
+	else:
+		support_profs = None
+
+
+
 	# Output filenames
 	if not args.xls_output_filename:
 		args.xls_output_filename = os.path.join(input_directory, f"TW5_top_stats_{tid_date_time}.xls")
@@ -101,6 +111,9 @@ if __name__ == '__main__':
 	excel_path = config_ini.get('TopStatsCfg', 'excel_path', fallback='.')
 
 	skill_casts_by_role_limit = config_ini.getint('TopStatsCfg', 'skill_casts_by_role_limit', fallback=40)
+
+
+	webhook_url = config_ini.get('DiscordCfg', 'webhook_url', fallback=None)
 
 	# Ensure output directories exist
 	os.makedirs(db_path, exist_ok=True)
@@ -370,3 +383,17 @@ if __name__ == '__main__':
 		print("Please review and add to config.py file")
 	else:
 		print("No new team codes found")
+
+	if webhook_url and support_profs:
+		boon_support_data = build_boon_support_data(top_stats, support_profs, config_output.boons)
+		profession_icons = config_output.profession_icons
+
+		for profession, support_data in boon_support_data.items():
+			print("Sending boon support data for " + profession)
+			print(support_data)
+			send_profession_boon_support_embed(webhook_url, profession, profession_icons[profession], profession_color[profession], tid_date_time, support_data)
+	else:
+		if not support_profs: 
+			print("No support professions found")
+		if not webhook_url:
+			print("No webhook URL found")
