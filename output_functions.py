@@ -5139,7 +5139,7 @@ def write_data_to_db(top_stats: dict, last_fight: str, db_path: str = "Top_Stats
 			round(player_stats['squadBuffs'].get('b873', {}).get('generation', 0) / 1000, 2)
 		]
 
-		cursor.execute(f'INSERT OR IGNORE INTO player_stats {fields} VALUES {placeholders}', stats_values)
+		cursor.execute(f'INSERT OR REPLACE INTO player_stats {fields} VALUES {placeholders}', stats_values)
 		conn.commit()
 
 	conn.close()
