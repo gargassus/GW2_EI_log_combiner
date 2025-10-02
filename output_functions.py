@@ -4966,9 +4966,11 @@ def send_profession_boon_support_embed(webhook_url: str, profession: str, prof_i
     },
         "title": f"Support Boon Generation/Second on {tid_date_time}",
         "description": f"```\n{ascii_table}\n```",
+		"color": prof_color,
         "footer": {
             "text": "TopStats - GW2_EI_Log_Combiner",
             "icon_url": "https://avatars.githubusercontent.com/u/16168556?s=48&v=4"
+		
     }
 	}
 

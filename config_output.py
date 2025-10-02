@@ -293,6 +293,47 @@ profession_icons = {
 	"Unknown":"Unknown_icon_png",
 }
 
+profession_discord_color = {
+    ## WARRIORS
+    "Warrior":     0xFF9933, "Berserker": 0xFFA750, "Spellbreaker": 0xFFB66D,
+    "Bladesworn":  0xFFC48A, "Paragon":   0xFFD2A7,
+
+    ## GUARDIANS
+    "Guardian":    0x3399CC, "Dragonhunter": 0x50A7D3, "Firebrand": 0x6DB6DA,
+    "Willbender":  0x8AC4E1, "Luminary":    0xA7D2E8,
+
+    ## REVENANTS
+    "Revenant":    0xCC6342, "Herald":   0xD3795D, "Renegade": 0xDA8F78,
+    "Vindicator":  0xE1A593, "Conduit":  0xE7B7AE,
+
+    ## ENGINEERS
+    "Engineer":    0x996633, "Scrapper": 0xA77B50, "Holosmith": 0xB6916D,
+    "Mechanist":   0xC4A78A, "Amalgam":  0xD2B6A7,
+
+    ## RANGERS
+    "Ranger":      0x66CC33, "Druid":   0x7BD350, "Soulbeast": 0x91DA6D,
+    "Untamed":     0xA7E18A, "Galeshot": 0xBDE7A7,
+
+    ## THIEVES
+    "Thief":       0xCC6666, "Daredevil": 0xD37B7B, "Deadeye": 0xDA9191,
+    "Specter":     0xE1A7A7, "Antiquary": 0xE8BDBD,
+
+    ## ELEMENTALISTS
+    "Elementalist":0xEC5752, "Tempest": 0xEE6F6A, "Weaver": 0xF18783,
+    "Catalyst":    0xF49F9C, "Evoker":  0xF6B7B5,
+
+    ## MESMERS
+    "Mesmer":      0x993399, "Chronomancer": 0xA750A7, "Mirage": 0xB66DB6,
+    "Virtuoso":    0xC48AC4, "Troubadour": 0xD2A7D2,
+
+    ## NECROMANCERS
+    "Necromancer": 0x339966, "Reaper": 0x50A77B, "Scourge": 0x6DB691,
+    "Harbinger":   0x8AC4A7, "Ritualist": 0xA7D2BD,
+
+    ## BETA / Unknown
+    "Unknown":     0xFFFFFF,
+}
+
 leaderboard_stats = {
     'damage': "DPS",
     'down_contribution': "Down Contribution",

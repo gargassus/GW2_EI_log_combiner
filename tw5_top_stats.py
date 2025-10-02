@@ -385,13 +385,14 @@ if __name__ == '__main__':
 		print("No new team codes found")
 
 	if webhook_url and support_profs:
+		discord_colors = config_output.profession_discord_color
 		boon_support_data = build_boon_support_data(top_stats, support_profs, config_output.boons)
 		profession_icons = config_output.profession_icons
 
 		for profession, support_data in boon_support_data.items():
 			print("Sending boon support data for " + profession)
 			print(support_data)
-			send_profession_boon_support_embed(webhook_url, profession, profession_icons[profession], profession_color[profession], tid_date_time, support_data)
+			send_profession_boon_support_embed(webhook_url, profession, profession_icons[profession], discord_colors[profession], tid_date_time, support_data)
 	else:
 		if not support_profs: 
 			print("No support professions found")
