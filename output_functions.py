@@ -4883,20 +4883,22 @@ def build_boon_support_data(top_stats: dict, support_profs: dict, boon_dict: dic
 		# Initialize the support data for this profession
 		profession = profession.title()
 		boon_support_data[profession] = []
-		header=["Name", "#F", "Time"]
+		header=["Name", "#F"]
 		for boon in support_boons:
 			header.append(boon_dict[boon][:4])
 		boon_support_data[profession].append(header)
 
 		# Iterate over the players of this profession
 		for player, data in top_stats["player"].items():
+			if data["guild_status"] == "--==Non Member==--":
+				continue
 			if data["profession"] == profession and data["fight_time"]:
 				# Initialize the support data for this player
 				player_data = []
 				player_data.append(data["name"])
 				player_data.append(data["num_fights"])
 				#player_data.append(data["guild_status"])
-				player_data.append(round(data["fight_time"]/1000,1))
+				#player_data.append(round(data["fight_time"]/1000,1))
 				# Iterate over the support boons
 				for boon in support_boons:
 					# Set the generation for this boon to 0 if not found
@@ -4911,6 +4913,8 @@ def send_profession_boon_support_embed(webhook_url: str, profession: str, prof_i
     """
     Build and send a Discord embed containing a profession name and ASCII table.
     """
+    if len(data) <= 1:
+        return
 	
     # Limit name field to 12 characters
     for row in data[1:]:
