@@ -565,7 +565,6 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, enable_h
 	defense_hits = {"damageTakenCount": 'damageTaken', "conditionDamageTakenCount": 'conditionDamageTaken', "powerDamageTakenCount": 'powerDamageTaken', "downedDamageTakenCount": 'downedDamageTaken', "damageBarrierCount": 'damageBarrier'}
 	rows = []
 	
-	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 
 	if enable_hide_columns:
 		column_control_list = []
@@ -606,19 +605,56 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, enable_h
 				num_columns += 1
 		
 
-		style_info = "<style>\n"	
+		style_info = "<style>\n/* === Column visibility rules === */\n"	
 		for i in range(4, num_columns):
 			if i == num_columns - 1:
-				style_info += f".col-toggle:has(#toggle-col{i+1}:not(:checked)) tr > *:nth-child({i+1}) {{\n  display: none;\n}}\n</style>\n<div class='col-toggle'>\n\n"
+				style_info += f".col-toggle:has(#toggle-col{i+1}:not(:checked)) tr > *:nth-child({i+1}) {{\n  display: none;\n}}"
 			else:
 				style_info += f".col-toggle:has(#toggle-col{i+1}:not(:checked)) tr > *:nth-child({i+1}),\n"
-		hide_controls = "\n|tc-center|k\n|Uncheck to hide columns |"
+		hide_controls = "Hide Columns:"
 		for i, stat in enumerate(column_control_list):
 			hide_controls += f" <label><input type='checkbox' id='toggle-col{i+5}' checked> {stat}</label>"
-		hide_controls += "|h\n\n"
-		rows.append(style_info)
-		rows.append(hide_controls)
+		hide_controls += "\n"
+		style_info += """
+.col-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em 0.5em;
+  align-items: center;
+  background: #343a40;
+  color: #eee;
+  border-radius: 0.5em;
+  padding: 0.6em 1em;
+  margin-bottom: 0.8em;
+  font-size: 0.9em;
+}
 
+.col-controls label {
+  display: flex;
+  align-items: center;
+  gap: 0.2em;
+  background: #333;
+  padding: 0.2em 0.5em;
+  border-radius: 0.3em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.col-controls label:hover {
+  background: #444;
+}
+
+.col-controls input[type="checkbox"] {
+  accent-color: #6cf;
+}
+</style>
+<div class='col-toggle'>
+
+<div class="col-controls">"""
+		rows.append(style_info)
+		hide_controls += "\n</div>\n"
+		rows.append(hide_controls)
+	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
 	for toggle in ["Total", "Stat/1s", "Stat/60s"]:
 		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="category_radio" type="match" text="{toggle}" animate="yes">\n')
 		# Build the table header
