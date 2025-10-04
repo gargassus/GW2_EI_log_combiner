@@ -547,7 +547,7 @@ def build_damage_summary_table(top_stats: dict, caption: str, tid_date_time: str
 		tid_list
 		)
 
-def build_category_summary_table(top_stats: dict, category_stats: dict, caption: str, tid_date_time: str) -> None:
+def build_category_summary_table(top_stats: dict, category_stats: dict, enable_hide_columns: bool, caption: str, tid_date_time: str) -> None:
 	"""
 	Print a table of defense stats for all players in the log.
 
@@ -566,6 +566,59 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 	rows = []
 	
 	rows.append('<div style="overflow-y: auto; width: 100%; overflow-x:auto;">\n\n')
+
+	if enable_hide_columns:
+		column_control_list = []
+		num_columns = 4
+		for stat in category_stats:
+			#<label><input type="checkbox" id="toggle-col5" checked> {{totalDmg}}</label> 
+			if stat =="damage":
+				column_control_list.append("{{totalDmg}}")
+				num_columns += 1
+			elif stat == "connectedDamageCount":
+				column_control_list.append("{{connectedDamageCount}}")
+				num_columns += 1
+			elif stat == "connectedDirectDamageCount":
+				column_control_list.append("{{connectedDirectDamageCount}}")
+				column_control_list.append("{{connectedIndirectDamageCount}}")
+				num_columns += 2
+			elif stat == "boonStripDownContribution":
+				column_control_list.append("{{boonStrips}}{{downed}}")
+				num_columns += 1
+			elif stat == "boonStripDownContributionTime":
+				column_control_list.append("{{boonStripsTime}}{{downed}}")
+				num_columns += 1
+			elif stat in defense_hits:
+				column_control_list.append("{{"+f"{defense_hits[stat]}"+"}}"+"[img width=16 [Hits|hits.png]]")
+				num_columns += 1
+			elif stat == "appliedCrowdControlDownContribution":
+				column_control_list.append("{{appliedCrowdControl}}{{downed}}")
+				num_columns += 1
+			elif stat == "appliedCrowdControlDurationDownContribution":
+				column_control_list.append("{{appliedCrowdControlDuration}}{{downed}}")
+				num_columns += 1
+			elif stat == "damageBarrier":
+				column_control_list.append("{{"+stat+"}}")
+				column_control_list.append("{{"+stat+"}} %")
+				num_columns += 2
+			else:
+				column_control_list.append("{{"+stat+"}}")
+				num_columns += 1
+		
+
+		style_info = "<style>\n"	
+		for i in range(4, num_columns):
+			if i == num_columns - 1:
+				style_info += f".col-toggle:has(#toggle-col{i+1}:not(:checked)) tr > *:nth-child({i+1}) {{\n  display: none;\n}}\n</style>\n<div class='col-toggle'>\n\n"
+			else:
+				style_info += f".col-toggle:has(#toggle-col{i+1}:not(:checked)) tr > *:nth-child({i+1}),\n"
+		hide_controls = "\n|tc-center|k\n|Uncheck to hide columns |"
+		for i, stat in enumerate(column_control_list):
+			hide_controls += f" <label><input type='checkbox' id='toggle-col{i+5}' checked> {stat}</label>"
+		hide_controls += "|h\n\n"
+		rows.append(style_info)
+		rows.append(hide_controls)
+
 	for toggle in ["Total", "Stat/1s", "Stat/60s"]:
 		rows.append(f'<$reveal stateTitle=<<currentTiddler>> stateField="category_radio" type="match" text="{toggle}" animate="yes">\n')
 		# Build the table header
@@ -657,6 +710,9 @@ def build_category_summary_table(top_stats: dict, category_stats: dict, caption:
 			rows.append(row)
 		rows.append(f'|<$radio field="category_radio" value="Total"> Total  </$radio> - <$radio field="category_radio" value="Stat/1s"> Stat/1s  </$radio> - <$radio field="category_radio" value="Stat/60s"> Stat/60s  </$radio> - {caption} Table|c')
 		rows.append("\n</$reveal>")
+
+	if enable_hide_columns:
+		rows.append("\n</div>\n") 		
 
 	rows.append("\n\n</div>")
 	#push table to tid_list for output
@@ -4915,7 +4971,10 @@ def send_profession_boon_support_embed(webhook_url: str, profession: str, prof_i
     """
     if len(data) <= 1:
         return
-	
+    if not webhook_url:
+        return
+    else:
+        print("WebHook URL: ", webhook_url)		
     # Limit name field to 12 characters
     for row in data[1:]:
         row[0] = str(row[0])[:12]
