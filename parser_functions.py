@@ -482,91 +482,132 @@ def get_commander_tag_data(fight_json):
 
 	return commander_tag_positions, earliest_death_time, has_died
 
-def get_player_death_on_tag(player, commander_tag_positions, dead_tag_mark, dead_tag, inch_to_pixel, polling_rate):
-	"""
-	Calculate the distance to the commander tag for each player in the log, and store it in the death_on_tag dictionary.
-	
-	Args:
-		player (dict): The player data.
-		commander_tag_positions (list): The positions of the commander tag, as a list of (x, y) coordinates.
-		dead_tag_mark (int): The mark at which the commander tag was last alive.
-		dead_tag (bool): Whether the commander tag was dead.
-		inch_to_pixel (float): The conversion factor between inches and pixels.
-		polling_rate (int): The rate at which the combat log is polled.
-	"""
-	name_prof = player['name'] + "|" + player['profession'] + "|" + get_player_account(player)
-	if name_prof not in death_on_tag:
-		death_on_tag[name_prof] = {
-		"name": player['name'],
-		"profession": player['profession'],
-		"account": get_player_account(player),
-		"distToTag": [],
-		"On_Tag": 0,
-		"Off_Tag": 0,
-		"Run_Back": 0,
-		"After_Tag_Death": 0,
-		"Total": 0,
-		"Ranges": [],
-		}
+def get_player_death_on_tag(
+    player,
+    commander_tag_positions,
+    dead_tag_mark,
+    dead_tag,
+    inch_to_pixel,
+    polling_rate,
+):
+    """
+    Calculate the distance to the commander tag for each player in the log,
+    and store it in the death_on_tag dictionary.
 
-	player_dist_to_tag = round(player['statsAll'][0]['distToCom']) if player['statsAll'][0]['distToCom'] != 'Infinity' else 0
+    Args:
+        player (dict): The player data.
+        commander_tag_positions (list[tuple[float, float]]): Positions of the commander tag.
+        dead_tag_mark (int): The mark at which the commander tag was last alive.
+        dead_tag (bool): Whether the commander tag was dead.
+        inch_to_pixel (float): Conversion factor between inches and pixels.
+        polling_rate (int): The rate at which the combat log is polled.
+    """
 
-	if player['combatReplayData']['dead'] and player['combatReplayData']['down'] and commander_tag_positions:
-		player_deaths = dict(player['combatReplayData']['dead'])
-		player_downs = dict(player['combatReplayData']['down'])
+    # helpers
+    def safe_position(positions, idx):
+        """Return a valid position from positions with bounds checking."""
+        if not positions:
+            return (0, 0)
+        if idx < len(positions):
+            return positions[idx]
+        elif idx - 1 < len(positions):
+            return positions[idx - 1]
+        return positions[-1]
 
-		for death_key, death_value in player_deaths.items():
-			if death_key < 0:  # Handle death on the field before main squad combat log starts
-				continue
+    def avg_distance(positions, tag_positions, poll, inch_to_pixel):
+        """Return average distance between player and tag up to poll index."""
+        distances = [
+            math.hypot(px - tx, py - ty)
+            for (px, py), (tx, ty) in zip(positions[:poll], tag_positions[:poll])
+        ]
+        if not distances:
+            return 0
+        return round((sum(distances) / len(distances)) / inch_to_pixel)
 
-			position_mark = max(1, math.floor(death_key / polling_rate))
-			player_positions = player['combatReplayData']['positions']
+    # Setup player entry
+    name_prof = f"{player.get('name', 'Unknown')}|{player.get('profession', 'Unknown')}|{get_player_account(player)}"
+    if name_prof not in death_on_tag:
+        death_on_tag[name_prof] = {
+            "name": player.get("name", ""),
+            "profession": player.get("profession", ""),
+            "account": get_player_account(player),
+            "distToTag": [],
+            "On_Tag": 0,
+            "Off_Tag": 0,
+            "Run_Back": 0,
+            "After_Tag_Death": 0,
+            "Total": 0,
+            "Ranges": [],
+        }
+    entry = death_on_tag[name_prof]
+
+    # Distance to commander (static)
+    stats_all = player.get("statsAll", [{}])
+    dist_to_com = stats_all[0].get("distToCom", "Infinity")
+    player_dist_to_tag = 0 if dist_to_com == "Infinity" else round(dist_to_com)
+
+    # Combat replay data
+    combat_data = player.get("combatReplayData", {})
+    if not combat_data or "positions" not in combat_data:
+        return  # nothing to process
+
+    player_positions = combat_data["positions"]
+    player_deaths = dict(combat_data.get("dead", {}))
+    player_downs = dict(combat_data.get("down", {}))
+    player_offset = math.floor(combat_data.get("start", 0) / polling_rate)
+
+    if not (player_deaths and player_downs and commander_tag_positions):
+        return  # no useful data
+
+    # Process deaths
+    for death_key, death_value in player_deaths.items():
+        if death_key < 0:
+            continue  # before squad combat log starts
+
+        position_mark = max(0, math.floor(death_key / polling_rate)) - player_offset
+
+        for down_key, down_value in player_downs.items():
 			
-			for down_key, down_value in player_downs.items():
-				if death_key == down_value:
-					# process data for downKey
-					x1, y1 = player_positions[position_mark]
-					#y1 = player_positions[position_mark][1]
-					x2, y2 = commander_tag_positions[position_mark]
-					#y2 = commander_tag_positions[position_mark][1]
-					death_distance = math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-					death_range = round(death_distance / inch_to_pixel)
-					death_on_tag[name_prof]["Total"] += 1
+            if death_key != down_value:
+                continue
 
-					if int(down_key) > int(dead_tag_mark) and dead_tag:
-						death_on_tag[name_prof]["After_Tag_Death"] += 1
+            # Player & Tag positions at death
+            x1, y1 = safe_position(player_positions, position_mark)
+            x2, y2 = safe_position(commander_tag_positions, position_mark)
 
-						# Calc Avg distance through dead tag final mark
-						player_dead_poll = max(1, int(dead_tag_mark / polling_rate))
-						player_distances = []
-						for position, tag_position in zip(player_positions[:player_dead_poll], commander_tag_positions[:player_dead_poll]):
-							delta_x = position[0] - tag_position[0]
-							delta_y = position[1] - tag_position[1]
-							player_distances.append(math.sqrt(delta_x * delta_x + delta_y * delta_y))
+            # Distance at death
+            death_distance = math.hypot(x1 - x2, y1 - y2)
+            death_range = round(death_distance / inch_to_pixel)
+            entry["Total"] += 1
 
-						player_dist_to_tag = round((sum(player_distances) / len(player_distances)) / inch_to_pixel)
-					else:
-						player_dead_poll = position_mark
-						player_positions = player['combatReplayData']['positions']
-						player_distances = []
-						for position, tag_position in zip(player_positions[:player_dead_poll], commander_tag_positions[:player_dead_poll]):
-							delta_x = position[0] - tag_position[0]
-							delta_y = position[1] - tag_position[1]
-							player_distances.append(math.sqrt(delta_x * delta_x + delta_y * delta_y))
-						player_dist_to_tag = round((sum(player_distances) / len(player_distances)) / inch_to_pixel)
+            # Average distance calculation
+            if int(down_key) > int(dead_tag_mark) and dead_tag:
+                # After commander tag death
+                player_dead_poll = max(1, int(dead_tag_mark / polling_rate))
+                player_dist_to_tag = avg_distance(
+                    player_positions, commander_tag_positions, player_dead_poll, inch_to_pixel
+                )
+                entry["After_Tag_Death"] += 1
+            else:
+                # Before tag death
+                player_dead_poll = position_mark
+                player_dist_to_tag = avg_distance(
+                    player_positions, commander_tag_positions, player_dead_poll, inch_to_pixel
+                )
 
-					if death_range <= On_Tag:
-						death_on_tag[name_prof]["On_Tag"] += 1
+            # Classification
+            if death_range <= On_Tag:
+                entry["On_Tag"] += 1
+            elif death_range <= Run_Back:
+                entry["Off_Tag"] += 1
+                entry["Ranges"].append(death_range)
+            else:
+                entry["Run_Back"] += 1
 
-					if death_range > On_Tag and death_range <= Run_Back:
-						death_on_tag[name_prof]["Off_Tag"] += 1
-						death_on_tag[name_prof]["Ranges"].append(death_range)
+    # Record static distance
+    if player_dist_to_tag <= Run_Back:
+        entry["distToTag"].append(player_dist_to_tag)
 
-					if death_range > Run_Back:
-						death_on_tag[name_prof]["Run_Back"] += 1
-
-	if player_dist_to_tag <= Run_Back:
-		death_on_tag[name_prof]["distToTag"].append(player_dist_to_tag)
 
 def get_player_fight_dps(dpsTargets: dict, name: str, profession: str, account: str, fight_num: int, fight_time: int) -> None:
 	"""
@@ -1128,15 +1169,14 @@ def get_buffs_data(buff_map: dict) -> None:
 		buff_id = buff
 		name = buff_map[buff]['name']
 		stacking = buff_map[buff]['stacking']
-		if 'icon' in buff_map[buff]:
-			icon = buff_map[buff]['icon']
-		else:
-			icon = "unknown.png"
+		icon = buff_map[buff].get('icon', 'unknown.png')
+		classification = buff_map[buff].get('classification', 'unknown')
 		if buff_id not in buff_data:
 			buff_data[buff_id] = {
 				'name': name,
 				'stacking': stacking,
-				'icon': icon
+				'icon': icon,
+				'classification': classification
 			}
 		
 def get_skills_data(skill_map: dict) -> None:
@@ -1150,10 +1190,7 @@ def get_skills_data(skill_map: dict) -> None:
 		skill_id = skill
 		name = skill_map[skill]['name']
 		auto_attack = skill_map[skill]['autoAttack']
-		if 'icon' in skill_map[skill]:
-			icon = skill_map[skill]['icon']
-		else:
-			icon = "unknown.png"
+		icon = skill_map[skill].get('icon', 'unknown.png')
 		if skill_id not in skill_data:
 			skill_data[skill_id] = {
 				'name': name,
@@ -1208,21 +1245,32 @@ def get_personal_mod_data(personal_damage_mods: dict) -> None:
 
 def get_personal_buff_data(personal_buffs: dict) -> None:
 	"""
-	Populate the personal_buff_data dictionary with buffs from personal_buffs.
+	Populate the global personal_buff_data dictionary with buffs from personal_buffs.
+
+	- Buff IDs are normalized into the format 'b<ID>'.
+	- Each profession gets its own list of buffs.
+	- A special 'total' list contains all unique buffs across professions.
 
 	Args:
-		personal_buffs (dict): A dictionary where keys are professions and values are lists of buff IDs.
+		personal_buffs (dict): Keys are professions, values are lists of buff IDs.
 	"""
+	if "total" not in personal_buff_data:
+		personal_buff_data["total"] = []
+
 	for profession, buffs in personal_buffs.items():
 		if profession not in personal_buff_data:
 			personal_buff_data[profession] = []
+
 		for buff_id in buffs:
-			# Convert the buff ID to the format used in buff_data
-			buff_id = "b" + str(buff_id)
-			if buff_id not in personal_buff_data[profession]:
-				personal_buff_data[profession].append(buff_id)
-				# Add the buff to the total list
-				personal_buff_data['total'].append(buff_id)
+			normalized = f"b{buff_id}"
+
+			# Add to profession if not already present
+			if normalized not in personal_buff_data[profession]:
+				personal_buff_data[profession].append(normalized)
+
+			# Add to total if not already present
+			if normalized not in personal_buff_data["total"]:
+				personal_buff_data["total"].append(normalized)
 
 def get_enemies_by_fight(fight_num: int, targets: dict) -> None:
 	"""
@@ -1342,28 +1390,34 @@ def get_stat_by_key(fight_num: int, player: dict, stat_category: str, name_prof:
 		stat_category (str): The category of stats to collect.
 		name_prof (str): The name of the profession.
 	"""
-	for stat, value in player[stat_category][0].items():
-		if stat in ['boonStripsTime', 'condiCleanseTime'] and value > 999999:
+	player_stats = player[stat_category][0]
+	active_time_seconds = player['activeTimes'][0] / 1000 if player['activeTimes'] else 0
+
+	for stat, value in player_stats.items():
+		if stat in ['boonStripsTime', 'condiCleanseTime', 'condiCleanseTimeSelf'] and value > 999999:
 			value = 0
 		if stat in ['distToCom', 'stackDist'] and value == "Infinity":
 			print(f"Invalid stat: {stat} with value: {value} for player: {player['name']}. The log for fight {fight_num} needs review.")
 			value = 0
 		if stat in config.high_scores:
-			active_time_seconds = player['activeTimes'][0] / 1000
 			high_score_value = round(value / active_time_seconds, 3) if active_time_seconds > 0 else 0
-			update_high_score(f"{stat_category}_{stat}", "{{"+player["profession"]+"}}"+player["name"]+"-"+get_player_account(player)+"-"+str(fight_num)+" | "+stat, high_score_value)
+			update_high_score(
+				f"{stat_category}_{stat}",
+				f"{{{{{player['profession']}}}}}{player['name']}-{get_player_account(player)}-{str(fight_num)} | {stat}",
+				high_score_value
+			)
 		top_stats['player'][name_prof][stat_category][stat] = top_stats['player'][name_prof][stat_category].get(stat, 0) + value
 		top_stats['fight'][fight_num][stat_category][stat] = top_stats['fight'][fight_num][stat_category].get(stat, 0) + value
 		top_stats['overall'][stat_category][stat] = top_stats['overall'][stat_category].get(stat, 0) + value
 
-		commander_tag = player['hasCommanderTag']
-		if commander_tag:
+		if player.get('hasCommanderTag'):
 			commander_name = f"{player['name']}|{player['profession']}|{get_player_account(player)}"
 			if commander_name not in commander_summary_data:
 				commander_summary_data[commander_name] = {stat_category: {}}
 			elif stat_category not in commander_summary_data[commander_name]:
 				commander_summary_data[commander_name][stat_category] = {}
 			commander_summary_data[commander_name][stat_category][stat] = commander_summary_data[commander_name][stat_category].get(stat, 0) + value
+
 
 def get_defense_hits_and_glances(fight_num: int, player: dict, stat_category: str, name_prof: str) -> None:
 	"""
@@ -1446,41 +1500,70 @@ def get_stat_by_target(fight_num: int, player: dict, stat_category: str, name_pr
 
 def get_stat_by_skill(fight_num: int, player: dict, stat_category: str, name_prof: str) -> None:
 	"""
-	Add player stats by skill to top_stats dictionary
+	Add player stats by skill to top_stats dictionary.
 
 	Args:
-		filename (str): The filename of the fight.
+		fight_num (int): The fight number.
 		player (dict): The player dictionary.
 		stat_category (str): The category of stats to collect.
 		name_prof (str): The name of the profession.
 	"""
+
+	# Defensive guard: skip if no data for this category
+	if stat_category not in player or not player[stat_category]:
+		return
+
 	for skill in player[stat_category][0]:
-		if skill:
-			skill_id = skill['id']
-			if skill_id not in top_stats['player'][name_prof][stat_category]:
-				top_stats['player'][name_prof][stat_category][skill_id] = {}
-			if skill_id not in top_stats['fight'][fight_num][stat_category]:
-				top_stats['fight'][fight_num][stat_category][skill_id] = {}
-			if skill_id not in top_stats['overall'][stat_category]:
-				top_stats['overall'][stat_category][skill_id] = {}
+		if not skill or "id" not in skill:
+			continue
 
-			for stat, value in skill.items():
-				if stat != 'id':
-					if stat == 'max':
-						update_high_score(f"{stat_category}_{stat}", "{{"+player["profession"]+"}}"+player["name"]+"-"+get_player_account(player)+"-"+str(fight_num)+" | "+str(skill_id), value)	
-					top_stats['player'][name_prof][stat_category][skill_id][stat] = top_stats['player'][name_prof][stat_category][skill_id].get(stat, 0) + value
-					top_stats['fight'][fight_num][stat_category][skill_id][stat] = top_stats['fight'][fight_num][stat_category][skill_id].get(stat, 0) + value
-					top_stats['overall'][stat_category][skill_id][stat] = top_stats['overall'][stat_category][skill_id].get(stat, 0) + value
+		skill_id = skill["id"]
 
-					if player['hasCommanderTag']:
-						commander_name = f"{player['name']}|{player['profession']}|{get_player_account(player)}"
-						if skill_id not in commander_summary_data[commander_name][stat_category]:
-							commander_summary_data[commander_name][stat_category][skill_id] = {}
-						if stat not in commander_summary_data[commander_name][stat_category][skill_id]:
-							commander_summary_data[commander_name][stat_category][skill_id][stat] = 0
+		# Ensure dict structure exists
+		for level in ("player", "fight", "overall"):
+			if level == "player":
+				container = top_stats[level][name_prof][stat_category]
+			elif level == "fight":
+				container = top_stats[level][fight_num][stat_category]
+			else:  # "overall"
+				container = top_stats[level][stat_category]
 
-						commander_summary_data[commander_name][stat_category][skill_id][stat] += value
-						#commander_summary_data[name_prof][stat_category][skill_id].get(stat, 0) + value	 
+			if skill_id not in container:
+				container[skill_id] = {}
+
+		# Process each stat for this skill
+		for stat, value in skill.items():
+			if stat == "id":
+				continue
+
+			# Update high score tracking
+			if stat == "max":
+				update_high_score(
+					f"{stat_category}_{stat}",
+					f"{{{{{player['profession']}}}}}{player['name']}-{get_player_account(player)}-{fight_num} | {skill_id}",
+					value,
+				)
+
+			# Aggregate into top_stats
+			top_stats["player"][name_prof][stat_category][skill_id][stat] = (
+				top_stats["player"][name_prof][stat_category][skill_id].get(stat, 0) + value
+			)
+			top_stats["fight"][fight_num][stat_category][skill_id][stat] = (
+				top_stats["fight"][fight_num][stat_category][skill_id].get(stat, 0) + value
+			)
+			top_stats["overall"][stat_category][skill_id][stat] = (
+				top_stats["overall"][stat_category][skill_id].get(stat, 0) + value
+			)
+
+			# Commander-specific summary
+			if player.get("hasCommanderTag"):
+				commander_name = f"{player['name']}|{player['profession']}|{get_player_account(player)}"
+				if skill_id not in commander_summary_data[commander_name][stat_category]:
+					commander_summary_data[commander_name][stat_category][skill_id] = {}
+
+				commander_summary_data[commander_name][stat_category][skill_id][stat] = (
+					commander_summary_data[commander_name][stat_category][skill_id].get(stat, 0) + value
+				) 
 
 def get_buff_uptimes(fight_num: int, player: dict, group: str, stat_category: str, name_prof: str, fight_duration: int, active_time: int) -> None:
 	"""
@@ -2813,7 +2896,6 @@ def parse_file(file_path, fight_num, guild_data, fight_data_charts):
 		# skip players not in squad
 		if player['notInSquad']:
 			continue
-
 		name = player['name']
 		profession = player['profession']
 		account = get_player_account(player)
@@ -2829,7 +2911,7 @@ def parse_file(file_path, fight_num, guild_data, fight_data_charts):
 		combat_time = round(sum_breakpoints(get_combat_time_breakpoints(player)) / 1000)
 		if not combat_time:
 			continue
-
+		
 		if 'teamID' in player:
 			team = player['teamID']
 		else:

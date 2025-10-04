@@ -56,6 +56,7 @@ team_colors = {
     705: "Red",
     706: "Red",
     882: "Red",
+    885: "Red",
     2520: "Red",
     2739: "Green",
     2741: "Green",
@@ -132,6 +133,7 @@ pull_skills = [
     "s42449",   #"Chapter 3: Heated Rebuke"
     "s5996",    #Magnet
     "s5747",    #Magnetic Shield
+    "s76530",   #Magnetic Bomb
     "s27917",   #Call to Anguish
     "s31100",   #Call to Anguish
     "s29558",   #Glyph of the Tides

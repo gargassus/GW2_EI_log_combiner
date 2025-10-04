@@ -213,23 +213,125 @@ exclude_skill_ids = [
 
 profession_color = {
 	##WARRIORS
-	"Warrior":"#FF9933", "Berserker":"#FFA750", "Spellbreaker":"#FFB66D", "Bladesworn":"#FFC48A",
+	"Warrior":"#FF9933", "Berserker":"#FFA750", "Spellbreaker":"#FFB66D", "Bladesworn":"#FFC48A", "Paragon": "#FFD2A7",
 	##GUARDIANS
-	"Guardian":"#3399cc",	"Dragonhunter":"#50A7D3", "Firebrand":"#6DB6DA", "Willbender":"#8AC4E1",
+	"Guardian":"#3399cc",	"Dragonhunter":"#50A7D3", "Firebrand":"#6DB6DA", "Willbender":"#8AC4E1", "Luminary":"#A7D2E8",
 	##REVENANTS
-	"Revenant":"#CC6342", 	"Herald":"#D3795D", "Renegade":"#DA8F78", "Vindicator":"#E1A593",
+	"Revenant":"#CC6342", 	"Herald":"#D3795D", "Renegade":"#DA8F78", "Vindicator":"#E1A593", "Conduit": "#E7B7AE",
 	##ENGINEERS
-	"Engineer":"#996633",	"Scrapper":"#A77B50",	"Holosmith":"#B6916D", "Mechanist":"#C4A78A",
+	"Engineer":"#996633",	"Scrapper":"#A77B50",	"Holosmith":"#B6916D", "Mechanist":"#C4A78A", "Amalgam": "#D2B6A7",
 	##RANGERS
-	"Ranger":"#66CC33", "Druid":"#7BD350",	"Soulbeast":"#91DA6D", "Untamed":"#A7E18A",
+	"Ranger":"#66CC33", "Druid":"#7BD350",	"Soulbeast":"#91DA6D", "Untamed":"#A7E18A", "Galeshot": "#BDE7A7",
 	##THIEVES
-	"Thief":"#CC6666", "Daredevil":"#D37B7B", "Deadeye":"#DA9191", "Specter":"#E1A7A7",
+	"Thief":"#CC6666", "Daredevil":"#D37B7B", "Deadeye":"#DA9191", "Specter":"#E1A7A7", "Antiquary": "#E8BDBD",
 	##ELEMENTALISTS
-	"Elementalist":"#EC5752", "Tempest":"#EE6F6A", "Weaver":"#F18783",	"Catalyst":"#F49F9C",
+	"Elementalist":"#EC5752", "Tempest":"#EE6F6A", "Weaver":"#F18783",	"Catalyst":"#F49F9C", "Evoker": "#F6B7B5",
 	#MESMERS
-	"Mesmer":"#993399", "Chronomancer":"#A750A7", "Mirage":"#B66DB6", "Virtuoso":"#C48AC4",
+	"Mesmer":"#993399", "Chronomancer":"#A750A7", "Mirage":"#B66DB6", "Virtuoso":"#C48AC4", "Troubadour": "#D2A7D2",
 	##NECROMANCERS
-	"Necromancer":"#339966", "Reaper":"#50A77B", "Scourge":"#6DB691", "Harbinger":"#8AC4A7"
+	"Necromancer":"#339966", "Reaper":"#50A77B", "Scourge":"#6DB691", "Harbinger":"#8AC4A7", "Ritualist": "#A7D2BD",
+    ##Beta
+	"Unknown":"#FFFFFF",
+}
+
+profession_icons = {
+	##WARRIORS
+	"Warrior":"https://wiki.guildwars2.com/images/2/28/Warrior_tango_icon_48px.png",
+	"Berserker":"https://wiki.guildwars2.com/images/7/70/Berserker_tango_icon_48px.png",
+	"Spellbreaker":"https://wiki.guildwars2.com/images/4/42/Spellbreaker_tango_icon_48px.png",
+	"Bladesworn":"https://wiki.guildwars2.com/images/f/f8/Bladesworn_tango_icon_48px.png",
+	"Paragon": "Paragon_tango_icon_48px.png",
+	##GUARDIANS
+	"Guardian":"https://wiki.guildwars2.com/images/5/53/Guardian_tango_icon_48px.png",
+	"Dragonhunter":"https://wiki.guildwars2.com/images/f/fe/Dragonhunter_tango_icon_48px.png",
+	"Firebrand":"https://wiki.guildwars2.com/images/f/ff/Firebrand_tango_icon_48px.png",
+	"Willbender":"https://wiki.guildwars2.com/images/d/dd/Willbender_tango_icon_48px.png",
+	"Luminary":"Luminary_tango_icon_48px.png",
+	##REVENANTS
+	"Revenant":"https://wiki.guildwars2.com/images/5/53/Revenant_tango_icon_48px.png",
+ 	"Herald":"https://wiki.guildwars2.com/images/8/8f/Herald_tango_icon_48px.png",
+	"Renegade":"https://wiki.guildwars2.com/images/4/4c/Renegade_tango_icon_48px.png",
+	"Vindicator":"https://wiki.guildwars2.com/images/d/dd/Vindicator_tango_icon_48px.png",
+	"Conduit": "Conduit_tango_icon_48px.png",
+	##ENGINEERS
+	"Engineer":"https://wiki.guildwars2.com/images/d/dd/Engineer_tango_icon_48px.png",
+	"Scrapper":"https://wiki.guildwars2.com/images/4/4a/Scrapper_tango_icon_48px.png",
+	"Holosmith":"https://wiki.guildwars2.com/images/4/4f/Holosmith_tango_icon_48px.png",
+	"Mechanist":"https://wiki.guildwars2.com/images/f/f5/Mechanist_tango_icon_48px.png",
+	"Amalgam": "Amalgam_tango_icon_48px.png",
+	##RANGERS
+	"Ranger":"https://wiki.guildwars2.com/images/b/b5/Ranger_tango_icon_48px.png",
+	"Druid":"https://wiki.guildwars2.com/images/9/91/Druid_tango_icon_48px.png",
+	"Soulbeast":"https://wiki.guildwars2.com/images/4/4f/Soulbeast_tango_icon_48px.png",
+	"Untamed":"https://wiki.guildwars2.com/images/9/90/Untamed_tango_icon_48px.png", 
+	"Galeshot": "Galeshot_tango_icon_48px.png",
+	##THIEVES
+	"Thief":"https://wiki.guildwars2.com/images/c/cd/Thief_tango_icon_48px.png", 
+	"Daredevil":"https://wiki.guildwars2.com/images/6/61/Daredevil_tango_icon_48px.png",
+	"Deadeye":"https://wiki.guildwars2.com/images/8/81/Deadeye_tango_icon_48px.png",
+	"Specter":"https://wiki.guildwars2.com/images/d/d7/Specter_tango_icon_48px.png",
+	"Antiquary": "Antiquary_tango_icon_48px.png",
+	##ELEMENTALISTS
+	"Elementalist":"https://wiki.guildwars2.com/images/5/55/Elementalist_tango_icon_48px.png",
+	"Tempest":"https://wiki.guildwars2.com/images/4/40/Tempest_tango_icon_48px.png",
+	"Weaver":"https://wiki.guildwars2.com/images/2/2f/Weaver_tango_icon_48px.png",
+	"Catalyst":"https://wiki.guildwars2.com/images/0/08/Catalyst_tango_icon_48px.png",
+	"Evoker": "Evoker_tango_icon_48px.png",
+	#MESMERS
+	"Mesmer":"https://wiki.guildwars2.com/images/3/38/Mesmer_tango_icon_48px.png",
+	"Chronomancer":"https://wiki.guildwars2.com/images/f/f2/Chronomancer_tango_icon_48px.png",
+	"Mirage":"https://wiki.guildwars2.com/images/9/94/Mirage_tango_icon_48px.png",
+	"Virtuoso":"https://wiki.guildwars2.com/images/2/21/Virtuoso_tango_icon_48px.png",
+	"Troubadour": "Troubadour_tango_icon_48px.png",
+	##NECROMANCERS
+	"Necromancer":"https://wiki.guildwars2.com/images/e/ea/Necromancer_tango_icon_48px.png",
+	"Reaper":"https://wiki.guildwars2.com/images/3/39/Reaper_tango_icon_48px.png",
+	"Scourge":"https://wiki.guildwars2.com/images/4/49/Scourge_tango_icon_48px.png",
+	"Harbinger":"https://wiki.guildwars2.com/images/e/eb/Harbinger_tango_icon_48px.png",
+	"Ritualist": "Ritualist_tango_icon_48px.png",
+    ##Beta
+	"Unknown":"Unknown_icon_png",
+}
+
+profession_discord_color = {
+    ## WARRIORS
+    "Warrior":     0xFF9933, "Berserker": 0xFFA750, "Spellbreaker": 0xFFB66D,
+    "Bladesworn":  0xFFC48A, "Paragon":   0xFFD2A7,
+
+    ## GUARDIANS
+    "Guardian":    0x3399CC, "Dragonhunter": 0x50A7D3, "Firebrand": 0x6DB6DA,
+    "Willbender":  0x8AC4E1, "Luminary":    0xA7D2E8,
+
+    ## REVENANTS
+    "Revenant":    0xCC6342, "Herald":   0xD3795D, "Renegade": 0xDA8F78,
+    "Vindicator":  0xE1A593, "Conduit":  0xE7B7AE,
+
+    ## ENGINEERS
+    "Engineer":    0x996633, "Scrapper": 0xA77B50, "Holosmith": 0xB6916D,
+    "Mechanist":   0xC4A78A, "Amalgam":  0xD2B6A7,
+
+    ## RANGERS
+    "Ranger":      0x66CC33, "Druid":   0x7BD350, "Soulbeast": 0x91DA6D,
+    "Untamed":     0xA7E18A, "Galeshot": 0xBDE7A7,
+
+    ## THIEVES
+    "Thief":       0xCC6666, "Daredevil": 0xD37B7B, "Deadeye": 0xDA9191,
+    "Specter":     0xE1A7A7, "Antiquary": 0xE8BDBD,
+
+    ## ELEMENTALISTS
+    "Elementalist":0xEC5752, "Tempest": 0xEE6F6A, "Weaver": 0xF18783,
+    "Catalyst":    0xF49F9C, "Evoker":  0xF6B7B5,
+
+    ## MESMERS
+    "Mesmer":      0x993399, "Chronomancer": 0xA750A7, "Mirage": 0xB66DB6,
+    "Virtuoso":    0xC48AC4, "Troubadour": 0xD2A7D2,
+
+    ## NECROMANCERS
+    "Necromancer": 0x339966, "Reaper": 0x50A77B, "Scourge": 0x6DB691,
+    "Harbinger":   0x8AC4A7, "Ritualist": 0xA7D2BD,
+
+    ## BETA / Unknown
+    "Unknown":     0xFFFFFF,
 }
 
 leaderboard_stats = {
