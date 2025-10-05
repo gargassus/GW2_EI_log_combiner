@@ -111,9 +111,9 @@ if __name__ == '__main__':
 	excel_path = config_ini.get('TopStatsCfg', 'excel_path', fallback='.')
 
 	skill_casts_by_role_limit = config_ini.getint('TopStatsCfg', 'skill_casts_by_role_limit', fallback=40)
+	enable_hide_columns = config_ini.getboolean('TopStatsCfg', 'hide_columns', fallback=False)
 
-
-	webhook_url = config_ini.get('DiscordCfg', 'webhook_url', fallback=None)
+	webhook_url = config_ini.get('DiscordCfg', 'webhook_url', fallback=False)
 
 	# Ensure output directories exist
 	os.makedirs(db_path, exist_ok=True)
@@ -185,13 +185,13 @@ if __name__ == '__main__':
 	build_shared_damage_modifier_summary(top_stats, damage_mod_data, "Shared Damage Mods", tid_date_time)
 		
 	defense_stats = config_output.defenses_table
-	build_category_summary_table(top_stats, defense_stats, "Defenses", tid_date_time)
+	build_category_summary_table(top_stats, defense_stats, enable_hide_columns, "Defenses", tid_date_time)
 
 	support_stats = config_output.support_table
-	build_category_summary_table(top_stats, support_stats, "Support", tid_date_time)
+	build_category_summary_table(top_stats, support_stats, enable_hide_columns, "Support", tid_date_time)
 
 	offensive_stats = config_output.offensive_table
-	build_category_summary_table(top_stats, offensive_stats, "Offensive", tid_date_time)
+	build_category_summary_table(top_stats, offensive_stats, enable_hide_columns, "Offensive", tid_date_time)
 
 	boons = config_output.boons
 	build_uptime_summary(top_stats, boons, buff_data, "Uptimes", tid_date_time)
@@ -391,10 +391,10 @@ if __name__ == '__main__':
 
 		for profession, support_data in boon_support_data.items():
 			print("Sending boon support data for " + profession)
-			print(support_data)
 			send_profession_boon_support_embed(webhook_url, profession, profession_icons[profession], discord_colors[profession], tid_date_time, support_data)
 	else:
 		if not support_profs: 
 			print("No support professions found")
 		if not webhook_url:
 			print("No webhook URL found")
+	input("Press Enter to exit...")
