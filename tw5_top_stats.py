@@ -113,7 +113,7 @@ if __name__ == '__main__':
 	skill_casts_by_role_limit = config_ini.getint('TopStatsCfg', 'skill_casts_by_role_limit', fallback=40)
 	enable_hide_columns = config_ini.getboolean('TopStatsCfg', 'hide_columns', fallback=False)
 
-	webhook_url = config_ini.getboolean('DiscordCfg', 'webhook_url', fallback=False)
+	webhook_url = config_ini.get('DiscordCfg', 'webhook_url', fallback=False)
 
 	# Ensure output directories exist
 	os.makedirs(db_path, exist_ok=True)
@@ -397,3 +397,4 @@ if __name__ == '__main__':
 			print("No support professions found")
 		if not webhook_url:
 			print("No webhook URL found")
+	input("Press Enter to exit...")
